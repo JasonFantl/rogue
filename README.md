@@ -26,3 +26,6 @@ From the root directory
 go run main.go
 ```
 
+### handy resources
+https://trystans.blogspot.com/2011/08/roguelike-tutorial-03-scrolling-through.html
+https://github.com/wadsworj/rogue
