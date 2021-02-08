@@ -1,12 +1,38 @@
 # Rogue
-
-Simple overview of use/purpose.
-
-## Description
-
-An in-depth paragraph about your project and overview of use.
-
-## Getting Started
+## TODO
+* ECS
+    * Components
+        * Display
+        * Position
+        * Controller
+        * Blocking
+        * Movable
+        * Handshake
+    * Systems
+        * Display
+        * Movement
+        * Handshake
+* Moveable Character
+* Walls
+* Inventory
+* Items (only need to be picked up)
+* Monsters
+    * Movement
+    * Attacking
+* Health
+* Field of vision
+* Map memory
+* Leveling
+    * STR
+    * AC
+* Room generation
+* level exit
+* Inventory slots
+* usable Items
+* Traps
+* Throwable items
+* Shop keeper
+* More complex monster AI (Fight each other, have inventory, field of view, etc)
 
 ### Dependencies
 
