@@ -1,34 +1,67 @@
 package main
 
 import (
+	"fmt"
+
+	"github.com/gdamore/tcell/v2"
+	"github.com/jasonfantl/rogue/ecs"
 	"github.com/jasonfantl/rogue/gui"
 )
-
-var x, y = 0, 1
 
 func main() {
 
 	gui.Setup()
-	quit := false
 
-	for !quit {
-		gui.Show(x, y)
-		key, pressed := gui.GetKeyPress()
+	ecsManager := ecs.New()
 
-		if pressed {
-			switch key {
-			case 'q':
-				quit = true
-				gui.Quit()
-			case 'w':
-				y = y - 1
-			case 'a':
-				x = x - 1
-			case 's':
-				y = y + 1
-			case 'd':
-				x = x + 1
-			}
-		}
+	displaySystem := ecs.SystemDisplay{}
+	displaySystem.SetSize(10)
+	ecsManager.AddSystem(&displaySystem)
+
+	playerControlSystem := ecs.SystemControl{}
+	ecsManager.AddSystem(&playerControlSystem)
+
+	player := []ecs.Component{
+		{
+			ID: ecs.DISPLAY,
+			Data: ecs.Display{
+				Character: "@",
+			},
+		},
+		{
+			ID: ecs.POSITION,
+			Data: ecs.Position{
+				X: 1,
+				Y: 1,
+			},
+		},
+		{
+			ID: ecs.CONTROLLER,
+			Data: ecs.Controller{
+				Up:      tcell.KeyUp,
+				Down:    tcell.KeyDown,
+				Left:    tcell.KeyLeft,
+				Right:   tcell.KeyRight,
+				Quit:    tcell.KeyEsc,
+				HasQuit: false,
+			},
+		},
 	}
+
+	playerID := ecsManager.AddEntity(player)
+
+	hasQuit := func() bool {
+		data, ok := ecsManager.Lookup(playerID, ecs.CONTROLLER)
+		if ok {
+			return data.(ecs.Controller).HasQuit
+		}
+		return true
+	}
+
+	fmt.Println("starting loop")
+
+	for !hasQuit() {
+		ecsManager.Run()
+	}
+	gui.Quit()
 }

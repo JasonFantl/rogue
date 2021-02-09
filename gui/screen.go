@@ -20,15 +20,6 @@ func Setup() {
 
 	// Set default text style
 	s.SetStyle(defStyle)
-
-	s.Clear()
-}
-
-func Show(x, y int) {
-	s.Clear()
-	drawText(0, 0, "Use WASD to move and q to quit")
-	drawText(x, y, "@")
-	s.Show()
 }
 
 func drawText(x, y int, text string) {
@@ -39,4 +30,17 @@ func drawText(x, y int, text string) {
 
 func Quit() {
 	s.Fini()
+}
+
+func Show(toDisplay [][]string) {
+	s.Clear()
+	drawText(0, 0, "Use WASD to move and esc to quit")
+	for x := range toDisplay {
+		for y := range toDisplay[x] {
+			invertedY := cap(toDisplay) - y
+			drawText(x, invertedY, toDisplay[x][y])
+		}
+	}
+
+	s.Show()
 }
