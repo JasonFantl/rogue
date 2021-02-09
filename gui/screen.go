@@ -32,13 +32,13 @@ func Quit() {
 	s.Fini()
 }
 
-func Show(toDisplay [][]string) {
+func Show(toDisplay [][]rune) {
 	s.Clear()
-	drawText(0, 0, "Use WASD to move and esc to quit")
+	drawText(0, 0, "Use arrow keys to move and esc to quit")
 	for x := range toDisplay {
 		for y := range toDisplay[x] {
 			invertedY := cap(toDisplay) - y
-			drawText(x, invertedY, toDisplay[x][y])
+			s.SetContent(x, invertedY, toDisplay[x][y], nil, defStyle)
 		}
 	}
 

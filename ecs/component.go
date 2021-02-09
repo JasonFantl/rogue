@@ -8,8 +8,11 @@ type ComponentID uint64
 
 const (
 	POSITION ComponentID = iota
+	DESIRED_MOVE
 	DISPLAY
 	CONTROLLER
+	QUIT_FLAG
+	BLOCKABLE_TAG
 )
 
 type Component struct {
@@ -21,11 +24,22 @@ type Position struct {
 	X, Y int
 }
 
+type DesiredMove struct {
+	X, Y int
+}
+
 type Display struct {
-	Character string
+	Character rune
+	Priority  int
 }
 
 type Controller struct {
 	Up, Down, Left, Right, Quit tcell.Key
-	HasQuit                     bool
+}
+
+type QuitFlag struct {
+	HasQuit bool
+}
+
+type BlockableTag struct {
 }
