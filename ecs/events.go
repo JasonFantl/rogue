@@ -9,7 +9,8 @@ type Event struct {
 }
 
 const (
-	MOVE_EVENT EventID = iota
+	TIMESTEP EventID = iota
+	MOVE_EVENT
 	TRY_MOVE_EVENT
 	QUIT_EVENT
 	DISPLAY_EVENT
@@ -17,6 +18,8 @@ const (
 	TRY_PICK_UP_EVENT
 	PICKED_UP_EVENT
 )
+
+type EventTimeStep struct{}
 
 type EventMove struct {
 	x, y int

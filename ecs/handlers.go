@@ -40,69 +40,71 @@ type DisplayHandler struct {
 
 func (s *DisplayHandler) handleEvent(m *Manager, event Event) (returnEvents []Event) {
 
-	/////////////// GRID /////////////////
-	// need to keep track of priorities
-	// maps 2d pos to unique int
-	priorities := make(map[int]int)
-	maxX := 0
+	if event.ID == DISPLAY_EVENT {
+		/////////////// GRID /////////////////
+		// need to keep track of priorities
+		// maps 2d pos to unique int
+		priorities := make(map[int]int)
+		maxX := 0
 
-	// get new positions, the looping is currently as horrible as I can make it
-	for entity, displayData := range m.lookupTable[DISPLAY] {
-		positionData, positionOk := m.lookupTable[POSITION][entity]
+		// get new positions, the looping is currently as horrible as I can make it
+		for entity, displayData := range m.lookupTable[DISPLAY] {
+			positionData, positionOk := m.lookupTable[POSITION][entity]
 
-		if positionOk {
-			positionComponent := positionData.(Position)
-			displayComponent := displayData.(Display)
+			if positionOk {
+				positionComponent := positionData.(Position)
+				displayComponent := displayData.(Display)
 
-			x := positionComponent.X
-			y := positionComponent.Y
+				x := positionComponent.X
+				y := positionComponent.Y
 
-			if x > maxX {
-				maxX = x
-			}
+				if x > maxX {
+					maxX = x
+				}
 
-			uniqueID := x + (x+y)*(x+y+1)/2
+				uniqueID := x + (x+y)*(x+y+1)/2
 
-			currentPriority, ok := priorities[uniqueID]
+				currentPriority, ok := priorities[uniqueID]
 
-			if !ok || displayComponent.Priority > currentPriority {
-				gui.DrawTile(x, y, displayComponent.Character, displayComponent.Style)
-				priorities[uniqueID] = displayComponent.Priority
+				if !ok || displayComponent.Priority > currentPriority {
+					gui.DrawTile(x, y, displayComponent.Character, displayComponent.Style)
+					priorities[uniqueID] = displayComponent.Priority
+				}
 			}
 		}
-	}
 
-	///////////// INVENTORY ///////////////////
+		///////////// INVENTORY ///////////////////
 
-	currentLineNum := 1
-	for entity, inventoryData := range m.lookupTable[INVENTORY] {
+		currentLineNum := 1
+		for entity, inventoryData := range m.lookupTable[INVENTORY] {
 
-		inventoryComponent := inventoryData.(Inventory)
+			inventoryComponent := inventoryData.(Inventory)
 
-		// if we can, print information
-		informationData, informationOk := m.lookupTable[INFORMATION][entity]
-		if informationOk {
-			informationComponent := informationData.(Information)
-			gui.DrawText(maxX+3, currentLineNum, informationComponent.Name)
-			currentLineNum++
-		}
-
-		for _, entity := range inventoryComponent.items {
-			informationData := m.lookupTable[INFORMATION][entity]
-			informationComponent, informationOk := informationData.(Information)
-
+			// if we can, print information
+			informationData, informationOk := m.lookupTable[INFORMATION][entity]
 			if informationOk {
-				itemData := informationComponent.Name + " : " + informationComponent.Details
-				gui.DrawText(maxX+5, currentLineNum, itemData)
-				currentLineNum++
-			} else {
-				gui.DrawText(maxX+5, currentLineNum, "? : no information on item")
+				informationComponent := informationData.(Information)
+				gui.DrawText(maxX+3, currentLineNum, informationComponent.Name)
 				currentLineNum++
 			}
-		}
-	}
 
-	gui.Show()
+			for _, entity := range inventoryComponent.items {
+				informationData := m.lookupTable[INFORMATION][entity]
+				informationComponent, informationOk := informationData.(Information)
+
+				if informationOk {
+					itemData := informationComponent.Name + " : " + informationComponent.Details
+					gui.DrawText(maxX+5, currentLineNum, itemData)
+					currentLineNum++
+				} else {
+					gui.DrawText(maxX+5, currentLineNum, "? : no information on item")
+					currentLineNum++
+				}
+			}
+		}
+
+		gui.Show()
+	}
 
 	return returnEvents
 }
@@ -231,10 +233,9 @@ func (s *EventPrinterHandler) handleEvent(m *Manager, event Event) (returnEvents
 		stringifiedEvent = fmt.Sprintf("%T : %s : %v", event.data, event.data.(EventError).err, event.entity)
 	}
 
+	// keep in mind this wont display any errors between display frames
+	// would have to call gui.Show() on every event to make sure we see it, but that messes with the visuals
 	gui.UpdateErrors(stringifiedEvent)
-
-	// disbale this later, causes artifacts, but for now helps debug
-	gui.Show()
 
 	return returnEvents
 }

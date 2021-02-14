@@ -1,6 +1,8 @@
 package ecs
 
-import "github.com/jasonfantl/rogue/gui"
+import (
+	"github.com/jasonfantl/rogue/gui"
+)
 
 // TODO:
 // quick lookup function based on location
@@ -29,7 +31,10 @@ func New() Manager {
 
 func (m *Manager) Start() {
 	// make sure to display
-	m.sendEvent(Event{DISPLAY_EVENT, EventDisplayTrigger{}, 0})
+	startingEvents := []Event{
+		Event{DISPLAY_EVENT, EventDisplayTrigger{}, 0},
+	}
+	m.sendEvents(startingEvents)
 }
 
 func (m *Manager) HasQuit() bool {
@@ -99,40 +104,39 @@ func (m *Manager) getEntitiesFromPos(x, y int) (entities []Entity) {
 }
 
 func (m *Manager) sendEvent(event Event) {
+	events := []Event{event}
+	m.sendEvents(events)
+}
 
-	// manager special cases
-	switch event.ID {
-	case QUIT_EVENT:
-		m.hasQuit = true
-	case TRY_MOVE_EVENT:
-		gui.Clear()
-	}
+func (m *Manager) sendEvents(events []Event) {
 
-	//////////////////////////////////////////////////////
+	// we re-display every time an independent event is fired, must clear the screen first
+	gui.Clear()
+
 	// queue style event handling
-	eventsToHandle := []Event{event}
+	for len(events) > 0 {
+		sendingEvent := events[0] // pop
+		events = events[1:]       // dequeue
 
-	for len(eventsToHandle) > 0 {
-		sendingEvent := eventsToHandle[0]   // pop
-		eventsToHandle = eventsToHandle[1:] // dequeue
+		// special manager case
+		if sendingEvent.ID == QUIT_EVENT {
+			m.hasQuit = true
+		}
 
 		for _, eventHandler := range m.eventHandlers {
 
 			respondingEvents := eventHandler.handleEvent(m, sendingEvent)
 
-			eventsToHandle = append(eventsToHandle, respondingEvents...)
+			events = append(events, respondingEvents...)
 		}
 
-		if len(eventsToHandle) > 100 {
+		if len(events) > 100 {
 			break
 		}
 	}
 
-	//////////////////////////////////////////////////////////
-	// manager special cases
-	switch event.ID {
-	case TRY_MOVE_EVENT:
-		// display should happen only on player move, and after all other events
-		m.sendEvent(Event{DISPLAY_EVENT, EventDisplayTrigger{}, 0})
+	// make sure to update the screen after events have all triggered
+	for _, eventHandler := range m.eventHandlers {
+		eventHandler.handleEvent(m, Event{DISPLAY_EVENT, EventDisplayTrigger{}, 0})
 	}
 }
