@@ -13,15 +13,10 @@ func GetKeyPress() (tcell.Key, bool) {
 	case *tcell.EventResize:
 		s.Sync()
 	case *tcell.EventKey:
+		if ev.Key() == tcell.KeyRune {
+			return tcell.Key(ev.Rune()), true
+		}
 		return ev.Key(), true
-		// if ev.Key() == tcell.KeyEscape || ev.Key() == tcell.KeyCtrlC {
-		// 	// quit()
-		// 	return 'q', true
-		// } else if ev.Key() == tcell.KeyCtrlL {
-		// 	s.Sync()
-		// } else {
-		// 	return ev.Rune(), true
-		// }
 	}
 
 	// nothing happened

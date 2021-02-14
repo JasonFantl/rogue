@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 
-	"github.com/gdamore/tcell/v2"
 	"github.com/jasonfantl/rogue/ecs"
 	"github.com/jasonfantl/rogue/gui"
 )
@@ -15,109 +14,33 @@ func main() {
 
 	ecsManager := ecs.New()
 
-	playerControlSystem := ecs.SystemControl{}
-	ecsManager.AddSystem(&playerControlSystem)
+	/////// SYSTEMS //////////////
 
-	movementSystem := ecs.SystemMove{}
-	ecsManager.AddSystem(&movementSystem)
+	keyboardListener := ecs.InputSystem{}
 
-	displaySystem := ecs.SystemDisplay{}
-	displaySystem.SetSize(10)
-	ecsManager.AddSystem(&displaySystem)
+	ecsManager.AddSystem(&keyboardListener)
 
-	player := []ecs.Component{
-		{
-			ID: ecs.DISPLAY,
-			Data: ecs.Display{
-				Character: '@',
-				Priority:  999,
-			},
-		},
-		{
-			ID: ecs.POSITION,
-			Data: ecs.Position{
-				X: 1,
-				Y: 1,
-			},
-		},
-		{
-			ID: ecs.DESIRED_MOVE,
-			Data: ecs.DesiredMove{
-				X: 0,
-				Y: 0,
-			},
-		},
-		{
-			ID: ecs.CONTROLLER,
-			Data: ecs.Controller{
-				Up:    tcell.KeyUp,
-				Down:  tcell.KeyDown,
-				Left:  tcell.KeyLeft,
-				Right: tcell.KeyRight,
-				Quit:  tcell.KeyEsc,
-			},
-		},
-		{
-			ID: ecs.QUIT_FLAG,
-			Data: ecs.QuitFlag{
-				HasQuit: false,
-			},
-		},
-	}
+	/////// HANDLERS /////////////
 
-	block := []ecs.Component{
-		{
-			ID: ecs.DISPLAY,
-			Data: ecs.Display{
-				Character: '#',
-				Priority:  999,
-			},
-		},
-		{
-			ID: ecs.POSITION,
-			Data: ecs.Position{
-				X: 2,
-				Y: 1,
-			},
-		},
-		{
-			ID:   ecs.BLOCKABLE_TAG,
-			Data: ecs.BlockableTag{},
-		},
-	}
+	movementHandler := ecs.MoveHandler{}
+	displayHandler := ecs.DisplayHandler{}
+	inventoryHandler := ecs.InventoryHandler{}
+	eventPrinter := ecs.EventPrinterHandler{}
 
-	notBlock := []ecs.Component{
-		{
-			ID: ecs.DISPLAY,
-			Data: ecs.Display{
-				Character: '.',
-				Priority:  1,
-			},
-		},
-		{
-			ID: ecs.POSITION,
-			Data: ecs.Position{
-				X: 2,
-				Y: 3,
-			},
-		},
-	}
+	ecsManager.AddEventHandler(&movementHandler)
+	ecsManager.AddEventHandler(&displayHandler)
+	ecsManager.AddEventHandler(&inventoryHandler)
+	ecsManager.AddEventHandler(&eventPrinter)
 
-	playerID := ecsManager.AddEntity(player)
-	ecsManager.AddEntity(block)
-	ecsManager.AddEntity(notBlock)
-
-	hasQuit := func() bool {
-		data, ok := ecsManager.Lookup(playerID, ecs.QUIT_FLAG)
-		if ok {
-			return data.(ecs.QuitFlag).HasQuit
-		}
-		return true
-	}
+	//////// ENTITIES //////////////
+	addPlayer(&ecsManager, 2, 2)
+	generateRooms(&ecsManager, 50, 20)
 
 	fmt.Println("starting loop")
 
-	for !hasQuit() {
+	ecsManager.Start()
+
+	for !ecsManager.HasQuit() {
 		ecsManager.Run()
 	}
 
