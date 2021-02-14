@@ -33,7 +33,7 @@ func (s *InputSystem) run(m *Manager) {
 			case controllerComponent.Quit:
 				m.sendEvent(Event{QUIT_EVENT, EventQuit{}, entity})
 			default:
-				m.sendEvent(Event{ERROR_EVENT, key, Entity(key)})
+				m.sendEvent(Event{ERROR_EVENT, EventError{"invalid key press"}, Entity(key)})
 			}
 		}
 	}

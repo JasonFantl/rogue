@@ -232,6 +232,8 @@ func (s *EventPrinterHandler) handleEvent(m *Manager, event Event) (returnEvents
 	}
 
 	gui.UpdateErrors(stringifiedEvent)
+
+	// disbale this later, causes artifacts, but for now helps debug
 	gui.Show()
 
 	return returnEvents
