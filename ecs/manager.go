@@ -10,6 +10,10 @@ import (
 
 type Entity uint64
 
+type EventHandler interface {
+	handleEvent(*Manager, Event) (returnEvents []Event)
+}
+
 type Manager struct {
 	lookupTable   map[ComponentID]map[Entity]interface{}
 	eventHandlers []EventHandler
