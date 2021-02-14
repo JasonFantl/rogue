@@ -49,7 +49,7 @@
 ### Executing program
 From the root directory
 ```
-go run main.go
+go run *.go
 ```
 
 ### handy resources
