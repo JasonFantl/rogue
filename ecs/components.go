@@ -11,6 +11,7 @@ const (
 	DESIRED_MOVE
 	DISPLAY
 	PLAYER_CONTROLLER
+	MONSTER_CONTROLLER
 	BLOCKABLE
 	INVENTORY
 	INFORMATION
@@ -36,6 +37,10 @@ type Display struct {
 
 type PlayerController struct {
 	Up, Down, Left, Right, Pickup, Quit tcell.Key
+}
+
+type MonsterController struct {
+	// what data?
 }
 
 type Blockable struct {

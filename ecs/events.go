@@ -36,6 +36,8 @@ type EventDisplayTrigger struct {
 }
 
 type EventTryPickUp struct {
+	oneItem bool
+	what    Entity
 }
 
 type EventPickedUp struct {

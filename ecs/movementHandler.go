@@ -13,25 +13,23 @@ func (s *MoveHandler) handleEvent(m *Manager, event Event) (returnEvents []Event
 		moveEvent := event.data.(EventTryMove)
 
 		// get entitys current position and if its blocking
-		positionData, positionOk := m.getComponent(event.entity, POSITION)
-		_, blockingOk := m.getComponent(event.entity, BLOCKABLE)
+		positionData, hasPosition := m.getComponent(event.entity, POSITION)
+		_, hasBlockable := m.getComponent(event.entity, BLOCKABLE)
 
-		if positionOk {
+		if hasPosition {
 			positionComponent := positionData.(Position)
 
 			// now check if new location is occupied
 			newX := positionComponent.X + moveEvent.dx
 			newY := positionComponent.Y + moveEvent.dy
 			canMove := true
-			// quick implementation, replace later
-			for otherEntity, otherData := range m.lookupTable[POSITION] {
-				otherPositionComponent := otherData.(Position)
-				_, otherBlockableOk := m.lookupTable[BLOCKABLE][otherEntity]
 
-				if otherPositionComponent.X == newX && otherPositionComponent.Y == newY {
-					if otherBlockableOk || blockingOk {
-						canMove = false
-					}
+			for _, otherEntity := range m.getEntitiesFromPos(newX, newY) {
+				// since we use getEntitiesFromPos, it must have the same position
+				_, otherHasBlockable := m.getComponent(otherEntity, BLOCKABLE)
+
+				if otherHasBlockable || hasBlockable {
+					canMove = false
 				}
 			}
 
@@ -39,7 +37,7 @@ func (s *MoveHandler) handleEvent(m *Manager, event Event) (returnEvents []Event
 				positionComponent.X = newX
 				positionComponent.Y = newY
 
-				m.lookupTable[POSITION][event.entity] = positionComponent
+				m.setComponent(event.entity, Component{POSITION, positionComponent})
 
 				returnEvents = append(returnEvents, Event{MOVE_EVENT, EventMove{newX, newY}, event.entity})
 			}

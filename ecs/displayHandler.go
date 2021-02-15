@@ -20,27 +20,30 @@ func (s *DisplayHandler) handleEvent(m *Manager, event Event) (returnEvents []Ev
 		maxX := 0
 
 		// get new positions, the looping is currently as horrible as I can make it
-		for entity, displayData := range m.lookupTable[DISPLAY] {
-			positionData, positionOk := m.lookupTable[POSITION][entity]
+		displayComponents, ok := m.getComponents(DISPLAY)
+		if ok {
+			for entity, displayData := range displayComponents {
+				positionData, positionOk := m.getComponent(entity, POSITION)
 
-			if positionOk {
-				positionComponent := positionData.(Position)
-				displayComponent := displayData.(Display)
+				if positionOk {
+					positionComponent := positionData.(Position)
+					displayComponent := displayData.(Display)
 
-				x := positionComponent.X
-				y := positionComponent.Y
+					x := positionComponent.X
+					y := positionComponent.Y
 
-				if x > maxX {
-					maxX = x
-				}
+					if x > maxX {
+						maxX = x
+					}
 
-				uniqueID := x + (x+y)*(x+y+1)/2
+					uniqueID := x + (x+y)*(x+y+1)/2
 
-				currentPriority, ok := priorities[uniqueID]
+					currentPriority, ok := priorities[uniqueID]
 
-				if !ok || displayComponent.Priority > currentPriority {
-					gui.DrawTile(x, y, displayComponent.Character, displayComponent.Style)
-					priorities[uniqueID] = displayComponent.Priority
+					if !ok || displayComponent.Priority > currentPriority {
+						gui.DrawTile(x, y, displayComponent.Character, displayComponent.Style)
+						priorities[uniqueID] = displayComponent.Priority
+					}
 				}
 			}
 		}
@@ -48,25 +51,28 @@ func (s *DisplayHandler) handleEvent(m *Manager, event Event) (returnEvents []Ev
 		///////////// INVENTORY ///////////////////
 
 		currentLineNum := 1
-		for entity, inventoryData := range m.lookupTable[INVENTORY] {
+		inventoryComponents, ok := m.getComponents(INVENTORY)
+		for entity, inventoryData := range inventoryComponents {
 
 			inventoryComponent := inventoryData.(Inventory)
 
-			// if we can, print information
-			informationData, informationOk := m.lookupTable[INFORMATION][entity]
+			// if we can, print inventories information
+			informationData, informationOk := m.getComponent(entity, INFORMATION)
 			if informationOk {
 				informationComponent := informationData.(Information)
 				gui.DrawText(maxX+3, currentLineNum, informationComponent.Name)
 				currentLineNum++
 			}
 
+			// then print each of its items
 			for _, entity := range inventoryComponent.items {
-				informationData := m.lookupTable[INFORMATION][entity]
-				informationComponent, informationOk := informationData.(Information)
+				informationData, informationOk := m.getComponent(entity, INFORMATION)
 
 				if informationOk {
-					itemData := informationComponent.Name + " : " + informationComponent.Details
-					gui.DrawText(maxX+5, currentLineNum, itemData)
+					informationComponent := informationData.(Information)
+
+					informationString := informationComponent.Name + " : " + informationComponent.Details
+					gui.DrawText(maxX+5, currentLineNum, informationString)
 					currentLineNum++
 				} else {
 					gui.DrawText(maxX+5, currentLineNum, "? : no information on item")

@@ -9,8 +9,12 @@ import (
 
 func generateRooms(ecsManager *ecs.Manager, width, height int) {
 
-	deathLimit := 3
+	addWallsAround(ecsManager, width+1, height+1)
+
+	deathLimit := 4
 	birthLimit := 4
+	iterationCount := 8
+
 	// simple cellular automota implementation
 	tiles := make([][]bool, width)
 
@@ -23,7 +27,7 @@ func generateRooms(ecsManager *ecs.Manager, width, height int) {
 	}
 
 	// second: run CA a couple of times
-	for step := 0; step < 3; step++ {
+	for step := 0; step < iterationCount; step++ {
 		newTiles := make([][]bool, width)
 		for x := 0; x < width; x++ {
 			newTiles[x] = make([]bool, height)
@@ -59,22 +63,37 @@ func generateRooms(ecsManager *ecs.Manager, width, height int) {
 	for x := 0; x < width; x++ {
 		for y := 0; y < height; y++ {
 			if tiles[x][y] {
-				placeFloor(ecsManager, x, y)
+				placeFloor(ecsManager, x+1, y+1)
 			} else {
-				placeWall(ecsManager, x, y)
+				placeWall(ecsManager, x+1, y+1)
 			}
 		}
 	}
 
-	// just for good touch, add treasure
-	tp := 10
-	for tp > 0 {
+	// just for good touch, add treasure and monsters
+	itemCount := 30
+	for itemCount > 0 {
 		x := rand.Intn(width)
 		y := rand.Intn(height)
 		if tiles[x][y] {
-			addTreasure(ecsManager, x, y)
-			tp--
+			if rand.Intn(8) > 1 {
+				addTreasure(ecsManager, x, y)
+			} else {
+				addMonster(ecsManager, x, y)
+			}
+			itemCount--
 		}
+	}
+}
+
+func addWallsAround(ecsManager *ecs.Manager, width, height int) {
+	for x := 1; x < width; x++ {
+		placeWall(ecsManager, x, height)
+		placeWall(ecsManager, x, 0)
+	}
+	for y := 1; y < height; y++ {
+		placeWall(ecsManager, 0, y)
+		placeWall(ecsManager, width, y)
 	}
 }
 
@@ -132,14 +151,36 @@ func addPlayer(ecsManager *ecs.Manager, x, y int) {
 	ecsManager.AddEntity(player)
 }
 
+func addMonster(ecsManager *ecs.Manager, x, y int) {
+
+	positionComponent := ecs.Position{x, y}
+	displayComponent := ecs.Display{'M', floorStyle.Foreground(tcell.ColorRed), 99}
+	controllerComponent := ecs.MonsterController{}
+	inventoryComponent := ecs.Inventory{}
+	informationComponent := ecs.Information{"Monster", "its real ugly"}
+
+	monster := []ecs.Component{
+		{ecs.POSITION, positionComponent},
+		{ecs.DISPLAY, displayComponent},
+		{ecs.MONSTER_CONTROLLER, controllerComponent},
+		{ecs.INVENTORY, inventoryComponent},
+		{ecs.INFORMATION, informationComponent},
+	}
+
+	ecsManager.AddEntity(monster)
+}
+
 func addTreasure(ecsManager *ecs.Manager, x, y int) {
+
+	treasureInfos := [][]string{{"gold coin", "scratched, but still usable"}, {"gem", "red and uncut"}, {"silver coin", "might buy you a mug"}}
+	treasureInfo := treasureInfos[rand.Intn(len(treasureInfos))]
 
 	treasure := []ecs.Component{
 		{ecs.POSITION, ecs.Position{x, y}},
 		{ecs.DISPLAY, ecs.Display{'$', floorStyle.Foreground(tcell.ColorYellow), 2}},
 		{ecs.PICKUPABLE, ecs.Pickupable{}},
 		{ecs.DROPABLE, ecs.Dropable{}},
-		{ecs.INFORMATION, ecs.Information{"gold coin", "scratched, but still usable"}},
+		{ecs.INFORMATION, ecs.Information{treasureInfo[0], treasureInfo[1]}},
 	}
 
 	ecsManager.AddEntity(treasure)

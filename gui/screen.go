@@ -30,19 +30,10 @@ func DrawText(x, y int, text string) {
 	}
 }
 
-func DrawGrid(toDisplay [][]rune) {
-	for x := range toDisplay {
-		for y := range toDisplay[x] {
-			invertedY := cap(toDisplay) - y
-			DrawTile(x, invertedY, toDisplay[x][y], defStyle)
-		}
-	}
-}
-
 func DrawTile(x, y int, r rune, style tcell.Style) {
-	_, h := s.Size()
-	invertedY := h - y
-	s.SetContent(x, invertedY, r, nil, style)
+	// _, h := s.Size()
+	// invertedY := h - y
+	s.SetContent(x, y, r, nil, style)
 }
 
 var errorLine = 0

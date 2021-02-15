@@ -5,7 +5,7 @@ import (
 )
 
 // TODO:
-// quick lookup function based on location
+// quick lookup function based on location. keep track with array
 // maybe lookup based on multiple component tags
 
 type Entity uint64
@@ -19,7 +19,7 @@ type Manager struct {
 	eventHandlers []EventHandler
 	systems       []System
 	entityCounter Entity
-	hasQuit       bool
+	running       bool
 }
 
 func New() Manager {
@@ -28,21 +28,22 @@ func New() Manager {
 	newManager.eventHandlers = make([]EventHandler, 0)
 	newManager.systems = make([]System, 0)
 	newManager.entityCounter = 0
-	newManager.hasQuit = false
+	newManager.running = false
 
 	return newManager
 }
 
 func (m *Manager) Start() {
+	m.running = true
 	// make sure to display
 	startingEvents := []Event{
-		Event{DISPLAY_EVENT, EventDisplayTrigger{}, 0},
+		{DISPLAY_EVENT, EventDisplayTrigger{}, 0},
 	}
 	m.sendEvents(startingEvents)
 }
 
-func (m *Manager) HasQuit() bool {
-	return m.hasQuit
+func (m *Manager) Running() bool {
+	return m.running
 }
 
 func (m *Manager) AddSystem(system System) {
@@ -87,14 +88,29 @@ func (m *Manager) Run() {
 }
 
 func (m *Manager) getComponent(entity Entity, componentID ComponentID) (interface{}, bool) {
-	entities, ok := m.lookupTable[componentID]
+	components, ok := m.getComponents(componentID)
 	if ok {
-		data, ok := entities[entity]
+		data, ok := components[entity]
 		if ok {
 			return data, true
 		}
 	}
 	return nil, false
+}
+
+func (m *Manager) getComponents(componentID ComponentID) (map[Entity]interface{}, bool) {
+	_, ok := m.lookupTable[componentID]
+	if ok {
+		return m.lookupTable[componentID], true
+	}
+	return nil, false
+}
+
+func (m *Manager) setComponent(entity Entity, component Component) {
+	_, ok := m.lookupTable[component.ID]
+	if ok {
+		m.lookupTable[component.ID][entity] = component.Data
+	}
 }
 
 func (m *Manager) getEntitiesFromPos(x, y int) (entities []Entity) {
@@ -122,11 +138,6 @@ func (m *Manager) sendEvents(events []Event) {
 		sendingEvent := events[0] // pop
 		events = events[1:]       // dequeue
 
-		// special manager case
-		if sendingEvent.ID == QUIT_EVENT {
-			m.hasQuit = true
-		}
-
 		for _, eventHandler := range m.eventHandlers {
 
 			respondingEvents := eventHandler.handleEvent(m, sendingEvent)
@@ -134,6 +145,10 @@ func (m *Manager) sendEvents(events []Event) {
 			events = append(events, respondingEvents...)
 		}
 
+		// special manager case
+		if sendingEvent.ID == QUIT_EVENT {
+			m.running = false
+		}
 		if len(events) > 100 {
 			break
 		}

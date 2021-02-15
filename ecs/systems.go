@@ -17,58 +17,63 @@ func (s *InputSystem) run(m *Manager) {
 	timestep := false
 	triggeredEvents := make([]Event, 0)
 
-	for entity, controllerData := range m.lookupTable[PLAYER_CONTROLLER] {
+	playerControllerComponents, ok := m.getComponents(PLAYER_CONTROLLER)
+	if ok {
+		for entity, controllerData := range playerControllerComponents {
 
-		controllerComponent := controllerData.(PlayerController)
-		key, pressed := gui.GetKeyPress()
+			controllerComponent := controllerData.(PlayerController)
+			key, pressed := gui.GetKeyPress()
 
-		if pressed {
-			validPress = true
-			switch key {
-			case controllerComponent.Down:
-				timestep = true
-				triggeredEvents = append(triggeredEvents,
-					Event{TRY_MOVE_EVENT, EventTryMove{0, -1}, entity},
-				)
-			case controllerComponent.Up:
-				timestep = true
-				triggeredEvents = append(triggeredEvents,
-					Event{TRY_MOVE_EVENT, EventTryMove{0, 1}, entity},
-				)
-			case controllerComponent.Left:
-				timestep = true
-				triggeredEvents = append(triggeredEvents,
-					Event{TRY_MOVE_EVENT, EventTryMove{-1, 0}, entity},
-				)
-			case controllerComponent.Right:
-				timestep = true
-				triggeredEvents = append(triggeredEvents,
-					Event{TRY_MOVE_EVENT, EventTryMove{1, 0}, entity},
-				)
-			case controllerComponent.Pickup:
-				// should we time step when picking something up?
-				triggeredEvents = append(triggeredEvents,
-					Event{TRY_PICK_UP_EVENT, EventTryPickUp{}, entity},
-				)
-			case controllerComponent.Quit:
-				triggeredEvents = append(triggeredEvents,
-					Event{QUIT_EVENT, EventQuit{}, entity},
-				)
-			default:
-				triggeredEvents = append(triggeredEvents,
-					Event{ERROR_EVENT, EventError{"invalid key press"}, Entity(key)},
-				)
+			if pressed {
+				validPress = true
+				switch key {
+				// remeber the screen has an inverted y, thats why we send these move values
+				case controllerComponent.Down:
+					timestep = true
+					triggeredEvents = append(triggeredEvents,
+						Event{TRY_MOVE_EVENT, EventTryMove{0, 1}, entity},
+					)
+				case controllerComponent.Up:
+					timestep = true
+					triggeredEvents = append(triggeredEvents,
+						Event{TRY_MOVE_EVENT, EventTryMove{0, -1}, entity},
+					)
+				case controllerComponent.Left:
+					timestep = true
+					triggeredEvents = append(triggeredEvents,
+						Event{TRY_MOVE_EVENT, EventTryMove{-1, 0}, entity},
+					)
+				case controllerComponent.Right:
+					timestep = true
+					triggeredEvents = append(triggeredEvents,
+						Event{TRY_MOVE_EVENT, EventTryMove{1, 0}, entity},
+					)
+				case controllerComponent.Pickup:
+					// should we time step when picking something up?
+					// should we have a UI to choose what to pick up on this tile, or everything?
+					triggeredEvents = append(triggeredEvents,
+						Event{TRY_PICK_UP_EVENT, EventTryPickUp{oneItem: false}, entity},
+					)
+				case controllerComponent.Quit:
+					triggeredEvents = append(triggeredEvents,
+						Event{QUIT_EVENT, EventQuit{}, entity},
+					)
+				default:
+					triggeredEvents = append(triggeredEvents,
+						Event{ERROR_EVENT, EventError{"invalid key press"}, Entity(key)},
+					)
+				}
 			}
 		}
-	}
 
-	if timestep {
-		timeStepEvent := Event{TIMESTEP, EventTimeStep{}, 0}
-		// shold we time step then move, or the other way around?
-		triggeredEvents = append([]Event{timeStepEvent}, triggeredEvents...)
-	}
+		if timestep {
+			timeStepEvent := Event{TIMESTEP, EventTimeStep{}, 0}
+			// shold we time step then move, or the other way around?
+			triggeredEvents = append([]Event{timeStepEvent}, triggeredEvents...)
+		}
 
-	if validPress {
-		m.sendEvents(triggeredEvents)
+		if validPress {
+			m.sendEvents(triggeredEvents)
+		}
 	}
 }
