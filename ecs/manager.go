@@ -113,6 +113,22 @@ func (m *Manager) setComponent(entity Entity, component Component) {
 	}
 }
 
+func (m *Manager) removeComponent(entity Entity, componentID ComponentID) {
+	_, ok := m.lookupTable[componentID]
+	if ok {
+		delete(m.lookupTable[componentID], entity)
+	}
+}
+
+func (m *Manager) removeEntity(entity Entity) {
+	for componentID := range m.lookupTable {
+		// special case so we dont remove the ability to quit the game
+		if componentID != PLAYER_CONTROLLER {
+			m.removeComponent(entity, componentID)
+		}
+	}
+}
+
 func (m *Manager) getEntitiesFromPos(x, y int) (entities []Entity) {
 	for entity, positionData := range m.lookupTable[POSITION] {
 		positionComponent := positionData.(Position)

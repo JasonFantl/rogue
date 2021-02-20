@@ -71,10 +71,10 @@ func generateRooms(ecsManager *ecs.Manager, width, height int) {
 	}
 
 	// just for good touch, add treasure and monsters
-	itemCount := 30
+	itemCount := 5
 	for itemCount > 0 {
-		x := rand.Intn(width)
-		y := rand.Intn(height)
+		x := rand.Intn(width-2) + 1
+		y := rand.Intn(height-2) + 1
 		if tiles[x][y] {
 			if rand.Intn(8) > 1 {
 				addTreasure(ecsManager, x, y)
@@ -140,6 +140,8 @@ func addPlayer(ecsManager *ecs.Manager, x, y int) {
 	inventoryComponent := ecs.Inventory{}
 	informationComponent := ecs.Information{"Player", "the hero of our story"}
 	volumeComponent := ecs.Volume{}
+	violentComponent := ecs.Violent{4}
+	healthComponent := ecs.Health{20, 20}
 
 	player := []ecs.Component{
 		{ecs.POSITION, positionComponent},
@@ -148,6 +150,8 @@ func addPlayer(ecsManager *ecs.Manager, x, y int) {
 		{ecs.INVENTORY, inventoryComponent},
 		{ecs.INFORMATION, informationComponent},
 		{ecs.VOLUME, volumeComponent},
+		{ecs.VIOLENT, violentComponent},
+		{ecs.HEALTH, healthComponent},
 	}
 
 	ecsManager.AddEntity(player)
@@ -156,20 +160,39 @@ func addPlayer(ecsManager *ecs.Manager, x, y int) {
 func addMonster(ecsManager *ecs.Manager, x, y int) {
 
 	positionComponent := ecs.Position{x, y}
-	displayComponent := ecs.Displayable{'M', floorStyle.Foreground(tcell.ColorRed), 99}
 	controllerComponent := ecs.MonsterController{}
 	inventoryComponent := ecs.Inventory{}
-	informationComponent := ecs.Information{"Monster", "its real ugly"}
 	volumeComponent := ecs.Volume{}
+	violentComponent := ecs.Violent{4}
+	healthComponent := ecs.Health{20, 20}
 
 	monster := []ecs.Component{
 		{ecs.POSITION, positionComponent},
-		{ecs.DISPLAYABLE, displayComponent},
 		{ecs.MONSTER_CONTROLLER, controllerComponent},
 		{ecs.INVENTORY, inventoryComponent},
-		{ecs.INFORMATION, informationComponent},
 		{ecs.VOLUME, volumeComponent},
+		{ecs.VIOLENT, violentComponent},
+		{ecs.HEALTH, healthComponent},
 	}
+
+	monsterInfos := [][]ecs.Component{
+		{
+			{ecs.DISPLAYABLE, ecs.Displayable{'M', floorStyle.Foreground(tcell.ColorRed), 99}},
+			{ecs.INFORMATION, ecs.Information{"Monster", "generic"}},
+		},
+		{
+			{ecs.DISPLAYABLE, ecs.Displayable{'O', floorStyle.Foreground(tcell.ColorDarkGreen), 99}},
+			{ecs.INFORMATION, ecs.Information{"Ogre", "Big and scary"}},
+		},
+		{
+			{ecs.DISPLAYABLE, ecs.Displayable{'g', floorStyle.Foreground(tcell.ColorGreen), 99}},
+			{ecs.INFORMATION, ecs.Information{"Goblin", "green and scrawny, sill scary though"}},
+		},
+	}
+
+	monsterInfo := monsterInfos[rand.Intn(len(monsterInfos))]
+
+	monster = append(monster, monsterInfo...)
 
 	ecsManager.AddEntity(monster)
 }

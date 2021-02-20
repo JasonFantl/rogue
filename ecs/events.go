@@ -17,6 +17,9 @@ const (
 	ERROR_EVENT
 	TRY_PICK_UP
 	PICKED_UP
+	TRY_ATTACK
+	DAMAGED
+	DIED
 )
 
 type TimeStep struct{}
@@ -42,6 +45,17 @@ type TryPickUp struct {
 
 type PickedUp struct {
 	byWho Entity
+}
+
+type TryAttack struct {
+	who Entity
+	dmg int
+}
+
+type Damaged struct {
+}
+
+type Died struct {
 }
 
 type ErrorEvent struct {

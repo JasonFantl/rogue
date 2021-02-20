@@ -15,8 +15,8 @@ func (s *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []
 			inventoryComponent := inventoryData.(Inventory)
 
 			// make sure the picker-uppers inventory is inited
-			if cap(inventoryComponent.items) == 0 {
-				inventoryComponent.items = make([]Entity, 0)
+			if cap(inventoryComponent.Items) == 0 {
+				inventoryComponent.Items = make([]Entity, 0)
 			}
 
 			// handy functions
@@ -34,7 +34,7 @@ func (s *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []
 				m.AddComponenet(entity, stashedComponent)
 
 				// then add it to our inventory
-				inventoryComponent.items = append(inventoryComponent.items, entity)
+				inventoryComponent.Items = append(inventoryComponent.Items, entity)
 				m.setComponent(event.entity, Component{INVENTORY, inventoryComponent})
 
 				returnEvents = append(returnEvents, Event{PICKED_UP, PickedUp{event.entity}, entity})
@@ -59,7 +59,9 @@ func (s *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []
 				}
 			}
 		}
-	} else if event.ID == MOVED {
+	}
+
+	if event.ID == MOVED {
 		moveEvent := event.data.(Moved)
 
 		// check for all stashed
@@ -68,7 +70,7 @@ func (s *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []
 			for stashedEntity, stashedData := range components {
 				stashedComponent := stashedData.(StashedFlag)
 
-				if stashedComponent.parent == event.entity {
+				if stashedComponent.Parent == event.entity {
 					// only have to do anything if the thing has postition
 					positionData, positionOk := m.getComponent(stashedEntity, POSITION)
 					if positionOk {
@@ -79,6 +81,20 @@ func (s *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []
 
 						returnEvents = append(returnEvents, Event{MOVED, Moved{positionComponent.X, positionComponent.Y}, stashedEntity})
 					}
+				}
+			}
+		}
+	}
+
+	if event.ID == DIED {
+		// loop through all stashed
+		components, ok := m.getComponents(STASHED_FLAG)
+		if ok {
+			for stashedEntity, stashedData := range components {
+				stashedComponent := stashedData.(StashedFlag)
+
+				if stashedComponent.Parent == event.entity {
+					m.removeComponent(stashedEntity, STASHED_FLAG)
 				}
 			}
 		}

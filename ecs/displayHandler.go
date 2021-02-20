@@ -65,7 +65,7 @@ func (s *DisplayHandler) handleEvent(m *Manager, event Event) (returnEvents []Ev
 			}
 
 			// then print each of its items
-			for _, entity := range inventoryComponent.items {
+			for _, entity := range inventoryComponent.Items {
 				informationData, informationOk := m.getComponent(entity, INFORMATION)
 
 				if informationOk {

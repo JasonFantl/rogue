@@ -14,15 +14,17 @@ type Component struct {
 const (
 	POSITION ComponentID = iota
 	DESIRED_MOVE
-	PLAYER_CONTROLLER
-	MONSTER_CONTROLLER
+	HEALTH
 	INVENTORY
 	INFORMATION
 	VOLUME
+	VIOLENT
 	DISPLAYABLE
 	PICKUPABLE
 	DROPABLE
 	STASHED_FLAG
+	PLAYER_CONTROLLER
+	MONSTER_CONTROLLER
 )
 
 type Position struct {
@@ -47,7 +49,7 @@ type Volume struct {
 }
 
 type Inventory struct {
-	items []Entity
+	Items []Entity
 }
 
 type Information struct {
@@ -60,5 +62,13 @@ type Dropable struct {
 }
 
 type StashedFlag struct {
-	parent Entity
+	Parent Entity
+}
+
+type Health struct {
+	Max, Current int
+}
+
+type Violent struct {
+	BaseAttackDmg int
 }

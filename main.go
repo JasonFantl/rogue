@@ -25,14 +25,18 @@ func main() {
 	movementHandler := ecs.MoveHandler{}
 	monsterHandler := ecs.MonsterHandler{}
 
+	attackHandler := ecs.AttackHandler{}
+	deathHandler := ecs.DeathHandler{}
 	displayHandler := ecs.DisplayHandler{}
 	inventoryHandler := ecs.InventoryHandler{}
 	eventPrinter := ecs.EventPrinterHandler{}
 
-	ecsManager.AddEventHandler(&movementHandler)
 	ecsManager.AddEventHandler(&monsterHandler)
-	ecsManager.AddEventHandler(&displayHandler)
+	ecsManager.AddEventHandler(&attackHandler)
+	ecsManager.AddEventHandler(&deathHandler)
+	ecsManager.AddEventHandler(&movementHandler)
 	ecsManager.AddEventHandler(&inventoryHandler)
+	ecsManager.AddEventHandler(&displayHandler)
 	ecsManager.AddEventHandler(&eventPrinter)
 
 	//////// ENTITIES //////////////
