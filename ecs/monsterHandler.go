@@ -21,21 +21,13 @@ func (s *MonsterHandler) handleEvent(m *Manager, event Event) (returnEvents []Ev
 				if hasPosition {
 					positionComponent := positionData.(Position)
 
-					// handy func
-					isTreasure := func(entity Entity) bool {
-						_, hasPickUpAble := m.getComponent(entity, PICKUPABLE)
-
-						_, hasStashed := m.getComponent(entity, STASHED_FLAG)
-						// funny side effect if we enable, they chase people and monsters with treasure
-						hasStashed = false
-
-						return hasPickUpAble && !hasStashed
-					}
-
-					// first check if were on top of any treasure
+					// first check if we are on top of any treasure
 					entites := m.getEntitiesFromPos(positionComponent.X, positionComponent.Y)
 					for _, entity := range entites {
-						if isTreasure(entity) {
+						_, hasPickUpAble := m.getComponent(entity, PICKUPABLE)
+						_, hasStashed := m.getComponent(entity, STASHED_FLAG)
+						isTreasure := hasPickUpAble && !hasStashed
+						if isTreasure {
 							// if so, try to pick it up
 							returnEvents = append(returnEvents, Event{TRY_PICK_UP, TryPickUp{true, entity}, monster})
 						}
@@ -43,26 +35,31 @@ func (s *MonsterHandler) handleEvent(m *Manager, event Event) (returnEvents []Ev
 					// should this end its turn? no for now
 
 					// randomly move, weighted towards treasure
-					moveX := rand.Intn(3) - 1
+					moveX := 0
 					moveY := 0
 
 					if rand.Intn(2) == 0 {
-						moveX = 0
 						moveY = rand.Intn(3) - 1
+					} else {
+						moveX = rand.Intn(3) - 1
 					}
 
 					treasures, _ := m.getComponents(PICKUPABLE)
 					for e := range treasures {
+						itemPositionData, hasPosition := m.getComponent(e, POSITION)
 						_, hasStashed := m.getComponent(e, STASHED_FLAG)
-						if !hasStashed {
-							itemPositionData, hasPosition := m.getComponent(e, POSITION)
-							if hasPosition {
-								itemPositionComponent := itemPositionData.(Position)
-								dx := itemPositionComponent.X - positionComponent.X
-								dy := itemPositionComponent.Y - positionComponent.Y
+						// enable this to chase entities carrying items
+						hasStashed = false
 
-								if dx*dx+dy*dy < rand.Intn(80) {
-									if dx*dx > dy*dy {
+						if hasPosition && !hasStashed {
+							itemPositionComponent := itemPositionData.(Position)
+							dx := itemPositionComponent.X - positionComponent.X
+							dy := itemPositionComponent.Y - positionComponent.Y
+
+							if dx != 0 || dy != 0 {
+								if rand.Intn(2) == 0 && dx*dx+dy*dy < rand.Intn(100) {
+									tiebreaker := rand.Intn(2)
+									if dx*dx+tiebreaker > dy*dy {
 										moveY = 0
 										if dx > 0 {
 											moveX = 1

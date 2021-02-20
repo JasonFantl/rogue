@@ -1,6 +1,9 @@
 package ecs
 
 import (
+	"sort"
+	"strconv"
+
 	"github.com/jasonfantl/rogue/gui"
 )
 
@@ -52,15 +55,32 @@ func (s *DisplayHandler) handleEvent(m *Manager, event Event) (returnEvents []Ev
 
 		currentLineNum := 1
 		inventoryComponents, ok := m.getComponents(INVENTORY)
-		for entity, inventoryData := range inventoryComponents {
+
+		keys := make([]int, 0)
+		for k, _ := range inventoryComponents {
+			keys = append(keys, int(k))
+		}
+		sort.Ints(keys)
+
+		for _, key := range keys {
+			entity := Entity(key)
+			inventoryData := inventoryComponents[entity]
 
 			inventoryComponent := inventoryData.(Inventory)
 
-			// if we can, print inventories information
-			informationData, informationOk := m.getComponent(entity, INFORMATION)
-			if informationOk {
+			// if we can, print entities information
+			informationData, hasInformation := m.getComponent(entity, INFORMATION)
+			healthData, hasHealth := m.getComponent(entity, HEALTH)
+
+			if hasInformation {
 				informationComponent := informationData.(Information)
-				gui.DrawText(maxX+3, currentLineNum, informationComponent.Name)
+				displayData := informationComponent.Name
+
+				if hasHealth {
+					healthComponent := healthData.(Health)
+					displayData += " : " + strconv.Itoa(healthComponent.Current) + "/" + strconv.Itoa(healthComponent.Max)
+				}
+				gui.DrawText(maxX+3, currentLineNum, displayData)
 				currentLineNum++
 			}
 

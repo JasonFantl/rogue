@@ -71,7 +71,7 @@ func generateRooms(ecsManager *ecs.Manager, width, height int) {
 	}
 
 	// just for good touch, add treasure and monsters
-	itemCount := 5
+	itemCount := 60
 	for itemCount > 0 {
 		x := rand.Intn(width-2) + 1
 		y := rand.Intn(height-2) + 1
