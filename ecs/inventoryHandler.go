@@ -3,8 +3,8 @@ package ecs
 type InventoryHandler struct{}
 
 func (s *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []Event) {
-	if event.ID == TRY_PICK_UP_EVENT {
-		tryPickUpEvent := event.data.(EventTryPickUp)
+	if event.ID == TRY_PICK_UP {
+		tryPickUpEvent := event.data.(TryPickUp)
 
 		// get entitys current position and make sure it has an inventory
 		positionData, positionOk := m.getComponent(event.entity, POSITION)
@@ -23,21 +23,21 @@ func (s *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []
 			// make sure it is pickupable and hasnt been stashed
 			isTreasure := func(entity Entity) bool {
 				_, pickupableOk := m.getComponent(entity, PICKUPABLE)
-				_, stashedOk := m.getComponent(entity, STASHED)
+				_, stashedOk := m.getComponent(entity, STASHED_FLAG)
 
 				return pickupableOk && !stashedOk
 			}
 
 			// add stashed compoenet to item MAKE SURE TO REMOVE WHEN DROPPED!
 			pickup := func(entity Entity) {
-				stashedComponent := Component{STASHED, Stashed{event.entity}}
+				stashedComponent := Component{STASHED_FLAG, StashedFlag{event.entity}}
 				m.AddComponenet(entity, stashedComponent)
 
 				// then add it to our inventory
 				inventoryComponent.items = append(inventoryComponent.items, entity)
 				m.setComponent(event.entity, Component{INVENTORY, inventoryComponent})
 
-				returnEvents = append(returnEvents, Event{PICKED_UP_EVENT, EventPickedUp{event.entity}, entity})
+				returnEvents = append(returnEvents, Event{PICKED_UP, PickedUp{event.entity}, entity})
 			}
 
 			// check if were picking up one item or everything
@@ -59,14 +59,14 @@ func (s *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []
 				}
 			}
 		}
-	} else if event.ID == MOVE_EVENT {
-		moveEvent := event.data.(EventMove)
+	} else if event.ID == MOVED {
+		moveEvent := event.data.(Moved)
 
 		// check for all stashed
-		components, ok := m.getComponents(STASHED)
+		components, ok := m.getComponents(STASHED_FLAG)
 		if ok {
 			for stashedEntity, stashedData := range components {
-				stashedComponent := stashedData.(Stashed)
+				stashedComponent := stashedData.(StashedFlag)
 
 				if stashedComponent.parent == event.entity {
 					// only have to do anything if the thing has postition
@@ -77,7 +77,7 @@ func (s *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []
 						positionComponent.Y = moveEvent.y
 						m.setComponent(stashedEntity, Component{POSITION, positionComponent})
 
-						returnEvents = append(returnEvents, Event{MOVE_EVENT, EventMove{positionComponent.X, positionComponent.Y}, stashedEntity})
+						returnEvents = append(returnEvents, Event{MOVED, Moved{positionComponent.X, positionComponent.Y}, stashedEntity})
 					}
 				}
 			}

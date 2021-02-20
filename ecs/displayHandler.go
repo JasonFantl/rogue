@@ -10,7 +10,7 @@ type DisplayHandler struct {
 
 func (s *DisplayHandler) handleEvent(m *Manager, event Event) (returnEvents []Event) {
 
-	if event.ID == DISPLAY_EVENT {
+	if event.ID == DISPLAY {
 
 		/////////////// GRID /////////////////
 
@@ -20,14 +20,14 @@ func (s *DisplayHandler) handleEvent(m *Manager, event Event) (returnEvents []Ev
 		maxX := 0
 
 		// get new positions, the looping is currently as horrible as I can make it
-		displayComponents, ok := m.getComponents(DISPLAY)
+		displayComponents, ok := m.getComponents(DISPLAYABLE)
 		if ok {
 			for entity, displayData := range displayComponents {
 				positionData, positionOk := m.getComponent(entity, POSITION)
 
 				if positionOk {
 					positionComponent := positionData.(Position)
-					displayComponent := displayData.(Display)
+					displayComponent := displayData.(Displayable)
 
 					x := positionComponent.X
 					y := positionComponent.Y

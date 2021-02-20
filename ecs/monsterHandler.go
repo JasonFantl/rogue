@@ -6,14 +6,14 @@ type MonsterHandler struct{}
 
 func (s *MonsterHandler) handleEvent(m *Manager, event Event) (returnEvents []Event) {
 
-	// basid decision making at beginning of turn
+	// decision making is done at the beginning of the turn
 	if event.ID == TIMESTEP {
 
 		// well just have each monster move one at a time
 		monsters, monstersOk := m.getComponents(MONSTER_CONTROLLER)
 		if monstersOk {
 			for monster, _ := range monsters {
-				// moves to nearest treasure and pick up
+				// randomly walks, weighted towards treasure
 
 				// unpack all the components we will need
 				positionData, hasPosition := m.getComponent(monster, POSITION)
@@ -21,10 +21,14 @@ func (s *MonsterHandler) handleEvent(m *Manager, event Event) (returnEvents []Ev
 				if hasPosition {
 					positionComponent := positionData.(Position)
 
-					// handy func, also, maybe more specs for what a monster considers treasure?
+					// handy func
 					isTreasure := func(entity Entity) bool {
 						_, hasPickUpAble := m.getComponent(entity, PICKUPABLE)
-						_, hasStashed := m.getComponent(entity, STASHED)
+
+						_, hasStashed := m.getComponent(entity, STASHED_FLAG)
+						// funny side effect if we enable, they chase people and monsters with treasure
+						hasStashed = false
+
 						return hasPickUpAble && !hasStashed
 					}
 
@@ -33,10 +37,9 @@ func (s *MonsterHandler) handleEvent(m *Manager, event Event) (returnEvents []Ev
 					for _, entity := range entites {
 						if isTreasure(entity) {
 							// if so, try to pick it up
-							returnEvents = append(returnEvents, Event{TRY_PICK_UP_EVENT, EventTryPickUp{true, entity}, monster})
+							returnEvents = append(returnEvents, Event{TRY_PICK_UP, TryPickUp{true, entity}, monster})
 						}
 					}
-
 					// should this end its turn? no for now
 
 					// randomly move, weighted towards treasure
@@ -50,7 +53,7 @@ func (s *MonsterHandler) handleEvent(m *Manager, event Event) (returnEvents []Ev
 
 					treasures, _ := m.getComponents(PICKUPABLE)
 					for e := range treasures {
-						_, hasStashed := m.getComponent(e, STASHED)
+						_, hasStashed := m.getComponent(e, STASHED_FLAG)
 						if !hasStashed {
 							itemPositionData, hasPosition := m.getComponent(e, POSITION)
 							if hasPosition {
@@ -80,7 +83,7 @@ func (s *MonsterHandler) handleEvent(m *Manager, event Event) (returnEvents []Ev
 					}
 
 					if moveX != 0 || moveY != 0 {
-						returnEvents = append(returnEvents, Event{TRY_MOVE_EVENT, EventTryMove{moveX, moveY}, monster})
+						returnEvents = append(returnEvents, Event{TRY_MOVE, TryMove{moveX, moveY}, monster})
 					}
 				}
 			}

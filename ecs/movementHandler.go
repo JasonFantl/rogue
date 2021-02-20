@@ -8,13 +8,13 @@ func (s *MoveHandler) handleEvent(m *Manager, event Event) (returnEvents []Event
 	// that why we set the components at the end
 	// there must be a way to maintain the pointer to the component
 
-	if event.ID == TRY_MOVE_EVENT {
+	if event.ID == TRY_MOVE {
 		// unpack event data
-		moveEvent := event.data.(EventTryMove)
+		moveEvent := event.data.(TryMove)
 
 		// get entitys current position and if its blocking
 		positionData, hasPosition := m.getComponent(event.entity, POSITION)
-		_, hasBlockable := m.getComponent(event.entity, BLOCKABLE)
+		_, hasBlockable := m.getComponent(event.entity, VOLUME)
 
 		if hasPosition {
 			positionComponent := positionData.(Position)
@@ -26,9 +26,9 @@ func (s *MoveHandler) handleEvent(m *Manager, event Event) (returnEvents []Event
 
 			for _, otherEntity := range m.getEntitiesFromPos(newX, newY) {
 				// since we use getEntitiesFromPos, it must have the same position
-				_, otherHasBlockable := m.getComponent(otherEntity, BLOCKABLE)
+				_, otherHasBlockable := m.getComponent(otherEntity, VOLUME)
 
-				if otherHasBlockable || hasBlockable {
+				if otherHasBlockable && hasBlockable {
 					canMove = false
 				}
 			}
@@ -39,7 +39,7 @@ func (s *MoveHandler) handleEvent(m *Manager, event Event) (returnEvents []Event
 
 				m.setComponent(event.entity, Component{POSITION, positionComponent})
 
-				returnEvents = append(returnEvents, Event{MOVE_EVENT, EventMove{newX, newY}, event.entity})
+				returnEvents = append(returnEvents, Event{MOVED, Moved{newX, newY}, event.entity})
 			}
 		}
 	}

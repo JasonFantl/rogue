@@ -102,24 +102,24 @@ var wallStyle = tcell.StyleDefault.Background(tcell.ColorDarkGrey)
 
 func placeFloor(ecsManager *ecs.Manager, x, y int) {
 	positionComponent := ecs.Position{x, y}
-	displayComponent := ecs.Display{' ', floorStyle, 1}
+	displayComponent := ecs.Displayable{' ', floorStyle, 1}
 
 	floor := []ecs.Component{
 		{ecs.POSITION, positionComponent},
-		{ecs.DISPLAY, displayComponent},
+		{ecs.DISPLAYABLE, displayComponent},
 	}
 
 	ecsManager.AddEntity(floor)
 }
 func placeWall(ecsManager *ecs.Manager, x, y int) {
 	positionComponent := ecs.Position{x, y}
-	displayComponent := ecs.Display{' ', wallStyle, 99}
-	blockableTag := ecs.Blockable{}
+	displayComponent := ecs.Displayable{' ', wallStyle, 99}
+	blockableTag := ecs.Volume{}
 
 	wall := []ecs.Component{
 		{ecs.POSITION, positionComponent},
-		{ecs.DISPLAY, displayComponent},
-		{ecs.BLOCKABLE, blockableTag},
+		{ecs.DISPLAYABLE, displayComponent},
+		{ecs.VOLUME, blockableTag},
 	}
 
 	ecsManager.AddEntity(wall)
@@ -128,7 +128,7 @@ func placeWall(ecsManager *ecs.Manager, x, y int) {
 func addPlayer(ecsManager *ecs.Manager, x, y int) {
 
 	positionComponent := ecs.Position{x, y}
-	displayComponent := ecs.Display{'@', floorStyle.Foreground(tcell.ColorDarkOrange), 99}
+	displayComponent := ecs.Displayable{'@', floorStyle.Foreground(tcell.ColorDarkOrange), 99}
 	controllerComponent := ecs.PlayerController{
 		Up:     tcell.Key('w'),
 		Down:   tcell.Key('s'),
@@ -139,13 +139,15 @@ func addPlayer(ecsManager *ecs.Manager, x, y int) {
 	}
 	inventoryComponent := ecs.Inventory{}
 	informationComponent := ecs.Information{"Player", "the hero of our story"}
+	volumeComponent := ecs.Volume{}
 
 	player := []ecs.Component{
 		{ecs.POSITION, positionComponent},
-		{ecs.DISPLAY, displayComponent},
+		{ecs.DISPLAYABLE, displayComponent},
 		{ecs.PLAYER_CONTROLLER, controllerComponent},
 		{ecs.INVENTORY, inventoryComponent},
 		{ecs.INFORMATION, informationComponent},
+		{ecs.VOLUME, volumeComponent},
 	}
 
 	ecsManager.AddEntity(player)
@@ -154,17 +156,19 @@ func addPlayer(ecsManager *ecs.Manager, x, y int) {
 func addMonster(ecsManager *ecs.Manager, x, y int) {
 
 	positionComponent := ecs.Position{x, y}
-	displayComponent := ecs.Display{'M', floorStyle.Foreground(tcell.ColorRed), 99}
+	displayComponent := ecs.Displayable{'M', floorStyle.Foreground(tcell.ColorRed), 99}
 	controllerComponent := ecs.MonsterController{}
 	inventoryComponent := ecs.Inventory{}
 	informationComponent := ecs.Information{"Monster", "its real ugly"}
+	volumeComponent := ecs.Volume{}
 
 	monster := []ecs.Component{
 		{ecs.POSITION, positionComponent},
-		{ecs.DISPLAY, displayComponent},
+		{ecs.DISPLAYABLE, displayComponent},
 		{ecs.MONSTER_CONTROLLER, controllerComponent},
 		{ecs.INVENTORY, inventoryComponent},
 		{ecs.INFORMATION, informationComponent},
+		{ecs.VOLUME, volumeComponent},
 	}
 
 	ecsManager.AddEntity(monster)
@@ -177,7 +181,7 @@ func addTreasure(ecsManager *ecs.Manager, x, y int) {
 
 	treasure := []ecs.Component{
 		{ecs.POSITION, ecs.Position{x, y}},
-		{ecs.DISPLAY, ecs.Display{'$', floorStyle.Foreground(tcell.ColorYellow), 2}},
+		{ecs.DISPLAYABLE, ecs.Displayable{'$', floorStyle.Foreground(tcell.ColorYellow), 2}},
 		{ecs.PICKUPABLE, ecs.Pickupable{}},
 		{ecs.DROPABLE, ecs.Dropable{}},
 		{ecs.INFORMATION, ecs.Information{treasureInfo[0], treasureInfo[1]}},

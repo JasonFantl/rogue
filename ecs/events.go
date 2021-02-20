@@ -10,40 +10,40 @@ type Event struct {
 
 const (
 	TIMESTEP EventID = iota
-	MOVE_EVENT
-	TRY_MOVE_EVENT
-	QUIT_EVENT
-	DISPLAY_EVENT
+	MOVED
+	TRY_MOVE
+	QUIT
+	DISPLAY
 	ERROR_EVENT
-	TRY_PICK_UP_EVENT
-	PICKED_UP_EVENT
+	TRY_PICK_UP
+	PICKED_UP
 )
 
-type EventTimeStep struct{}
+type TimeStep struct{}
 
-type EventMove struct {
+type Moved struct {
 	x, y int
 }
 
-type EventTryMove struct {
+type TryMove struct {
 	dx, dy int
 }
 
-type EventQuit struct {
+type Quit struct {
 }
 
-type EventDisplayTrigger struct {
+type Display struct {
 }
 
-type EventTryPickUp struct {
+type TryPickUp struct {
 	oneItem bool
 	what    Entity
 }
 
-type EventPickedUp struct {
+type PickedUp struct {
 	byWho Entity
 }
 
-type EventError struct {
+type ErrorEvent struct {
 	err string
 }

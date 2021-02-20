@@ -37,7 +37,7 @@ func (m *Manager) Start() {
 	m.running = true
 	// make sure to display
 	startingEvents := []Event{
-		{DISPLAY_EVENT, EventDisplayTrigger{}, 0},
+		{DISPLAY, Display{}, 0},
 	}
 	m.sendEvents(startingEvents)
 }
@@ -146,7 +146,7 @@ func (m *Manager) sendEvents(events []Event) {
 		}
 
 		// special manager case
-		if sendingEvent.ID == QUIT_EVENT {
+		if sendingEvent.ID == QUIT {
 			m.running = false
 		}
 		if len(events) > 100 {
@@ -156,6 +156,6 @@ func (m *Manager) sendEvents(events []Event) {
 
 	// make sure to update the screen after events have all triggered
 	for _, eventHandler := range m.eventHandlers {
-		eventHandler.handleEvent(m, Event{DISPLAY_EVENT, EventDisplayTrigger{}, 0})
+		eventHandler.handleEvent(m, Event{DISPLAY, Display{}, 0})
 	}
 }

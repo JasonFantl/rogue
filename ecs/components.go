@@ -6,30 +6,30 @@ import (
 
 type ComponentID uint64
 
-const (
-	POSITION ComponentID = iota
-	DESIRED_MOVE
-	DISPLAY
-	PLAYER_CONTROLLER
-	MONSTER_CONTROLLER
-	BLOCKABLE
-	INVENTORY
-	INFORMATION
-	PICKUPABLE
-	DROPABLE
-	STASHED
-)
-
 type Component struct {
 	ID   ComponentID
 	Data interface{}
 }
 
+const (
+	POSITION ComponentID = iota
+	DESIRED_MOVE
+	PLAYER_CONTROLLER
+	MONSTER_CONTROLLER
+	INVENTORY
+	INFORMATION
+	VOLUME
+	DISPLAYABLE
+	PICKUPABLE
+	DROPABLE
+	STASHED_FLAG
+)
+
 type Position struct {
 	X, Y int
 }
 
-type Display struct {
+type Displayable struct {
 	Character rune
 	Style     tcell.Style
 	Priority  int
@@ -43,7 +43,7 @@ type MonsterController struct {
 	// what data?
 }
 
-type Blockable struct {
+type Volume struct {
 }
 
 type Inventory struct {
@@ -59,6 +59,6 @@ type Pickupable struct {
 type Dropable struct {
 }
 
-type Stashed struct {
+type StashedFlag struct {
 	parent Entity
 }
