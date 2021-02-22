@@ -65,9 +65,9 @@ func (s *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []
 		moveEvent := event.data.(Moved)
 
 		// check for all stashed
-		components, ok := m.getComponents(STASHED_FLAG)
+		stashedComponents, ok := m.getComponents(STASHED_FLAG)
 		if ok {
-			for stashedEntity, stashedData := range components {
+			for stashedEntity, stashedData := range stashedComponents {
 				stashedComponent := stashedData.(StashedFlag)
 
 				if stashedComponent.Parent == event.entity {

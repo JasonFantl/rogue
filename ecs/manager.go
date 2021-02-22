@@ -149,10 +149,18 @@ func (m *Manager) sendEvents(events []Event) {
 	// we re-display every time an independent event is fired, must clear the screen first
 	gui.Clear()
 
+	blockFInished := Event{ERROR_EVENT, ErrorEvent{"-----------------------------"}, 999999999}
+
+	events = append(events, blockFInished)
 	// queue style event handling
 	for len(events) > 0 {
 		sendingEvent := events[0] // pop
 		events = events[1:]       // dequeue
+
+		// debug info
+		if sendingEvent.entity == 999999999 && len(events) != 0 {
+			events = append(events, blockFInished)
+		}
 
 		for _, eventHandler := range m.eventHandlers {
 

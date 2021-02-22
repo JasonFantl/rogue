@@ -13,5 +13,8 @@ func GetKeyPress() (termbox.Key, bool) {
 		panic(ev.Err)
 	}
 
+	if ev.Ch == 0 {
+		return ev.Key, true
+	}
 	return termbox.Key(ev.Ch), true
 }

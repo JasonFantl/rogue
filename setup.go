@@ -97,9 +97,11 @@ func addWallsAround(ecsManager *ecs.Manager, width, height int) {
 	}
 }
 
+var floorColor = termbox.ColorDarkGray
+
 func placeFloor(ecsManager *ecs.Manager, x, y int) {
 	positionComponent := ecs.Position{x, y}
-	displayComponent := ecs.Displayable{' ', 1}
+	displayComponent := ecs.Displayable{termbox.Cell{' ', floorColor, floorColor}, 1}
 
 	floor := []ecs.Component{
 		{ecs.POSITION, positionComponent},
@@ -110,7 +112,7 @@ func placeFloor(ecsManager *ecs.Manager, x, y int) {
 }
 func placeWall(ecsManager *ecs.Manager, x, y int) {
 	positionComponent := ecs.Position{x, y}
-	displayComponent := ecs.Displayable{' ', 99}
+	displayComponent := ecs.Displayable{termbox.Cell{' ', termbox.ColorBlack, termbox.ColorDefault}, 99}
 	blockableTag := ecs.Volume{}
 
 	wall := []ecs.Component{
@@ -125,7 +127,7 @@ func placeWall(ecsManager *ecs.Manager, x, y int) {
 func addPlayer(ecsManager *ecs.Manager, x, y int) {
 
 	positionComponent := ecs.Position{x, y}
-	displayComponent := ecs.Displayable{'@', 99}
+	displayComponent := ecs.Displayable{termbox.Cell{'@', floorColor, termbox.ColorLightRed}, 99}
 	controllerComponent := ecs.PlayerController{
 		Up:     termbox.Key('w'),
 		Down:   termbox.Key('s'),
@@ -174,15 +176,15 @@ func addMonster(ecsManager *ecs.Manager, x, y int) {
 
 	monsterInfos := [][]ecs.Component{
 		{
-			{ecs.DISPLAYABLE, ecs.Displayable{'M', 99}},
+			{ecs.DISPLAYABLE, ecs.Displayable{termbox.Cell{'M', floorColor, termbox.ColorRed}, 99}},
 			{ecs.INFORMATION, ecs.Information{"Monster", "generic"}},
 		},
 		{
-			{ecs.DISPLAYABLE, ecs.Displayable{'O', 99}},
+			{ecs.DISPLAYABLE, ecs.Displayable{termbox.Cell{'O', floorColor, termbox.ColorGreen}, 99}},
 			{ecs.INFORMATION, ecs.Information{"Ogre", "Big and scary"}},
 		},
 		{
-			{ecs.DISPLAYABLE, ecs.Displayable{'g', 99}},
+			{ecs.DISPLAYABLE, ecs.Displayable{termbox.Cell{'g', floorColor, termbox.ColorLightGreen}, 99}},
 			{ecs.INFORMATION, ecs.Information{"Goblin", "green and scrawny, sill scary though"}},
 		},
 	}
@@ -201,7 +203,7 @@ func addTreasure(ecsManager *ecs.Manager, x, y int) {
 
 	treasure := []ecs.Component{
 		{ecs.POSITION, ecs.Position{x, y}},
-		{ecs.DISPLAYABLE, ecs.Displayable{'$', 2}},
+		{ecs.DISPLAYABLE, ecs.Displayable{termbox.Cell{'$', floorColor, termbox.ColorYellow}, 2}},
 		{ecs.PICKUPABLE, ecs.Pickupable{}},
 		{ecs.DROPABLE, ecs.Dropable{}},
 		{ecs.INFORMATION, ecs.Information{treasureInfo[0], treasureInfo[1]}},

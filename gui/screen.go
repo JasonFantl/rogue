@@ -6,8 +6,6 @@ import (
 	"github.com/nsf/termbox-go"
 )
 
-var defStyle = termbox.ColorDefault
-
 func Setup() {
 	// Initialize screen
 	err := termbox.Init()
@@ -19,14 +17,14 @@ func Setup() {
 
 func DrawText(x, y int, text string) {
 	for i, r := range text {
-		termbox.SetCell(x+i, y, r, defStyle, termbox.ColorMagenta)
+		termbox.SetCell(x+i, y, r, termbox.ColorWhite, termbox.ColorDefault)
 	}
 }
 
-func DrawTile(x, y int, r rune) {
+func DrawTile(x, y int, t termbox.Cell) {
 	// _, h := s.Size()
 	// invertedY := h - y
-	termbox.SetCell(x, y, r, defStyle, termbox.ColorMagenta)
+	termbox.SetCell(x, y, t.Ch, t.Bg, t.Fg)
 }
 
 var errorLine = 0

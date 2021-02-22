@@ -44,7 +44,7 @@ func (s *DisplayHandler) handleEvent(m *Manager, event Event) (returnEvents []Ev
 					currentPriority, ok := priorities[uniqueID]
 
 					if !ok || displayComponent.Priority > currentPriority {
-						gui.DrawTile(x, y, displayComponent.Character)
+						gui.DrawTile(x, y, displayComponent.Info)
 						priorities[uniqueID] = displayComponent.Priority
 					}
 				}

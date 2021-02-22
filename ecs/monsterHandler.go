@@ -10,8 +10,8 @@ func (s *MonsterHandler) handleEvent(m *Manager, event Event) (returnEvents []Ev
 	if event.ID == TIMESTEP {
 
 		// well just have each monster move one at a time
-		monsters, monstersOk := m.getComponents(MONSTER_CONTROLLER)
-		if monstersOk {
+		monsters, monstersExist := m.getComponents(MONSTER_CONTROLLER)
+		if monstersExist {
 			for monster, _ := range monsters {
 				// randomly walks, weighted towards treasure
 

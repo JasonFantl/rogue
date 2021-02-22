@@ -14,7 +14,7 @@ func (s *MoveHandler) handleEvent(m *Manager, event Event) (returnEvents []Event
 
 		// get entitys current position and if its blocking
 		positionData, hasPosition := m.getComponent(event.entity, POSITION)
-		_, hasBlockable := m.getComponent(event.entity, VOLUME)
+		_, hasVolume := m.getComponent(event.entity, VOLUME)
 
 		if hasPosition {
 			positionComponent := positionData.(Position)
@@ -28,7 +28,7 @@ func (s *MoveHandler) handleEvent(m *Manager, event Event) (returnEvents []Event
 				// since we use getEntitiesFromPos, it must have the same position
 				_, otherHasBlockable := m.getComponent(otherEntity, VOLUME)
 
-				if otherHasBlockable && hasBlockable {
+				if otherHasBlockable && hasVolume {
 					canMove = false
 				}
 			}

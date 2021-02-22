@@ -32,8 +32,7 @@ type Position struct {
 }
 
 type Displayable struct {
-	Character rune
-	// Style     tcell.Style
+	Info     termbox.Cell
 	Priority int
 }
 
