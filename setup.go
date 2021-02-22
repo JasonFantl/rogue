@@ -158,8 +158,10 @@ func addPlayer(ecsManager *ecs.Manager, x, y int) {
 
 func addMonster(ecsManager *ecs.Manager, x, y int) {
 
+	controllerComponent := ecs.MonsterController{
+		[]ecs.MonsterAction{ecs.PICKUP, ecs.MOVE, ecs.NOTHING},
+	}
 	positionComponent := ecs.Position{x, y}
-	controllerComponent := ecs.MonsterController{}
 	inventoryComponent := ecs.Inventory{}
 	volumeComponent := ecs.Volume{}
 	violentComponent := ecs.Violent{4}

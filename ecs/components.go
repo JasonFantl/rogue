@@ -41,7 +41,7 @@ type PlayerController struct {
 }
 
 type MonsterController struct {
-	// what data?
+	ActionPriorities []MonsterAction
 }
 
 type Volume struct {

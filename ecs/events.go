@@ -39,8 +39,7 @@ type Display struct {
 }
 
 type TryPickUp struct {
-	oneItem bool
-	what    Entity
+	what Entity
 }
 
 type PickedUp struct {

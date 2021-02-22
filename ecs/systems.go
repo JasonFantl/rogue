@@ -47,10 +47,9 @@ func (s *InputSystem) run(m *Manager) {
 						Event{TRY_MOVE, TryMove{1, 0}, entity},
 					)
 				case controllerComponent.Pickup:
-					// should we time step when picking something up?
-					// should we have a UI to choose what to pick up on this tile, or everything?
+					timestep = true
 					triggeredEvents = append(triggeredEvents,
-						Event{TRY_PICK_UP, TryPickUp{oneItem: false}, entity},
+						Event{TRY_PICK_UP, TryPickUp{}, entity},
 					)
 				case controllerComponent.Quit:
 					triggeredEvents = append(triggeredEvents,

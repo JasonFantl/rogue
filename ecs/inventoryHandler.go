@@ -41,23 +41,16 @@ func (s *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []
 			}
 
 			// check if were picking up one item or everything
-			if tryPickUpEvent.oneItem {
-				otherPositionData, otherPositionOk := m.getComponent(tryPickUpEvent.what, POSITION)
-				// should you be able to pick up an item without position?
-				if otherPositionOk {
-					otherPositionComponent := otherPositionData.(Position)
-					if otherPositionComponent.X == positionComponent.X && otherPositionComponent.Y == positionComponent.Y && isTreasure(tryPickUpEvent.what) {
-						pickup(tryPickUpEvent.what)
-					}
-				}
-			} else {
-				// look for items below you to pickup
-				for _, otherEntity := range m.getEntitiesFromPos(positionComponent.X, positionComponent.Y) {
-					if isTreasure(otherEntity) {
-						pickup(otherEntity)
-					}
+
+			otherPositionData, otherPositionOk := m.getComponent(tryPickUpEvent.what, POSITION)
+			// should you be able to pick up an item without position?
+			if otherPositionOk {
+				otherPositionComponent := otherPositionData.(Position)
+				if otherPositionComponent.X == positionComponent.X && otherPositionComponent.Y == positionComponent.Y && isTreasure(tryPickUpEvent.what) {
+					pickup(tryPickUpEvent.what)
 				}
 			}
+
 		}
 	}
 
