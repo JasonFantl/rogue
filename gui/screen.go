@@ -1,59 +1,52 @@
 package gui
 
 import (
-	"log"
+	"fmt"
 
-	"github.com/gdamore/tcell/v2"
+	"github.com/nsf/termbox-go"
 )
 
-var s, sErr = tcell.NewScreen()
-var defStyle = tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorReset)
-var textStyle = defStyle.Foreground(tcell.ColorDarkGoldenrod)
+var defStyle = termbox.ColorDefault
 
 func Setup() {
 	// Initialize screen
-	if sErr != nil {
-		log.Fatalf("%+v", sErr)
-	}
-	if err := s.Init(); err != nil {
-		log.Fatalf("%+v", err)
-	}
+	err := termbox.Init()
 
-	// Set default text style
-	s.SetStyle(defStyle)
-	s.DisableMouse()
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func DrawText(x, y int, text string) {
 	for i, r := range text {
-		s.SetContent(x+i, y, r, nil, textStyle)
+		termbox.SetCell(x+i, y, r, defStyle, termbox.ColorMagenta)
 	}
 }
 
-func DrawTile(x, y int, r rune, style tcell.Style) {
+func DrawTile(x, y int, r rune) {
 	// _, h := s.Size()
 	// invertedY := h - y
-	s.SetContent(x, y, r, nil, style)
+	termbox.SetCell(x, y, r, defStyle, termbox.ColorMagenta)
 }
 
 var errorLine = 0
 
 func UpdateErrors(toDisplay string) {
-	w, _ := s.Size()
+	w, _ := termbox.Size()
 	// this assumes max error msg is 50 chars
 	DrawText(w-50, errorLine, toDisplay)
 	errorLine++
 }
 
 func Clear() {
-	s.Clear()
+	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 	errorLine = 0
 }
 
 func Show() {
-	s.Show()
+	termbox.Flush()
 }
 
 func Quit() {
-	s.Fini()
+	termbox.Close()
 }

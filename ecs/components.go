@@ -1,7 +1,7 @@
 package ecs
 
 import (
-	"github.com/gdamore/tcell/v2"
+	"github.com/nsf/termbox-go"
 )
 
 type ComponentID uint64
@@ -33,12 +33,12 @@ type Position struct {
 
 type Displayable struct {
 	Character rune
-	Style     tcell.Style
-	Priority  int
+	// Style     tcell.Style
+	Priority int
 }
 
 type PlayerController struct {
-	Up, Down, Left, Right, Pickup, Quit tcell.Key
+	Up, Down, Left, Right, Pickup, Quit termbox.Key
 }
 
 type MonsterController struct {

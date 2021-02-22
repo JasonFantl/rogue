@@ -1,24 +1,17 @@
 package gui
 
 import (
-	"github.com/gdamore/tcell/v2"
+	"github.com/nsf/termbox-go"
 )
 
-func GetKeyPress() (tcell.Key, bool) {
+func GetKeyPress() (termbox.Key, bool) {
 	// Poll event
-	ev := s.PollEvent()
+	ev := termbox.PollEvent()
 
 	// Process event
-	switch ev := ev.(type) {
-	case *tcell.EventResize:
-		s.Sync()
-	case *tcell.EventKey:
-		if ev.Key() == tcell.KeyRune {
-			return tcell.Key(ev.Rune()), true
-		}
-		return ev.Key(), true
+	if ev.Type == termbox.EventError {
+		panic(ev.Err)
 	}
 
-	// nothing happened
-	return '~', false
+	return termbox.Key(ev.Ch), true
 }

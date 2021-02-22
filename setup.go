@@ -3,8 +3,8 @@ package main
 import (
 	"math/rand"
 
-	"github.com/gdamore/tcell/v2"
 	"github.com/jasonfantl/rogue/ecs"
+	"github.com/nsf/termbox-go"
 )
 
 func generateRooms(ecsManager *ecs.Manager, width, height int) {
@@ -97,12 +97,9 @@ func addWallsAround(ecsManager *ecs.Manager, width, height int) {
 	}
 }
 
-var floorStyle = tcell.StyleDefault.Background(tcell.ColorDimGray)
-var wallStyle = tcell.StyleDefault.Background(tcell.ColorDarkGrey)
-
 func placeFloor(ecsManager *ecs.Manager, x, y int) {
 	positionComponent := ecs.Position{x, y}
-	displayComponent := ecs.Displayable{' ', floorStyle, 1}
+	displayComponent := ecs.Displayable{' ', 1}
 
 	floor := []ecs.Component{
 		{ecs.POSITION, positionComponent},
@@ -113,7 +110,7 @@ func placeFloor(ecsManager *ecs.Manager, x, y int) {
 }
 func placeWall(ecsManager *ecs.Manager, x, y int) {
 	positionComponent := ecs.Position{x, y}
-	displayComponent := ecs.Displayable{' ', wallStyle, 99}
+	displayComponent := ecs.Displayable{' ', 99}
 	blockableTag := ecs.Volume{}
 
 	wall := []ecs.Component{
@@ -128,14 +125,14 @@ func placeWall(ecsManager *ecs.Manager, x, y int) {
 func addPlayer(ecsManager *ecs.Manager, x, y int) {
 
 	positionComponent := ecs.Position{x, y}
-	displayComponent := ecs.Displayable{'@', floorStyle.Foreground(tcell.ColorDarkOrange), 99}
+	displayComponent := ecs.Displayable{'@', 99}
 	controllerComponent := ecs.PlayerController{
-		Up:     tcell.Key('w'),
-		Down:   tcell.Key('s'),
-		Left:   tcell.Key('a'),
-		Right:  tcell.Key('d'),
-		Pickup: tcell.Key(' '),
-		Quit:   tcell.KeyEsc,
+		Up:     termbox.Key('w'),
+		Down:   termbox.Key('s'),
+		Left:   termbox.Key('a'),
+		Right:  termbox.Key('d'),
+		Pickup: termbox.Key(' '),
+		Quit:   termbox.KeyEsc,
 	}
 	inventoryComponent := ecs.Inventory{}
 	informationComponent := ecs.Information{"Player", "the hero of our story"}
@@ -177,15 +174,15 @@ func addMonster(ecsManager *ecs.Manager, x, y int) {
 
 	monsterInfos := [][]ecs.Component{
 		{
-			{ecs.DISPLAYABLE, ecs.Displayable{'M', floorStyle.Foreground(tcell.ColorRed), 99}},
+			{ecs.DISPLAYABLE, ecs.Displayable{'M', 99}},
 			{ecs.INFORMATION, ecs.Information{"Monster", "generic"}},
 		},
 		{
-			{ecs.DISPLAYABLE, ecs.Displayable{'O', floorStyle.Foreground(tcell.ColorDarkGreen), 99}},
+			{ecs.DISPLAYABLE, ecs.Displayable{'O', 99}},
 			{ecs.INFORMATION, ecs.Information{"Ogre", "Big and scary"}},
 		},
 		{
-			{ecs.DISPLAYABLE, ecs.Displayable{'g', floorStyle.Foreground(tcell.ColorGreen), 99}},
+			{ecs.DISPLAYABLE, ecs.Displayable{'g', 99}},
 			{ecs.INFORMATION, ecs.Information{"Goblin", "green and scrawny, sill scary though"}},
 		},
 	}
@@ -204,7 +201,7 @@ func addTreasure(ecsManager *ecs.Manager, x, y int) {
 
 	treasure := []ecs.Component{
 		{ecs.POSITION, ecs.Position{x, y}},
-		{ecs.DISPLAYABLE, ecs.Displayable{'$', floorStyle.Foreground(tcell.ColorYellow), 2}},
+		{ecs.DISPLAYABLE, ecs.Displayable{'$', 2}},
 		{ecs.PICKUPABLE, ecs.Pickupable{}},
 		{ecs.DROPABLE, ecs.Dropable{}},
 		{ecs.INFORMATION, ecs.Information{treasureInfo[0], treasureInfo[1]}},
