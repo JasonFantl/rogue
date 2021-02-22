@@ -133,7 +133,7 @@ func addPlayer(ecsManager *ecs.Manager, x, y int) {
 		Down:   termbox.Key('s'),
 		Left:   termbox.Key('a'),
 		Right:  termbox.Key('d'),
-		Pickup: termbox.Key(' '),
+		Pickup: termbox.Key('e'),
 		Quit:   termbox.KeyEsc,
 	}
 	inventoryComponent := ecs.Inventory{}

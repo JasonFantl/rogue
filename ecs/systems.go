@@ -49,7 +49,7 @@ func (s *InputSystem) run(m *Manager) {
 				case controllerComponent.Pickup:
 					timestep = true
 					triggeredEvents = append(triggeredEvents,
-						Event{TRY_PICK_UP, TryPickUp{}, entity},
+						Event{PLAYER_TRY_PICK_UP, PlayerTryPickUp{}, entity},
 					)
 				case controllerComponent.Quit:
 					triggeredEvents = append(triggeredEvents,

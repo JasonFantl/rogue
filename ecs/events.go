@@ -15,6 +15,7 @@ const (
 	QUIT
 	DISPLAY
 	TRY_PICK_UP
+	PLAYER_TRY_PICK_UP
 	PICKED_UP
 	TRY_ATTACK
 	DAMAGED
@@ -40,6 +41,8 @@ type Display struct {
 
 type TryPickUp struct {
 	what Entity
+}
+type PlayerTryPickUp struct {
 }
 
 type PickedUp struct {

@@ -3,6 +3,24 @@ package ecs
 type InventoryHandler struct{}
 
 func (s *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []Event) {
+	if event.ID == PLAYER_TRY_PICK_UP {
+		positionData, positionOk := m.getComponent(event.entity, POSITION)
+		if positionOk {
+			positionComponent := positionData.(Position)
+
+			entities := m.getEntitiesFromPos(positionComponent.X, positionComponent.Y)
+			for _, entity := range entities {
+				_, hasPickUpAble := m.getComponent(entity, PICKUPABLE)
+				_, hasStashed := m.getComponent(entity, STASHED_FLAG)
+				isTreasure := hasPickUpAble && !hasStashed
+				if isTreasure {
+					returnEvents = append(returnEvents, Event{TRY_PICK_UP, TryPickUp{entity}, event.entity})
+					break // dont need to check anymore
+				}
+			}
+		}
+	}
+
 	if event.ID == TRY_PICK_UP {
 		tryPickUpEvent := event.data.(TryPickUp)
 
@@ -11,6 +29,7 @@ func (s *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []
 		inventoryData, inventoryOk := m.getComponent(event.entity, INVENTORY)
 
 		if positionOk && inventoryOk {
+
 			positionComponent := positionData.(Position)
 			inventoryComponent := inventoryData.(Inventory)
 
@@ -41,6 +60,9 @@ func (s *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []
 			}
 
 			// check if were picking up one item or everything
+			if event.entity == 0 {
+				returnEvents = append(returnEvents, Event{ERROR_EVENT, ErrorEvent{"player picking up"}, 0})
+			}
 
 			otherPositionData, otherPositionOk := m.getComponent(tryPickUpEvent.what, POSITION)
 			// should you be able to pick up an item without position?
