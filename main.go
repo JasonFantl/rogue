@@ -17,6 +17,7 @@ func main() {
 	/////// HANDLERS /////////////
 
 	inputHandler := ecs.PlayerInputHandler{}
+	visionHandler := ecs.VisionHandler{}
 	movementHandler := ecs.MoveHandler{}
 	monsterHandler := ecs.MonsterHandler{}
 	attackHandler := ecs.AttackHandler{}
@@ -31,6 +32,7 @@ func main() {
 	ecsManager.AddEventHandler(&deathHandler)
 	ecsManager.AddEventHandler(&movementHandler)
 	ecsManager.AddEventHandler(&inventoryHandler)
+	ecsManager.AddEventHandler(&visionHandler)
 	ecsManager.AddEventHandler(&displayHandler)
 	ecsManager.AddEventHandler(&eventPrinter)
 

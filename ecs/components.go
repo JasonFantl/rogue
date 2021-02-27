@@ -19,7 +19,7 @@ const (
 	HEALTH
 	INVENTORY
 	INFORMATION
-	ENTITY_AWARNESS
+	ENTITY_AWARENESS
 	VISION
 	VOLUME
 	VIOLENT
@@ -51,11 +51,11 @@ type MonsterController struct {
 }
 
 type Vision struct {
-	reach int
+	Reach int
 }
 
 type EntityAwarness struct {
-	awareOf []Entity
+	AwareOf []Entity
 }
 
 type Volume struct {

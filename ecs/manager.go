@@ -141,9 +141,10 @@ func (m *Manager) sendEvents(events []Event) {
 	// we re-display every time an independent event is fired, must clear the screen first
 	gui.Clear()
 
-	blockFInished := Event{ERROR_EVENT, ErrorEvent{"-----------------------------"}, 999999999}
+	blockFinished := Event{ERROR_EVENT, ErrorEvent{"-----------------------------"}, 999999999}
+	sentDisplay := false
 
-	events = append(events, blockFInished)
+	events = append(events, blockFinished)
 	// queue style event handling
 	for len(events) > 0 {
 		sendingEvent := events[0] // pop
@@ -151,7 +152,7 @@ func (m *Manager) sendEvents(events []Event) {
 
 		// debug info
 		if sendingEvent.entity == 999999999 && len(events) != 0 {
-			events = append(events, blockFInished)
+			events = append(events, blockFinished)
 		}
 
 		for _, eventHandler := range m.eventHandlers {
@@ -165,10 +166,12 @@ func (m *Manager) sendEvents(events []Event) {
 		if sendingEvent.ID == QUIT {
 			m.running = false
 		}
-	}
 
-	// make sure to update the screen after events have all triggered
-	for _, eventHandler := range m.eventHandlers {
-		eventHandler.handleEvent(m, Event{DISPLAY, Display{}, 0})
+		// display stuff
+		if !sentDisplay && len(events) == 0 {
+			sentDisplay = true
+			events = append(events, Event{DISPLAY, Display{}, 0})
+		}
 	}
+	gui.Show()
 }

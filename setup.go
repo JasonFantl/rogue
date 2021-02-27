@@ -126,6 +126,8 @@ func addPlayer(ecsManager *ecs.Manager, x, y int) {
 
 	positionComponent := ecs.Position{x, y}
 	displayComponent := ecs.Displayable{true, termbox.ColorCyan, '@', 99}
+	visionComponent := ecs.Vision{5}
+	awarnessComponent := ecs.EntityAwarness{}
 
 	controllerComponent := ecs.PlayerController{
 		Up:     termbox.Key('w'),
@@ -144,6 +146,8 @@ func addPlayer(ecsManager *ecs.Manager, x, y int) {
 	player := []ecs.Component{
 		{ecs.POSITION, positionComponent},
 		{ecs.DISPLAYABLE, displayComponent},
+		{ecs.ENTITY_AWARENESS, awarnessComponent},
+		{ecs.VISION, visionComponent},
 		{ecs.PLAYER_CONTROLLER, controllerComponent},
 		{ecs.INVENTORY, inventoryComponent},
 		{ecs.INFORMATION, informationComponent},

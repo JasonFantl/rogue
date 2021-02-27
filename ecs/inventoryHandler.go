@@ -4,8 +4,8 @@ type InventoryHandler struct{}
 
 func (s *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []Event) {
 	if event.ID == PLAYER_TRY_PICK_UP {
-		positionData, positionOk := m.getComponent(event.entity, POSITION)
-		if positionOk {
+		positionData, hasPosition := m.getComponent(event.entity, POSITION)
+		if hasPosition {
 			positionComponent := positionData.(Position)
 
 			entities := m.getEntitiesFromPos(positionComponent.X, positionComponent.Y)
@@ -25,10 +25,10 @@ func (s *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []
 		tryPickUpEvent := event.data.(TryPickUp)
 
 		// get entitys current position and make sure it has an inventory
-		positionData, positionOk := m.getComponent(event.entity, POSITION)
-		inventoryData, inventoryOk := m.getComponent(event.entity, INVENTORY)
+		positionData, hasPosition := m.getComponent(event.entity, POSITION)
+		inventoryData, hasInventory := m.getComponent(event.entity, INVENTORY)
 
-		if positionOk && inventoryOk {
+		if hasPosition && hasInventory {
 
 			positionComponent := positionData.(Position)
 			inventoryComponent := inventoryData.(Inventory)
@@ -64,9 +64,9 @@ func (s *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []
 				returnEvents = append(returnEvents, Event{ERROR_EVENT, ErrorEvent{"player picking up"}, 0})
 			}
 
-			otherPositionData, otherPositionOk := m.getComponent(tryPickUpEvent.what, POSITION)
+			otherPositionData, otherHasPosition := m.getComponent(tryPickUpEvent.what, POSITION)
 			// should you be able to pick up an item without position?
-			if otherPositionOk {
+			if otherHasPosition {
 				otherPositionComponent := otherPositionData.(Position)
 				if otherPositionComponent.X == positionComponent.X && otherPositionComponent.Y == positionComponent.Y && isTreasure(tryPickUpEvent.what) {
 					pickup(tryPickUpEvent.what)
@@ -87,8 +87,8 @@ func (s *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []
 
 				if stashedComponent.Parent == event.entity {
 					// only have to do anything if the thing has postition
-					positionData, positionOk := m.getComponent(stashedEntity, POSITION)
-					if positionOk {
+					positionData, hasPosition := m.getComponent(stashedEntity, POSITION)
+					if hasPosition {
 						positionComponent := positionData.(Position)
 						positionComponent.X = moveEvent.x
 						positionComponent.Y = moveEvent.y
