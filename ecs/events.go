@@ -1,5 +1,7 @@
 package ecs
 
+import "github.com/nsf/termbox-go"
+
 type EventID int
 
 type Event struct {
@@ -10,12 +12,13 @@ type Event struct {
 
 const (
 	TIMESTEP EventID = iota
+	KEY_PRESSED
 	MOVED
 	TRY_MOVE
 	QUIT
 	DISPLAY
 	TRY_PICK_UP
-	PLAYER_TRY_PICK_UP
+	PLAYER_TRY_PICK_UP // need to get rid of later, not necessary
 	PICKED_UP
 	TRY_ATTACK
 	DAMAGED
@@ -24,6 +27,10 @@ const (
 )
 
 type TimeStep struct{}
+
+type KeyPressed struct {
+	key termbox.Key
+}
 
 type Moved struct {
 	x, y int

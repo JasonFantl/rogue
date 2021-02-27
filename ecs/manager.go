@@ -4,12 +4,6 @@ import (
 	"github.com/jasonfantl/rogue/gui"
 )
 
-// TODO:
-// quick lookup function based on location. keep track with array
-// maybe lookup based on multiple component tags
-
-type Entity uint64
-
 type EventHandler interface {
 	handleEvent(*Manager, Event) (returnEvents []Event)
 }
@@ -17,7 +11,6 @@ type EventHandler interface {
 type Manager struct {
 	lookupTable   map[ComponentID]map[Entity]interface{}
 	eventHandlers []EventHandler
-	systems       []System
 	entityCounter Entity
 	running       bool
 }
@@ -26,7 +19,6 @@ func New() Manager {
 	newManager := Manager{}
 	newManager.lookupTable = make(map[ComponentID]map[Entity]interface{})
 	newManager.eventHandlers = make([]EventHandler, 0)
-	newManager.systems = make([]System, 0)
 	newManager.entityCounter = 0
 	newManager.running = false
 
@@ -44,10 +36,6 @@ func (m *Manager) Start() {
 
 func (m *Manager) Running() bool {
 	return m.running
-}
-
-func (m *Manager) AddSystem(system System) {
-	m.systems = append(m.systems, system)
 }
 
 func (m *Manager) AddEventHandler(eventHandler EventHandler) {
@@ -82,8 +70,12 @@ func (m *Manager) AddComponenet(entity Entity, component Component) bool {
 }
 
 func (m *Manager) Run() {
-	for _, system := range m.systems {
-		system.run(m)
+	key, pressed := gui.GetKeyPress()
+
+	if pressed {
+		// send event as player so we know where to look for key mappings
+		buttonEvent := []Event{{KEY_PRESSED, KeyPressed{key}, 0}}
+		m.sendEvents(buttonEvent)
 	}
 }
 
@@ -172,9 +164,6 @@ func (m *Manager) sendEvents(events []Event) {
 		// special manager case
 		if sendingEvent.ID == QUIT {
 			m.running = false
-		}
-		if len(events) > 100 {
-			break
 		}
 	}
 

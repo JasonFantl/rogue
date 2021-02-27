@@ -4,6 +4,8 @@ import (
 	"github.com/nsf/termbox-go"
 )
 
+type Entity uint64
+
 type ComponentID uint64
 
 type Component struct {
@@ -17,6 +19,8 @@ const (
 	HEALTH
 	INVENTORY
 	INFORMATION
+	ENTITY_AWARNESS
+	VISION
 	VOLUME
 	VIOLENT
 	DISPLAYABLE
@@ -32,8 +36,10 @@ type Position struct {
 }
 
 type Displayable struct {
-	Info     termbox.Cell
-	Priority int
+	IsForeground bool
+	Color        termbox.Attribute
+	Rune         rune
+	Priority     int
 }
 
 type PlayerController struct {
@@ -42,6 +48,14 @@ type PlayerController struct {
 
 type MonsterController struct {
 	ActionPriorities []MonsterAction
+}
+
+type Vision struct {
+	reach int
+}
+
+type EntityAwarness struct {
+	awareOf []Entity
 }
 
 type Volume struct {

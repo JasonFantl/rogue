@@ -14,23 +14,18 @@ func main() {
 
 	ecsManager := ecs.New()
 
-	/////// SYSTEMS //////////////
-
-	keyboardListener := ecs.InputSystem{}
-
-	ecsManager.AddSystem(&keyboardListener)
-
 	/////// HANDLERS /////////////
 
+	inputHandler := ecs.PlayerInputHandler{}
 	movementHandler := ecs.MoveHandler{}
 	monsterHandler := ecs.MonsterHandler{}
-
 	attackHandler := ecs.AttackHandler{}
 	deathHandler := ecs.DeathHandler{}
 	displayHandler := ecs.DisplayHandler{}
 	inventoryHandler := ecs.InventoryHandler{}
 	eventPrinter := ecs.EventPrinterHandler{}
 
+	ecsManager.AddEventHandler(&inputHandler)
 	ecsManager.AddEventHandler(&monsterHandler)
 	ecsManager.AddEventHandler(&attackHandler)
 	ecsManager.AddEventHandler(&deathHandler)

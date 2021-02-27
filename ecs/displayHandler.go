@@ -19,7 +19,9 @@ func (s *DisplayHandler) handleEvent(m *Manager, event Event) (returnEvents []Ev
 
 		// need to keep track of priorities
 		// maps 2d pos to unique int
-		priorities := make(map[int]int)
+		fgPriorities := make(map[int]int)
+		bgPriorities := make(map[int]int)
+
 		maxX := 0
 
 		// get new positions, the looping is currently as horrible as I can make it
@@ -41,11 +43,18 @@ func (s *DisplayHandler) handleEvent(m *Manager, event Event) (returnEvents []Ev
 
 					uniqueID := x + (x+y)*(x+y+1)/2
 
-					currentPriority, ok := priorities[uniqueID]
-
-					if !ok || displayComponent.Priority > currentPriority {
-						gui.DrawTile(x, y, displayComponent.Info)
-						priorities[uniqueID] = displayComponent.Priority
+					if displayComponent.IsForeground {
+						currentPriority, ok := fgPriorities[uniqueID]
+						if !ok || displayComponent.Priority > currentPriority {
+							gui.DrawFg(x, y, displayComponent.Rune, displayComponent.Color)
+							fgPriorities[uniqueID] = displayComponent.Priority
+						}
+					} else {
+						currentPriority, ok := bgPriorities[uniqueID]
+						if !ok || displayComponent.Priority > currentPriority {
+							gui.DrawBg(x, y, displayComponent.Color)
+							bgPriorities[uniqueID] = displayComponent.Priority
+						}
 					}
 				}
 			}

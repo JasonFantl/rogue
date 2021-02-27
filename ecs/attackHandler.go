@@ -1,5 +1,7 @@
 package ecs
 
+import "github.com/nsf/termbox-go"
+
 type AttackHandler struct {
 }
 
@@ -35,7 +37,7 @@ func (s *AttackHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 		}
 	}
 
-	// dmg done
+	// do dmg
 	if event.ID == TRY_ATTACK {
 		// unpack event data
 		tryAttackEvent := event.data.(TryAttack)
@@ -49,6 +51,37 @@ func (s *AttackHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 			m.setComponent(tryAttackEvent.who, Component{HEALTH, healthComponent})
 
 			returnEvents = append(returnEvents, Event{DAMAGED, Damaged{}, tryAttackEvent.who})
+		}
+	}
+
+	// blood handler
+	if event.ID == DAMAGED {
+
+		// get relevant components
+		healthData, hasHealth := m.getComponent(event.entity, HEALTH)
+		positionData, hasPosition := m.getComponent(event.entity, POSITION)
+
+		if hasHealth && hasPosition {
+			healthComponent := healthData.(Health)
+			positionComponent := positionData.(Position)
+
+			if healthComponent.Current < healthComponent.Max/2 {
+
+				bloodInfo := "hard to tell whos or whats blood this is"
+				informationData, hasInformation := m.getComponent(event.entity, INFORMATION)
+				if hasInformation {
+					informationComponent := informationData.(Information)
+					bloodInfo = "the blood of " + informationComponent.Name
+				}
+
+				blood := []Component{
+					{POSITION, Position{positionComponent.X, positionComponent.Y}},
+					{DISPLAYABLE, Displayable{false, termbox.ColorRed, ' ', 2}},
+					{INFORMATION, Information{"Blood", bloodInfo}},
+				}
+
+				m.AddEntity(blood)
+			}
 		}
 	}
 	return returnEvents

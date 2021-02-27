@@ -21,10 +21,17 @@ func DrawText(x, y int, text string) {
 	}
 }
 
-func DrawTile(x, y int, t termbox.Cell) {
+func DrawFg(x, y int, r rune, c termbox.Attribute) {
 	// _, h := s.Size()
 	// invertedY := h - y
-	termbox.SetCell(x, y, t.Ch, t.Bg, t.Fg)
+	termbox.SetFg(x, y, c)
+	termbox.SetChar(x, y, r)
+}
+
+func DrawBg(x, y int, c termbox.Attribute) {
+	// _, h := s.Size()
+	// invertedY := h - y
+	termbox.SetBg(x, y, c)
 }
 
 var errorLine = 0
