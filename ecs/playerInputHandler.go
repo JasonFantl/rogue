@@ -47,7 +47,7 @@ func (h *PlayerInputHandler) handleEvent(m *Manager, event Event) (returnEvents 
 				)
 			default:
 				returnEvents = append(returnEvents,
-					Event{ERROR_EVENT, ErrorEvent{"invalid key press"}, Entity(keyPressedEvent.key)},
+					Event{DEBUG_EVENT, DebugEvent{"invalid key press"}, Entity(keyPressedEvent.key)},
 				)
 			}
 		}

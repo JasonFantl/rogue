@@ -31,7 +31,7 @@ func (m *Manager) Start() {
 	m.running = true
 	// make sure to display
 	startingEvents := []Event{
-		{DISPLAY, Display{}, 0},
+		{DEBUG_EVENT, DebugEvent{"waking up handlers"}, 0},
 	}
 	m.sendEvents(startingEvents)
 }
@@ -128,8 +128,11 @@ func (m *Manager) removeComponent(entity Entity, componentID ComponentID) {
 	if ok {
 		// for position lookup
 		if componentID == POSITION {
-			positionComponent := components[entity].(Position)
-			m.positionLookup.remove(entity, positionComponent.X, positionComponent.Y)
+			positionData, hasPosition := components[entity]
+			if hasPosition {
+				positionComponent := positionData.(Position)
+				m.positionLookup.remove(entity, positionComponent.X, positionComponent.Y)
+			}
 		}
 
 		delete(m.lookupTable[componentID], entity)
@@ -161,7 +164,7 @@ func (m *Manager) sendEvents(events []Event) {
 	// we re-display every time an independent event is fired, must clear the screen first
 	gui.Clear()
 
-	blockFinished := Event{ERROR_EVENT, ErrorEvent{"-----------------------------"}, 999999999}
+	blockFinished := Event{DEBUG_EVENT, DebugEvent{"-----------------------------"}, 999999999}
 	sentDisplay := false
 
 	events = append(events, blockFinished)
@@ -191,7 +194,7 @@ func (m *Manager) sendEvents(events []Event) {
 		if !sentDisplay && len(events) == 0 {
 			sentDisplay = true
 			// use 0 to display as player
-			events = append(events, Event{DISPLAY, Display{}, 3895})
+			events = append(events, Event{DISPLAY, Display{}, 3868})
 		}
 	}
 	gui.Show()

@@ -13,8 +13,8 @@ func (s *EventPrinterHandler) handleEvent(m *Manager, event Event) (returnEvents
 	stringifiedEvent := fmt.Sprintf("%T : %v", event.data, event.entity)
 
 	//special case
-	if event.ID == ERROR_EVENT {
-		stringifiedEvent = fmt.Sprintf("%T : %s : %v", event.data, event.data.(ErrorEvent).err, event.entity)
+	if event.ID == DEBUG_EVENT {
+		stringifiedEvent = fmt.Sprintf("%T : %s : %v", event.data, event.data.(DebugEvent).err, event.entity)
 	}
 
 	// keep in mind this wont display any errors between display frames

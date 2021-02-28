@@ -61,7 +61,7 @@ func (s *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []
 
 			// check if were picking up one item or everything
 			if event.entity == 0 {
-				returnEvents = append(returnEvents, Event{ERROR_EVENT, ErrorEvent{"player picking up"}, 0})
+				returnEvents = append(returnEvents, Event{DEBUG_EVENT, DebugEvent{"player picking up"}, 0})
 			}
 
 			otherPositionData, otherHasPosition := m.getComponent(tryPickUpEvent.what, POSITION)

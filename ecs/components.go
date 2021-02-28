@@ -23,6 +23,7 @@ const (
 	VISION
 	VOLUME
 	VIOLENT
+	OPAQUE
 	DISPLAYABLE
 	PICKUPABLE
 	DROPABLE
@@ -84,4 +85,7 @@ type Health struct {
 
 type Violent struct {
 	BaseAttackDmg int
+}
+
+type Opaque struct {
 }

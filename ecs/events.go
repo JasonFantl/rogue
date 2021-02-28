@@ -23,7 +23,7 @@ const (
 	TRY_ATTACK
 	DAMAGED
 	DIED
-	ERROR_EVENT
+	DEBUG_EVENT
 )
 
 type TimeStep struct{}
@@ -68,6 +68,6 @@ type Damaged struct {
 type Died struct {
 }
 
-type ErrorEvent struct {
+type DebugEvent struct {
 	err string
 }

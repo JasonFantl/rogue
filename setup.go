@@ -111,12 +111,14 @@ func placeFloor(ecsManager *ecs.Manager, x, y int) {
 func placeWall(ecsManager *ecs.Manager, x, y int) {
 	positionComponent := ecs.Position{x, y}
 	displayComponent := ecs.Displayable{false, termbox.ColorCyan, ' ', 99}
-	blockableTag := ecs.Volume{}
+	volumeTag := ecs.Volume{}
+	opaqueTag := ecs.Opaque{}
 
 	wall := []ecs.Component{
 		{ecs.POSITION, positionComponent},
 		{ecs.DISPLAYABLE, displayComponent},
-		{ecs.VOLUME, blockableTag},
+		{ecs.VOLUME, volumeTag},
+		{ecs.OPAQUE, opaqueTag},
 	}
 
 	ecsManager.AddEntity(wall)
