@@ -14,16 +14,18 @@ type DisplayHandler struct {
 func (h *DisplayHandler) handleEvent(m *Manager, event Event) (returnEvents []Event) {
 
 	if event.ID == DISPLAY {
-		// h.showAll(m)
-		h.showPlayer(m)
+		_, playerExist := m.getComponent(event.entity, INVENTORY)
+		if playerExist {
+			h.showEntity(m, event.entity)
+		} else {
+			h.showAll(m)
+		}
 	}
 
 	return returnEvents
 }
 
-func (s *DisplayHandler) showPlayer(m *Manager) {
-
-	player := Entity(0)
+func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 
 	/////////////// GRID /////////////////
 
@@ -35,16 +37,16 @@ func (s *DisplayHandler) showPlayer(m *Manager) {
 	maxX := 0
 	displayOffset := 10
 
-	awarnessData, hasAwarness := m.getComponent(player, ENTITY_AWARENESS)
-	positionData, hasPosition := m.getComponent(player, POSITION)
+	awarnessData, hasAwarness := m.getComponent(entity, ENTITY_AWARENESS)
+	positionData, hasPosition := m.getComponent(entity, POSITION)
 
 	if hasAwarness && hasPosition {
 		awarnessComponent := awarnessData.(EntityAwarness)
 		positionComponent := positionData.(Position)
 
-		for _, entity := range awarnessComponent.AwareOf {
-			displayData, hasDisplay := m.getComponent(entity, DISPLAYABLE)
-			positionData, hasPosition := m.getComponent(entity, POSITION)
+		for _, item := range awarnessComponent.AwareOf {
+			displayData, hasDisplay := m.getComponent(item, DISPLAYABLE)
+			positionData, hasPosition := m.getComponent(item, POSITION)
 
 			if hasDisplay && hasPosition {
 				seenDisplayComponent := displayData.(Displayable)
@@ -79,14 +81,14 @@ func (s *DisplayHandler) showPlayer(m *Manager) {
 	///////////// INVENTORY ///////////////////
 
 	currentLineNum := 1
-	inventoryData, hasInventory := m.getComponent(player, INVENTORY)
+	inventoryData, hasInventory := m.getComponent(entity, INVENTORY)
 
 	if hasInventory {
 		inventoryComponent := inventoryData.(Inventory)
 
 		// if we can, print entities information
-		informationData, hasInformation := m.getComponent(player, INFORMATION)
-		healthData, hasHealth := m.getComponent(player, HEALTH)
+		informationData, hasInformation := m.getComponent(entity, INFORMATION)
+		healthData, hasHealth := m.getComponent(entity, HEALTH)
 
 		if hasInformation {
 			informationComponent := informationData.(Information)
@@ -101,8 +103,8 @@ func (s *DisplayHandler) showPlayer(m *Manager) {
 		}
 
 		// then print each of its items
-		for _, entity := range inventoryComponent.Items {
-			informationData, informationOk := m.getComponent(entity, INFORMATION)
+		for _, item := range inventoryComponent.Items {
+			informationData, informationOk := m.getComponent(item, INFORMATION)
 
 			if informationOk {
 				informationComponent := informationData.(Information)

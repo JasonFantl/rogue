@@ -7,29 +7,33 @@ func (s *VisionHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 	// not sure how/when to update/handle this event, kinda tricky
 	if event.ID == DISPLAY {
 
-		visionData, hasVision := m.getComponent(event.entity, VISION)
-		awarnessData, hasAwarness := m.getComponent(event.entity, ENTITY_AWARENESS)
-		positionData, hasPosition := m.getComponent(event.entity, POSITION)
+		entities, _ := m.getComponents(VISION)
 
-		if hasVision && hasAwarness && hasPosition {
-			visionComponent := visionData.(Vision)
-			awarnessComponent := awarnessData.(EntityAwarness)
-			positionComponent := positionData.(Position)
+		for entity := range entities {
+			visionData, hasVision := m.getComponent(entity, VISION)
+			awarnessData, hasAwarness := m.getComponent(entity, ENTITY_AWARENESS)
+			positionData, hasPosition := m.getComponent(entity, POSITION)
 
-			// clear old awarness first
-			awarnessComponent.AwareOf = make([]Entity, 0)
+			if hasVision && hasAwarness && hasPosition {
+				visionComponent := visionData.(Vision)
+				awarnessComponent := awarnessData.(EntityAwarness)
+				positionComponent := positionData.(Position)
 
-			// later imlement FOV, for now just display everything withen the raduis
-			for dx := -visionComponent.Reach; dx <= visionComponent.Reach; dx++ {
-				for dy := -visionComponent.Reach; dy <= visionComponent.Reach; dy++ {
-					x := positionComponent.X + dx
-					y := positionComponent.Y + dy
+				// clear old awarness first
+				awarnessComponent.AwareOf = make([]Entity, 0)
 
-					awarnessComponent.AwareOf = append(awarnessComponent.AwareOf, m.getEntitiesFromPos(x, y)...)
+				// later imlement FOV, for now just display everything withen the raduis
+				for dx := -visionComponent.Reach; dx <= visionComponent.Reach; dx++ {
+					for dy := -visionComponent.Reach; dy <= visionComponent.Reach; dy++ {
+						x := positionComponent.X + dx
+						y := positionComponent.Y + dy
+
+						awarnessComponent.AwareOf = append(awarnessComponent.AwareOf, m.getEntitiesFromPos(x, y)...)
+					}
 				}
-			}
 
-			m.setComponent(event.entity, Component{ENTITY_AWARENESS, awarnessComponent})
+				m.setComponent(entity, Component{ENTITY_AWARENESS, awarnessComponent})
+			}
 		}
 	}
 

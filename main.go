@@ -26,6 +26,8 @@ func main() {
 	inventoryHandler := ecs.InventoryHandler{}
 	eventPrinter := ecs.EventPrinterHandler{}
 
+	// the order that these are added matters
+	// they follow this order of execution
 	ecsManager.AddEventHandler(&inputHandler)
 	ecsManager.AddEventHandler(&monsterHandler)
 	ecsManager.AddEventHandler(&attackHandler)

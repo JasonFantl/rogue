@@ -26,20 +26,21 @@ func (s *MoveHandler) handleEvent(m *Manager, event Event) (returnEvents []Event
 
 			for _, otherEntity := range m.getEntitiesFromPos(newX, newY) {
 				// since we use getEntitiesFromPos, it must have the same position
-				_, otherHasBlockable := m.getComponent(otherEntity, VOLUME)
+				_, otherHasVolume := m.getComponent(otherEntity, VOLUME)
 
-				if otherHasBlockable && hasVolume {
+				if otherHasVolume && hasVolume {
 					canMove = false
 				}
 			}
 
 			if canMove {
+				returnEvents = append(returnEvents, Event{MOVED, Moved{positionComponent.X, positionComponent.Y, newX, newY}, event.entity})
+
 				positionComponent.X = newX
 				positionComponent.Y = newY
 
 				m.setComponent(event.entity, Component{POSITION, positionComponent})
 
-				returnEvents = append(returnEvents, Event{MOVED, Moved{newX, newY}, event.entity})
 			}
 		}
 	}

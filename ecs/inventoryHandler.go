@@ -90,11 +90,12 @@ func (s *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []
 					positionData, hasPosition := m.getComponent(stashedEntity, POSITION)
 					if hasPosition {
 						positionComponent := positionData.(Position)
-						positionComponent.X = moveEvent.x
-						positionComponent.Y = moveEvent.y
-						m.setComponent(stashedEntity, Component{POSITION, positionComponent})
 
-						returnEvents = append(returnEvents, Event{MOVED, Moved{positionComponent.X, positionComponent.Y}, stashedEntity})
+						returnEvents = append(returnEvents, Event{MOVED, Moved{positionComponent.X, positionComponent.Y, moveEvent.toX, moveEvent.toY}, stashedEntity})
+
+						positionComponent.X = moveEvent.toX
+						positionComponent.Y = moveEvent.toY
+						m.setComponent(stashedEntity, Component{POSITION, positionComponent})
 					}
 				}
 			}

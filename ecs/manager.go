@@ -9,15 +9,17 @@ type EventHandler interface {
 }
 
 type Manager struct {
-	lookupTable   map[ComponentID]map[Entity]interface{}
-	eventHandlers []EventHandler
-	entityCounter Entity
-	running       bool
+	lookupTable    map[ComponentID]map[Entity]interface{}
+	positionLookup PositionLookup
+	eventHandlers  []EventHandler
+	entityCounter  Entity
+	running        bool
 }
 
 func New() Manager {
 	newManager := Manager{}
 	newManager.lookupTable = make(map[ComponentID]map[Entity]interface{})
+	newManager.positionLookup = make(map[int]map[int][]Entity, 0)
 	newManager.eventHandlers = make([]EventHandler, 0)
 	newManager.entityCounter = 0
 	newManager.running = false
@@ -64,6 +66,12 @@ func (m *Manager) AddComponenet(entity Entity, component Component) bool {
 	// check entity doesnt already have component
 	if _, ok := componentList[entity]; !ok {
 		m.lookupTable[component.ID][entity] = component.Data
+
+		// for position lookup
+		if component.ID == POSITION {
+			positionComponent := component.Data.(Position)
+			m.positionLookup.add(entity, positionComponent.X, positionComponent.Y)
+		}
 		return true
 	}
 	return false
@@ -73,7 +81,7 @@ func (m *Manager) Run() {
 	key, pressed := gui.GetKeyPress()
 
 	if pressed {
-		// send event as player so we know where to look for key mappings
+		// send event from player so we know where to look for key mappings
 		buttonEvent := []Event{{KEY_PRESSED, KeyPressed{key}, 0}}
 		m.sendEvents(buttonEvent)
 	}
@@ -99,6 +107,16 @@ func (m *Manager) getComponents(componentID ComponentID) (map[Entity]interface{}
 }
 
 func (m *Manager) setComponent(entity Entity, component Component) {
+	// for position lookup
+	if component.ID == POSITION {
+		oldPositionData, hasPosition := m.getComponent(entity, POSITION)
+		if hasPosition {
+			oldPosition := oldPositionData.(Position)
+			newPosition := component.Data.(Position)
+			m.positionLookup.move(entity, oldPosition.X, oldPosition.Y, newPosition.X, newPosition.Y)
+		}
+	}
+
 	_, ok := m.lookupTable[component.ID]
 	if ok {
 		m.lookupTable[component.ID][entity] = component.Data
@@ -106,8 +124,14 @@ func (m *Manager) setComponent(entity Entity, component Component) {
 }
 
 func (m *Manager) removeComponent(entity Entity, componentID ComponentID) {
-	_, ok := m.lookupTable[componentID]
+	components, ok := m.lookupTable[componentID]
 	if ok {
+		// for position lookup
+		if componentID == POSITION {
+			positionComponent := components[entity].(Position)
+			m.positionLookup.remove(entity, positionComponent.X, positionComponent.Y)
+		}
+
 		delete(m.lookupTable[componentID], entity)
 	}
 }
@@ -122,18 +146,14 @@ func (m *Manager) removeEntity(entity Entity) {
 }
 
 func (m *Manager) getEntitiesFromPos(x, y int) (entities []Entity) {
-	for entity, positionData := range m.lookupTable[POSITION] {
-		positionComponent := positionData.(Position)
-		if positionComponent.X == x && positionComponent.Y == y {
-			entities = append(entities, entity)
+	col, ok := m.positionLookup[x]
+	if ok {
+		entities, ok := col[y]
+		if ok {
+			return entities
 		}
 	}
-	return entities
-}
-
-func (m *Manager) sendEvent(event Event) {
-	events := []Event{event}
-	m.sendEvents(events)
+	return []Entity{}
 }
 
 func (m *Manager) sendEvents(events []Event) {
@@ -170,7 +190,8 @@ func (m *Manager) sendEvents(events []Event) {
 		// display stuff
 		if !sentDisplay && len(events) == 0 {
 			sentDisplay = true
-			events = append(events, Event{DISPLAY, Display{}, 0})
+			// use 0 to display as player
+			events = append(events, Event{DISPLAY, Display{}, 3895})
 		}
 	}
 	gui.Show()

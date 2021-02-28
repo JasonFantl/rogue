@@ -126,7 +126,7 @@ func addPlayer(ecsManager *ecs.Manager, x, y int) {
 
 	positionComponent := ecs.Position{x, y}
 	displayComponent := ecs.Displayable{true, termbox.ColorCyan, '@', 99}
-	visionComponent := ecs.Vision{5}
+	visionComponent := ecs.Vision{10}
 	awarnessComponent := ecs.EntityAwarness{}
 
 	controllerComponent := ecs.PlayerController{
@@ -162,17 +162,21 @@ func addPlayer(ecsManager *ecs.Manager, x, y int) {
 func addMonster(ecsManager *ecs.Manager, x, y int) {
 
 	controllerComponent := ecs.MonsterController{
-		[]ecs.MonsterAction{ecs.PICKUP, ecs.MOVE, ecs.NOTHING},
+		[]ecs.MonsterAction{ecs.PICKUP, ecs.TREASURE_MOVE, ecs.RANDOM_MOVE, ecs.NOTHING},
 	}
 	positionComponent := ecs.Position{x, y}
 	inventoryComponent := ecs.Inventory{}
 	volumeComponent := ecs.Volume{}
 	violentComponent := ecs.Violent{4}
 	healthComponent := ecs.Health{20, 20}
+	visionComponent := ecs.Vision{10}
+	awarnessComponent := ecs.EntityAwarness{}
 
 	monster := []ecs.Component{
 		{ecs.POSITION, positionComponent},
 		{ecs.MONSTER_CONTROLLER, controllerComponent},
+		{ecs.ENTITY_AWARENESS, awarnessComponent},
+		{ecs.VISION, visionComponent},
 		{ecs.INVENTORY, inventoryComponent},
 		{ecs.VOLUME, volumeComponent},
 		{ecs.VIOLENT, violentComponent},
