@@ -1,17 +1,5 @@
 # Rogue
 ## TODO
-* ECS
-    * Components
-        * Display
-        * Position
-        * Controller
-        * Blocking
-        * Movable
-        * Handshake
-    * Systems
-        * Display
-        * Movement
-        * Handshake
 * Moveable Character
 * Walls
 * Inventory
@@ -40,18 +28,17 @@
     
 ### Installing
 
-* git pull this and try to run the dependencies below
-
-* might have to run  ``` go build ```
-* if that doesnt work, try ``` go get ```
-* and finally if that doesnt work, try ``` go get github.com/gdamore/tcell/v2 ```
+* git pull this
 
 ### Executing program
 From the root directory
 ```
-go run *.go
+go build
 ```
-
+then
+```
+./rogue
+```
 ### handy resources
 * https://www.reddit.com/r/roguelikedev/
 * https://www.fatoldyeti.com/
