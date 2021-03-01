@@ -110,7 +110,7 @@ func placeFloor(ecsManager *ecs.Manager, x, y int) {
 }
 func placeWall(ecsManager *ecs.Manager, x, y int) {
 	positionComponent := ecs.Position{x, y}
-	displayComponent := ecs.Displayable{false, termbox.ColorCyan, ' ', 99}
+	displayComponent := ecs.Displayable{false, termbox.ColorDarkGray, ' ', 99}
 	volumeTag := ecs.Volume{}
 	opaqueTag := ecs.Opaque{}
 
@@ -127,7 +127,7 @@ func placeWall(ecsManager *ecs.Manager, x, y int) {
 func addPlayer(ecsManager *ecs.Manager, x, y int) {
 
 	positionComponent := ecs.Position{x, y}
-	displayComponent := ecs.Displayable{true, termbox.ColorCyan, '@', 99}
+	displayComponent := ecs.Displayable{true, termbox.ColorLightBlue, '@', 99}
 	visionComponent := ecs.Vision{10}
 	awarnessComponent := ecs.EntityAwarness{}
 

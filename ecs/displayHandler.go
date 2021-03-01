@@ -35,7 +35,6 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 	bgPriorities := make(map[int]int)
 
 	maxX := 0
-	displayOffset := 10
 
 	awarnessData, hasAwarness := m.getComponent(entity, ENTITY_AWARENESS)
 	positionData, hasPosition := m.getComponent(entity, POSITION)
@@ -43,6 +42,14 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 	if hasAwarness && hasPosition {
 		awarnessComponent := awarnessData.(EntityAwarness)
 		positionComponent := positionData.(Position)
+
+		displayOffset := 20
+
+		visionData, hasVision := m.getComponent(entity, VISION)
+		if hasVision {
+			visionComponent := visionData.(Vision)
+			displayOffset = visionComponent.Radius + 1
+		}
 
 		for _, item := range awarnessComponent.AwareOf {
 			displayData, hasDisplay := m.getComponent(item, DISPLAYABLE)

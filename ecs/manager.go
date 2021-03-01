@@ -194,7 +194,7 @@ func (m *Manager) sendEvents(events []Event) {
 		if !sentDisplay && len(events) == 0 {
 			sentDisplay = true
 			// use 0 to display as player
-			events = append(events, Event{DISPLAY, Display{}, 3868})
+			events = append(events, Event{DISPLAY, Display{}, 3895})
 		}
 	}
 	gui.Show()

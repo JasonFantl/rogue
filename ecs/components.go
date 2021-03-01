@@ -52,7 +52,7 @@ type MonsterController struct {
 }
 
 type Vision struct {
-	Reach int
+	Radius int
 }
 
 type EntityAwarness struct {

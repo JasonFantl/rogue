@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/jasonfantl/rogue/ecs"
 	"github.com/jasonfantl/rogue/gui"
 )
@@ -43,8 +41,6 @@ func main() {
 	addMonster(&ecsManager, 50, 30)
 
 	generateRooms(&ecsManager, 90, 40)
-
-	fmt.Println("starting loop")
 
 	ecsManager.Start()
 
