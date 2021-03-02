@@ -76,7 +76,7 @@ func (s *AttackHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 
 				blood := []Component{
 					{POSITION, Position{positionComponent.X, positionComponent.Y}},
-					{DISPLAYABLE, Displayable{false, termbox.ColorRed, ' ', 2}},
+					{DISPLAYABLE, Displayable{false, termbox.RGBToAttribute(100, 10, 20), ' ', 102}},
 					{INFORMATION, Information{"Blood", bloodInfo}},
 				}
 

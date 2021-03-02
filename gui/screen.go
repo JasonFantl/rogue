@@ -13,11 +13,13 @@ func Setup() {
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	termbox.SetOutputMode(termbox.OutputRGB)
 }
 
 func DrawText(x, y int, text string) {
 	for i, r := range text {
-		termbox.SetCell(x+i, y, r, termbox.ColorWhite, termbox.ColorDefault)
+		termbox.SetCell(x+i, y, r, termbox.RGBToAttribute(200, 200, 200), termbox.ColorDefault)
 	}
 }
 
