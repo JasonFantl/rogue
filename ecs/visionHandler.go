@@ -43,10 +43,48 @@ func updateAwareOf(m *Manager, position Position, vision Vision, awareOf *[]Enti
 }
 
 func updateOctant(m *Manager, position Position, vision Vision, awareOf *[]Entity, octant int) {
+	// first create bouds of octant
+	type bound struct{ row, col int }
+	bounds := make([]bound, 0)
+
+	circleX := vision.Radius
+	circleY := 0
+	// Initialising the value of P
+	P := 1 - vision.Radius
+	for circleX > circleY {
+		//circle math
+		circleY++
+		// Mid-point is inside or on the perimeter
+		if P < 0 {
+			P = P + 2*circleY + 1
+		} else { // Mid-point is outside the perimeter
+			circleX--
+			P = P + 2*circleY - 2*circleX + 1
+		}
+		// All the perimeter points have already been displayed
+		if circleX < circleY {
+			break
+		}
+		bounds = append(bounds, bound{circleX, circleY})
+	}
+
 	line := ShadowLine{}
 
-	for row := 1; row < vision.Radius; row++ {
+	for row := 1; row <= vision.Radius; row++ {
 		for col := 0; col <= row; col++ {
+			// check if out of bounds
+			outOfBounds := false
+			for _, b := range bounds {
+				if row == b.row && col == b.col {
+					outOfBounds = true
+					break
+				}
+			}
+			if outOfBounds {
+				break
+			}
+
+			// in bounds, continue on
 			delta := transformOctant(row, col, octant)
 			x := position.X + delta.X
 			y := position.Y + delta.Y

@@ -36,50 +36,132 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 
 	maxX := 0
 
-	awarnessData, hasAwarness := m.getComponent(entity, ENTITY_AWARENESS)
+	displayRadius := 20
+
+	// main function
+	display := func(x, y int, displayComponent Displayable) {
+		x = x + displayRadius
+		y = y + displayRadius
+
+		if x > maxX {
+			maxX = x
+		}
+
+		uniqueID := x + (x+y)*(x+y+1)/2
+
+		if displayComponent.IsForeground {
+			currentPriority, ok := fgPriorities[uniqueID]
+			if !ok || displayComponent.Priority > currentPriority {
+				gui.DrawFg(x, y, displayComponent.Rune, displayComponent.Color)
+				fgPriorities[uniqueID] = displayComponent.Priority
+			}
+		} else {
+			currentPriority, ok := bgPriorities[uniqueID]
+			if !ok || displayComponent.Priority > currentPriority {
+				gui.DrawBg(x, y, displayComponent.Color)
+				bgPriorities[uniqueID] = displayComponent.Priority
+			}
+		}
+	}
+
 	positionData, hasPosition := m.getComponent(entity, POSITION)
 
-	if hasAwarness && hasPosition {
-		awarnessComponent := awarnessData.(EntityAwarness)
+	if hasPosition {
 		positionComponent := positionData.(Position)
-
-		displayOffset := 20
 
 		visionData, hasVision := m.getComponent(entity, VISION)
 		if hasVision {
 			visionComponent := visionData.(Vision)
-			displayOffset = visionComponent.Radius + 1
+			displayRadius = visionComponent.Radius * 2
 		}
 
-		for _, item := range awarnessComponent.AwareOf {
-			displayData, hasDisplay := m.getComponent(item, DISPLAYABLE)
-			positionData, hasPosition := m.getComponent(item, POSITION)
+		// ---------- MEMORY ---------
+		memoryData, hasMemory := m.getComponent(entity, ENTITY_MEMORY)
 
-			if hasDisplay && hasPosition {
-				seenDisplayComponent := displayData.(Displayable)
-				seenPositionComponent := positionData.(Position)
+		if hasMemory {
+			memoryComponent := memoryData.(EntityMemory)
 
-				x := seenPositionComponent.X - positionComponent.X + displayOffset
-				y := seenPositionComponent.Y - positionComponent.Y + displayOffset
+			// get bounds, just do quarter circle
+			type bound struct{ row, col int }
+			bounds := make([]bound, 0)
 
-				if x > maxX {
-					maxX = x
+			circleX := displayRadius
+			circleY := 0
+
+			// Initialising the value of P
+			P := 1 - displayRadius
+			for circleX > circleY {
+				//circle math
+				circleY++
+				// Mid-point is inside or on the perimeter
+				if P <= 0 {
+					P = P + 2*circleY + 1
+				} else { // Mid-point is outside the perimeter
+					circleX--
+					P = P + 2*circleY - 2*circleX + 1
+				}
+				// All the perimeter points have already been displayed
+				if circleX < circleY {
+					break
 				}
 
-				uniqueID := x + (x+y)*(x+y+1)/2
+				bounds = append(bounds, bound{circleY, circleX})
+				if circleX != circleY && P > 0 {
+					bounds = append(bounds, bound{circleX, circleY})
+				}
+			}
 
-				if seenDisplayComponent.IsForeground {
-					currentPriority, ok := fgPriorities[uniqueID]
-					if !ok || seenDisplayComponent.Priority > currentPriority {
-						gui.DrawFg(x, y, seenDisplayComponent.Rune, seenDisplayComponent.Color)
-						fgPriorities[uniqueID] = seenDisplayComponent.Priority
+			for _, b := range bounds {
+				for dy := -b.row; dy <= b.row; dy++ {
+					for dx := -b.col; dx < b.col; dx++ {
+						itemX := positionComponent.X + dx
+						itemY := positionComponent.Y + dy
+						col, ok := memoryComponent.Memory[itemX]
+						if ok {
+							toDisplay, ok := col[itemY]
+							if ok {
+								display(dx, dy, toDisplay)
+							}
+						}
 					}
-				} else {
-					currentPriority, ok := bgPriorities[uniqueID]
-					if !ok || seenDisplayComponent.Priority > currentPriority {
-						gui.DrawBg(x, y, seenDisplayComponent.Color)
-						bgPriorities[uniqueID] = seenDisplayComponent.Priority
-					}
+				}
+			}
+			// // this is where we display
+			// ys := []int{circleY, -circleY}
+			// for dx := -circleX; dx <= circleX; dx++ {
+			// 	for _, dy := range ys {
+			// 		itemX := positionComponent.X + dx
+			// 		itemY := positionComponent.Y + dy
+			// 		col, ok := memoryComponent.Memory[itemX]
+			// 		if ok {
+			// 			toDisplay, ok := col[itemY]
+			// 			if ok {
+			// 				display(dx, dy, toDisplay)
+			// 			}
+			// 		}
+			// 	}
+			// }
+
+		}
+
+		// ---------- AWARNESS ---------
+		awarnessData, hasAwarness := m.getComponent(entity, ENTITY_AWARENESS)
+
+		if hasAwarness {
+			awarnessComponent := awarnessData.(EntityAwarness)
+
+			for _, item := range awarnessComponent.AwareOf {
+				displayData, hasDisplay := m.getComponent(item, DISPLAYABLE)
+				positionData, hasPosition := m.getComponent(item, POSITION)
+
+				if hasDisplay && hasPosition {
+					seenDisplayComponent := displayData.(Displayable)
+					seenPositionComponent := positionData.(Position)
+
+					x := seenPositionComponent.X - positionComponent.X
+					y := seenPositionComponent.Y - positionComponent.Y
+
+					display(x, y, seenDisplayComponent)
 				}
 			}
 		}

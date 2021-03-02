@@ -23,16 +23,23 @@ func main() {
 	displayHandler := ecs.DisplayHandler{}
 	inventoryHandler := ecs.InventoryHandler{}
 	eventPrinter := ecs.EventPrinterHandler{}
+	memoryHandler := ecs.MemoryHandler{}
 
 	// the order that these are added matters
 	// they follow this order of execution
+
 	ecsManager.AddEventHandler(&inputHandler)
 	ecsManager.AddEventHandler(&monsterHandler)
 	ecsManager.AddEventHandler(&attackHandler)
 	ecsManager.AddEventHandler(&deathHandler)
 	ecsManager.AddEventHandler(&movementHandler)
 	ecsManager.AddEventHandler(&inventoryHandler)
+
+	// display stuff, all happens on the same event, no queue
+	// vision updates awarness
+	// awareness updates memory
 	ecsManager.AddEventHandler(&visionHandler)
+	ecsManager.AddEventHandler(&memoryHandler)
 	ecsManager.AddEventHandler(&displayHandler)
 	ecsManager.AddEventHandler(&eventPrinter)
 

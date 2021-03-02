@@ -99,24 +99,29 @@ func addWallsAround(ecsManager *ecs.Manager, width, height int) {
 
 func placeFloor(ecsManager *ecs.Manager, x, y int) {
 	positionComponent := ecs.Position{x, y}
-	displayComponent := ecs.Displayable{false, termbox.ColorBlack, ' ', 1}
+	displayComponent := ecs.Displayable{false, termbox.ColorBlack, ' ', 101}
+	memorableComponent := ecs.Memorable{ecs.Displayable{false, termbox.ColorCyan, ' ', 1}}
 
 	floor := []ecs.Component{
 		{ecs.POSITION, positionComponent},
 		{ecs.DISPLAYABLE, displayComponent},
+		{ecs.MEMORABLE, memorableComponent},
 	}
 
 	ecsManager.AddEntity(floor)
 }
 func placeWall(ecsManager *ecs.Manager, x, y int) {
 	positionComponent := ecs.Position{x, y}
-	displayComponent := ecs.Displayable{false, termbox.ColorDarkGray, ' ', 99}
+	displayComponent := ecs.Displayable{false, termbox.ColorDarkGray, ' ', 199}
+	memorableComponent := ecs.Memorable{ecs.Displayable{false, termbox.ColorLightGray, ' ', 99}}
+
 	volumeTag := ecs.Volume{}
 	opaqueTag := ecs.Opaque{}
 
 	wall := []ecs.Component{
 		{ecs.POSITION, positionComponent},
 		{ecs.DISPLAYABLE, displayComponent},
+		{ecs.MEMORABLE, memorableComponent},
 		{ecs.VOLUME, volumeTag},
 		{ecs.OPAQUE, opaqueTag},
 	}
@@ -127,10 +132,10 @@ func placeWall(ecsManager *ecs.Manager, x, y int) {
 func addPlayer(ecsManager *ecs.Manager, x, y int) {
 
 	positionComponent := ecs.Position{x, y}
-	displayComponent := ecs.Displayable{true, termbox.ColorLightBlue, '@', 99}
+	displayComponent := ecs.Displayable{true, termbox.ColorLightBlue, '@', 199}
 	visionComponent := ecs.Vision{10}
 	awarnessComponent := ecs.EntityAwarness{}
-
+	memoryComponent := ecs.EntityMemory{}
 	controllerComponent := ecs.PlayerController{
 		Up:     termbox.Key('w'),
 		Down:   termbox.Key('s'),
@@ -149,6 +154,7 @@ func addPlayer(ecsManager *ecs.Manager, x, y int) {
 		{ecs.POSITION, positionComponent},
 		{ecs.DISPLAYABLE, displayComponent},
 		{ecs.ENTITY_AWARENESS, awarnessComponent},
+		{ecs.ENTITY_MEMORY, memoryComponent},
 		{ecs.VISION, visionComponent},
 		{ecs.PLAYER_CONTROLLER, controllerComponent},
 		{ecs.INVENTORY, inventoryComponent},
@@ -187,15 +193,15 @@ func addMonster(ecsManager *ecs.Manager, x, y int) {
 
 	monsterInfos := [][]ecs.Component{
 		{
-			{ecs.DISPLAYABLE, ecs.Displayable{true, termbox.ColorRed, 'M', 99}},
+			{ecs.DISPLAYABLE, ecs.Displayable{true, termbox.ColorRed, 'M', 199}},
 			{ecs.INFORMATION, ecs.Information{"Monster", "generic"}},
 		},
 		{
-			{ecs.DISPLAYABLE, ecs.Displayable{true, termbox.ColorGreen, 'O', 99}},
+			{ecs.DISPLAYABLE, ecs.Displayable{true, termbox.ColorGreen, 'O', 199}},
 			{ecs.INFORMATION, ecs.Information{"Ogre", "Big and scary"}},
 		},
 		{
-			{ecs.DISPLAYABLE, ecs.Displayable{true, termbox.ColorGreen, 'g', 99}},
+			{ecs.DISPLAYABLE, ecs.Displayable{true, termbox.ColorGreen, 'g', 199}},
 			{ecs.INFORMATION, ecs.Information{"Goblin", "green and scrawny, sill scary though"}},
 		},
 	}
@@ -214,7 +220,7 @@ func addTreasure(ecsManager *ecs.Manager, x, y int) {
 
 	treasure := []ecs.Component{
 		{ecs.POSITION, ecs.Position{x, y}},
-		{ecs.DISPLAYABLE, ecs.Displayable{true, termbox.ColorYellow, '$', 2}},
+		{ecs.DISPLAYABLE, ecs.Displayable{true, termbox.ColorYellow, '$', 102}},
 		{ecs.PICKUPABLE, ecs.Pickupable{}},
 		{ecs.DROPABLE, ecs.Dropable{}},
 		{ecs.INFORMATION, ecs.Information{treasureInfo[0], treasureInfo[1]}},
