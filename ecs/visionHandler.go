@@ -44,8 +44,7 @@ func updateAwareOf(m *Manager, position Position, vision Vision, awareOf *[]Enti
 
 func updateOctant(m *Manager, position Position, vision Vision, awareOf *[]Entity, octant int) {
 	// first create bouds of octant
-	type bound struct{ row, col int }
-	bounds := make([]bound, 0)
+	bounds := make([]int, 0)
 
 	circleX := vision.Radius
 	circleY := 0
@@ -65,7 +64,7 @@ func updateOctant(m *Manager, position Position, vision Vision, awareOf *[]Entit
 		if circleX < circleY {
 			break
 		}
-		bounds = append(bounds, bound{circleX, circleY})
+		bounds = append(bounds, circleX)
 	}
 
 	line := ShadowLine{}
@@ -73,17 +72,9 @@ func updateOctant(m *Manager, position Position, vision Vision, awareOf *[]Entit
 	for row := 1; row <= vision.Radius; row++ {
 		for col := 0; col <= row; col++ {
 			// check if out of bounds
-			outOfBounds := false
-			for _, b := range bounds {
-				if row == b.row && col == b.col {
-					outOfBounds = true
-					break
-				}
-			}
-			if outOfBounds {
+			if bounds[col] == row {
 				break
 			}
-
 			// in bounds, continue on
 			delta := transformOctant(row, col, octant)
 			x := position.X + delta.X

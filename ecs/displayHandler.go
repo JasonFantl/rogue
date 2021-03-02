@@ -75,6 +75,7 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 			displayRadius = visionComponent.Radius * 2
 		}
 
+		// currently dislay all of memory and then overwrite, could be optimized
 		// ---------- MEMORY ---------
 		memoryData, hasMemory := m.getComponent(entity, ENTITY_MEMORY)
 
