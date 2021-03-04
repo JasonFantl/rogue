@@ -23,6 +23,10 @@ func DrawText(x, y int, text string) {
 	}
 }
 
+func DrawCorner(text string) {
+	DrawText(0, 0, text)
+}
+
 func DrawFg(x, y int, r rune, c termbox.Attribute) {
 	// _, h := s.Size()
 	// invertedY := h - y

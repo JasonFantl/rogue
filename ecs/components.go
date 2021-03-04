@@ -69,7 +69,6 @@ type EntityMemory struct {
 }
 
 type Memorable struct {
-	Display Displayable
 }
 
 type Volume struct {

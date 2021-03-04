@@ -45,9 +45,8 @@ func main() {
 
 	//////// ENTITIES //////////////
 	addPlayer(&ecsManager, 2, 2)
-	addMonster(&ecsManager, 50, 30)
 
-	generateRooms(&ecsManager, 90, 40)
+	generateRooms(&ecsManager, 20, 20)
 
 	ecsManager.Start()
 

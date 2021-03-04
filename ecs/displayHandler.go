@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/jasonfantl/rogue/gui"
+	"github.com/nsf/termbox-go"
 )
 
 // Display is special, not like the other handlers
@@ -121,7 +122,12 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 						if ok {
 							toDisplay, ok := col[itemY]
 							if ok {
-								display(dx, dy, toDisplay)
+								// convert display to fadded memory
+								r, g, b := termbox.AttributeToRGB(toDisplay.Color)
+								fadeConstant := 4
+								fadedColor := termbox.RGBToAttribute(r/uint8(fadeConstant), g/uint8(fadeConstant), b/uint8(fadeConstant))
+								fadedMemory := Displayable{toDisplay.IsForeground, fadedColor, toDisplay.Rune, 1}
+								display(dx, dy, fadedMemory)
 							}
 						}
 					}

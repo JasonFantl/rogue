@@ -100,7 +100,7 @@ func addWallsAround(ecsManager *ecs.Manager, width, height int) {
 func placeFloor(ecsManager *ecs.Manager, x, y int) {
 	positionComponent := ecs.Position{x, y}
 	displayComponent := ecs.Displayable{false, termbox.RGBToAttribute(100, 100, 100), ' ', 101}
-	memorableComponent := ecs.Memorable{ecs.Displayable{false, termbox.RGBToAttribute(50, 50, 50), ' ', 1}}
+	memorableComponent := ecs.Memorable{}
 
 	floor := []ecs.Component{
 		{ecs.POSITION, positionComponent},
@@ -113,7 +113,7 @@ func placeFloor(ecsManager *ecs.Manager, x, y int) {
 func placeWall(ecsManager *ecs.Manager, x, y int) {
 	positionComponent := ecs.Position{x, y}
 	displayComponent := ecs.Displayable{false, termbox.RGBToAttribute(200, 200, 200), ' ', 199}
-	memorableComponent := ecs.Memorable{ecs.Displayable{false, termbox.RGBToAttribute(150, 150, 150), ' ', 99}}
+	memorableComponent := ecs.Memorable{}
 
 	volumeTag := ecs.Volume{}
 	opaqueTag := ecs.Opaque{}

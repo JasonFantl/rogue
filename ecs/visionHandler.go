@@ -203,7 +203,8 @@ func (s Shadow) contains(r, c float64) bool {
 func projectTile(r, c int) Shadow {
 	row := float64(r)
 	col := float64(c)
-	start := (col - 0.5) / (row + 0.5)
-	end := (col + 0.5) / (row - 0.5)
+	cellRadius := 0.5
+	start := (col - cellRadius) / (row + cellRadius)
+	end := (col + cellRadius) / (row - cellRadius)
 	return Shadow{start, end}
 }

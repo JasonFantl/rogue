@@ -1,6 +1,8 @@
 package ecs
 
 import (
+	"time"
+
 	"github.com/jasonfantl/rogue/gui"
 )
 
@@ -163,6 +165,7 @@ func (m *Manager) sendEvents(events []Event) {
 
 	// we re-display every time an independent event is fired, must clear the screen first
 	gui.Clear()
+	timer := time.Now()
 
 	blockFinished := Event{DEBUG_EVENT, DebugEvent{"-----------------------------"}, 999999999}
 	sentDisplay := false
@@ -194,8 +197,11 @@ func (m *Manager) sendEvents(events []Event) {
 		if !sentDisplay && len(events) == 0 {
 			sentDisplay = true
 			// use 0 to display as player
-			events = append(events, Event{DISPLAY, Display{}, 0})
+			events = append(events, Event{DISPLAY, Display{}, 3868})
 		}
 	}
 	gui.Show()
+	gui.DrawCorner(time.Since(timer).String())
+	gui.Show()
+
 }

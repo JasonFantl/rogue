@@ -17,11 +17,12 @@ func (s *MemoryHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 				awarnessComponent := awarnessData.(EntityAwarness)
 
 				for _, item := range awarnessComponent.AwareOf {
-					itemMemorableData, itemIsMemorable := m.getComponent(item, MEMORABLE)
+					_, itemIsMemorable := m.getComponent(item, MEMORABLE)
+					itemDisplayData, itemHasDisplay := m.getComponent(item, DISPLAYABLE)
 					itemPositionData, itemHasPosition := m.getComponent(item, POSITION)
 
-					if itemIsMemorable && itemHasPosition {
-						itemMemorableComponent := itemMemorableData.(Memorable)
+					if itemIsMemorable && itemHasDisplay && itemHasPosition {
+						itemDisplayComponent := itemDisplayData.(Displayable)
 						itemPositionComponent := itemPositionData.(Position)
 
 						x := itemPositionComponent.X
@@ -34,7 +35,7 @@ func (s *MemoryHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 							memoryComponent.Memory[x] = make(map[int]Displayable)
 						}
 
-						memoryComponent.Memory[x][y] = itemMemorableComponent.Display
+						memoryComponent.Memory[x][y] = itemDisplayComponent
 					}
 				}
 				m.setComponent(entity, Component{ENTITY_MEMORY, memoryComponent})
