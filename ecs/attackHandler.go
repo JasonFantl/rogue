@@ -14,11 +14,11 @@ func (s *AttackHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 
 		// get entitys current position and if it can attack
 		positionData, hasPosition := m.getComponent(event.entity, POSITION)
-		violentData, hasViolent := m.getComponent(event.entity, VIOLENT)
+		fighterData, hasfighter := m.getComponent(event.entity, FIGHTER)
 
-		if hasPosition && hasViolent {
+		if hasPosition && hasfighter {
 			positionComponent := positionData.(Position)
-			violentComponent := violentData.(Violent)
+			fighterComponent := fighterData.(Fighter)
 
 			// now check if new location is occupied by something with health
 			newX := positionComponent.X + moveEvent.dx
@@ -29,9 +29,14 @@ func (s *AttackHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 			for _, otherEntity := range m.getEntitiesFromPos(newX, newY) {
 				_, otherHasHealth := m.getComponent(otherEntity, HEALTH)
 
+				weapon := fighterComponent.Weapon
+				// if theres no weapon, use entity itself (basically just punching)
+				if weapon == 0 {
+					weapon = event.entity
+				}
+
 				if otherHasHealth {
-					attackAmount := violentComponent.BaseAttackDmg
-					returnEvents = append(returnEvents, Event{TRY_ATTACK, TryAttack{otherEntity, attackAmount}, event.entity})
+					returnEvents = append(returnEvents, Event{TRY_ATTACK, TryAttack{otherEntity, weapon}, event.entity})
 				}
 			}
 		}
@@ -42,13 +47,19 @@ func (s *AttackHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 		// unpack event data
 		tryAttackEvent := event.data.(TryAttack)
 
-		// get attacked entities health
+		// get components
 		healthData, hasHealth := m.getComponent(tryAttackEvent.who, HEALTH)
+		damageData, doesDamage := m.getComponent(tryAttackEvent.weapon, DAMAGE)
+		fighterData, isFighter := m.getComponent(event.entity, FIGHTER)
 
-		if hasHealth {
+		if hasHealth && doesDamage && isFighter {
 			healthComponent := healthData.(Health)
-			healthComponent.Current -= tryAttackEvent.dmg
-			m.setComponent(tryAttackEvent.who, Component{HEALTH, healthComponent})
+			damageComponent := damageData.(Damage)
+			fighterComponent := fighterData.(Fighter)
+
+			damage := fighterComponent.Strength + damageComponent.Amount
+			healthComponent.Current -= damage
+			m.setComponent(tryAttackEvent.who, HEALTH, healthComponent)
 
 			returnEvents = append(returnEvents, Event{DAMAGED, Damaged{}, tryAttackEvent.who})
 		}

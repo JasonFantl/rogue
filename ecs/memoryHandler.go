@@ -38,7 +38,7 @@ func (s *MemoryHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 						memoryComponent.Memory[x][y] = itemDisplayComponent
 					}
 				}
-				m.setComponent(entity, Component{ENTITY_MEMORY, memoryComponent})
+				m.setComponent(entity, ENTITY_MEMORY, memoryComponent)
 			}
 		}
 	}

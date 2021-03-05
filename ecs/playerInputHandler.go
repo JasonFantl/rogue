@@ -41,6 +41,11 @@ func (h *PlayerInputHandler) handleEvent(m *Manager, event Event) (returnEvents 
 				returnEvents = append(returnEvents,
 					Event{PLAYER_TRY_PICK_UP, PlayerTryPickUp{}, event.entity},
 				)
+			case controllerComponent.Consume:
+				timestep = true
+				returnEvents = append(returnEvents,
+					Event{TRY_CONSUME, TryConsume{}, event.entity},
+				)
 			case controllerComponent.Quit:
 				returnEvents = append(returnEvents,
 					Event{QUIT, Quit{}, event.entity},

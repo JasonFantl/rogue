@@ -24,7 +24,7 @@ func (s *VisionHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 
 				updateAwareOf(m, positionComponent, visionComponent, &awarnessComponent.AwareOf)
 
-				m.setComponent(entity, Component{ENTITY_AWARENESS, awarnessComponent})
+				m.setComponent(entity, ENTITY_AWARENESS, awarnessComponent)
 			}
 		}
 	}
@@ -44,7 +44,7 @@ func updateAwareOf(m *Manager, position Position, vision Vision, awareOf *[]Enti
 
 func updateOctant(m *Manager, position Position, vision Vision, awareOf *[]Entity, octant int) {
 	// first create bouds of octant
-	bounds := make([]int, 0)
+	bounds := make([]int, vision.Radius)
 
 	circleX := vision.Radius
 	circleY := 0
@@ -64,12 +64,12 @@ func updateOctant(m *Manager, position Position, vision Vision, awareOf *[]Entit
 		if circleX < circleY {
 			break
 		}
-		bounds = append(bounds, circleX)
+		bounds[circleY] = circleX
 	}
 
 	line := ShadowLine{}
 
-	for row := 1; row <= vision.Radius; row++ {
+	for row := 1; row < vision.Radius; row++ {
 		for col := 0; col <= row; col++ {
 			// check if out of bounds
 			if bounds[col] == row {

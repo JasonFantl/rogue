@@ -3,18 +3,42 @@ package ecs
 type InventoryHandler struct{}
 
 func (s *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []Event) {
+
+	// handy functions
+
+	isTreasure := func(entity Entity) bool {
+		_, pickupableOk := m.getComponent(entity, PICKUPABLE)
+		_, stashedOk := m.getComponent(entity, STASHED_FLAG)
+
+		return pickupableOk && !stashedOk
+	}
+
+	// add stashed component to item MAKE SURE TO REMOVE WHEN DROPPED!
+	pickup := func(entity Entity, inventoryComponent Inventory) {
+		stashedComponent := Component{STASHED_FLAG, StashedFlag{event.entity}}
+		m.AddComponenet(entity, stashedComponent)
+
+		// make sure the inventory is inited
+		if inventoryComponent.Items == nil {
+			inventoryComponent.Items = make(map[Entity]bool)
+		}
+
+		// then add it to our inventory
+		inventoryComponent.Items[entity] = true
+		m.setComponent(event.entity, INVENTORY, inventoryComponent)
+
+		returnEvents = append(returnEvents, Event{PICKED_UP, PickedUp{event.entity}, entity})
+	}
+
 	if event.ID == PLAYER_TRY_PICK_UP {
 		positionData, hasPosition := m.getComponent(event.entity, POSITION)
 		if hasPosition {
 			positionComponent := positionData.(Position)
 
 			entities := m.getEntitiesFromPos(positionComponent.X, positionComponent.Y)
-			for _, entity := range entities {
-				_, hasPickUpAble := m.getComponent(entity, PICKUPABLE)
-				_, hasStashed := m.getComponent(entity, STASHED_FLAG)
-				isTreasure := hasPickUpAble && !hasStashed
-				if isTreasure {
-					returnEvents = append(returnEvents, Event{TRY_PICK_UP, TryPickUp{entity}, event.entity})
+			for _, item := range entities {
+				if isTreasure(item) {
+					returnEvents = append(returnEvents, Event{TRY_PICK_UP, TryPickUp{item}, event.entity})
 					break // dont need to check anymore
 				}
 			}
@@ -33,85 +57,86 @@ func (s *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []
 			positionComponent := positionData.(Position)
 			inventoryComponent := inventoryData.(Inventory)
 
-			// make sure the picker-uppers inventory is inited
-			if cap(inventoryComponent.Items) == 0 {
-				inventoryComponent.Items = make([]Entity, 0)
-			}
-
-			// handy functions
-			// make sure it is pickupable and hasnt been stashed
-			isTreasure := func(entity Entity) bool {
-				_, pickupableOk := m.getComponent(entity, PICKUPABLE)
-				_, stashedOk := m.getComponent(entity, STASHED_FLAG)
-
-				return pickupableOk && !stashedOk
-			}
-
-			// add stashed compoenet to item MAKE SURE TO REMOVE WHEN DROPPED!
-			pickup := func(entity Entity) {
-				stashedComponent := Component{STASHED_FLAG, StashedFlag{event.entity}}
-				m.AddComponenet(entity, stashedComponent)
-
-				// then add it to our inventory
-				inventoryComponent.Items = append(inventoryComponent.Items, entity)
-				m.setComponent(event.entity, Component{INVENTORY, inventoryComponent})
-
-				returnEvents = append(returnEvents, Event{PICKED_UP, PickedUp{event.entity}, entity})
-			}
-
-			// check if were picking up one item or everything
-			if event.entity == 0 {
-				returnEvents = append(returnEvents, Event{DEBUG_EVENT, DebugEvent{"player picking up"}, 0})
-			}
-
 			otherPositionData, otherHasPosition := m.getComponent(tryPickUpEvent.what, POSITION)
-			// should you be able to pick up an item without position?
 			if otherHasPosition {
 				otherPositionComponent := otherPositionData.(Position)
-				if otherPositionComponent.X == positionComponent.X && otherPositionComponent.Y == positionComponent.Y && isTreasure(tryPickUpEvent.what) {
-					pickup(tryPickUpEvent.what)
+				sameLocation := otherPositionComponent.X == positionComponent.X && otherPositionComponent.Y == positionComponent.Y
+				if sameLocation && isTreasure(tryPickUpEvent.what) {
+					pickup(tryPickUpEvent.what, inventoryComponent)
+				}
+			}
+		}
+	}
+
+	if event.ID == PICKED_UP {
+		pickedUpEvent := event.data.(PickedUp)
+
+		FighterData, isFighter := m.getComponent(pickedUpEvent.byWho, FIGHTER)
+		itemDamageData, itemDoesDamage := m.getComponent(event.entity, DAMAGE)
+
+		if isFighter && itemDoesDamage {
+			fighterComponent := FighterData.(Fighter)
+			itemDamageComponent := itemDamageData.(Damage)
+
+			isBetterWeapon := true
+
+			currentWeaponDamageData, currentDoesDamage := m.getComponent(fighterComponent.Weapon, DAMAGE)
+			if currentDoesDamage {
+				currentWeaponDamageComponent := currentWeaponDamageData.(Damage)
+				if itemDamageComponent.Amount < currentWeaponDamageComponent.Amount {
+					isBetterWeapon = false
 				}
 			}
 
+			if isBetterWeapon {
+				fighterComponent.Weapon = event.entity
+				m.setComponent(pickedUpEvent.byWho, FIGHTER, fighterComponent)
+			}
+		}
+	}
+
+	if event.ID == CONSUMED {
+		consumedEvent := event.data.(Consumed)
+		inventoryData, hasInventory := m.getComponent(consumedEvent.byWho, INVENTORY)
+
+		if hasInventory {
+			inventoryComponent := inventoryData.(Inventory)
+			delete(inventoryComponent.Items, event.entity)
 		}
 	}
 
 	if event.ID == MOVED {
 		moveEvent := event.data.(Moved)
 
-		// check for all stashed
-		stashedComponents, ok := m.getComponents(STASHED_FLAG)
-		if ok {
-			for stashedEntity, stashedData := range stashedComponents {
-				stashedComponent := stashedData.(StashedFlag)
+		inventoryData, hasInventory := m.getComponent(event.entity, INVENTORY)
 
-				if stashedComponent.Parent == event.entity {
-					// only have to do anything if the thing has postition
-					positionData, hasPosition := m.getComponent(stashedEntity, POSITION)
-					if hasPosition {
-						positionComponent := positionData.(Position)
+		if hasInventory {
+			inventoryComponent := inventoryData.(Inventory)
 
-						returnEvents = append(returnEvents, Event{MOVED, Moved{positionComponent.X, positionComponent.Y, moveEvent.toX, moveEvent.toY}, stashedEntity})
+			for item := range inventoryComponent.Items {
+				// only have to do anything if the thing has postition
+				positionData, hasPosition := m.getComponent(item, POSITION)
+				if hasPosition {
+					positionComponent := positionData.(Position)
 
-						positionComponent.X = moveEvent.toX
-						positionComponent.Y = moveEvent.toY
-						m.setComponent(stashedEntity, Component{POSITION, positionComponent})
-					}
+					// should we announce each item we drag along? Silenced for now
+					// returnEvents = append(returnEvents, Event{MOVED, Moved{positionComponent.X, positionComponent.Y, moveEvent.toX, moveEvent.toY}, item})
+
+					positionComponent.X = moveEvent.toX
+					positionComponent.Y = moveEvent.toY
+					m.setComponent(item, POSITION, positionComponent)
 				}
 			}
 		}
 	}
 
 	if event.ID == DIED {
-		// loop through all stashed
-		components, ok := m.getComponents(STASHED_FLAG)
-		if ok {
-			for stashedEntity, stashedData := range components {
-				stashedComponent := stashedData.(StashedFlag)
+		inventoryData, hasInventory := m.getComponent(event.entity, INVENTORY)
 
-				if stashedComponent.Parent == event.entity {
-					m.removeComponent(stashedEntity, STASHED_FLAG)
-				}
+		if hasInventory {
+			inventoryComponent := inventoryData.(Inventory)
+			for item := range inventoryComponent.Items {
+				m.removeComponent(item, STASHED_FLAG)
 			}
 		}
 	}

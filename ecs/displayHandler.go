@@ -133,22 +133,6 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 					}
 				}
 			}
-			// // this is where we display
-			// ys := []int{circleY, -circleY}
-			// for dx := -circleX; dx <= circleX; dx++ {
-			// 	for _, dy := range ys {
-			// 		itemX := positionComponent.X + dx
-			// 		itemY := positionComponent.Y + dy
-			// 		col, ok := memoryComponent.Memory[itemX]
-			// 		if ok {
-			// 			toDisplay, ok := col[itemY]
-			// 			if ok {
-			// 				display(dx, dy, toDisplay)
-			// 			}
-			// 		}
-			// 	}
-			// }
-
 		}
 
 		// ---------- AWARNESS ---------
@@ -199,7 +183,14 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 		}
 
 		// then print each of its items
-		for _, item := range inventoryComponent.Items {
+		keys := make([]int, 0)
+		for k, _ := range inventoryComponent.Items {
+			keys = append(keys, int(k))
+		}
+		sort.Ints(keys)
+
+		for _, key := range keys {
+			item := Entity(key)
 			informationData, informationOk := m.getComponent(item, INFORMATION)
 
 			if informationOk {
@@ -297,8 +288,17 @@ func (s *DisplayHandler) showAll(m *Manager) {
 		}
 
 		// then print each of its items
-		for _, entity := range inventoryComponent.Items {
-			informationData, informationOk := m.getComponent(entity, INFORMATION)
+
+		// then print each of its items
+		keys := make([]int, 0)
+		for k, _ := range inventoryComponent.Items {
+			keys = append(keys, int(k))
+		}
+		sort.Ints(keys)
+
+		for _, key := range keys {
+			item := Entity(key)
+			informationData, informationOk := m.getComponent(item, INFORMATION)
 
 			if informationOk {
 				informationComponent := informationData.(Information)

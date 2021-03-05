@@ -39,7 +39,7 @@ func (s *MoveHandler) handleEvent(m *Manager, event Event) (returnEvents []Event
 				positionComponent.X = newX
 				positionComponent.Y = newY
 
-				m.setComponent(event.entity, Component{POSITION, positionComponent})
+				m.setComponent(event.entity, POSITION, positionComponent)
 
 			}
 		}

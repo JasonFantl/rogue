@@ -19,16 +19,18 @@ const (
 	HEALTH
 	INVENTORY
 	INFORMATION
+	EFFECTS
 	ENTITY_AWARENESS
 	ENTITY_MEMORY
 	VISION
 	VOLUME
-	VIOLENT
+	FIGHTER
+	DAMAGE
 	OPAQUE
 	DISPLAYABLE
+	CONSUMABLE
 	MEMORABLE
 	PICKUPABLE
-	DROPABLE
 	STASHED_FLAG
 	PLAYER_CONTROLLER
 	MONSTER_CONTROLLER
@@ -46,7 +48,7 @@ type Displayable struct {
 }
 
 type PlayerController struct {
-	Up, Down, Left, Right, Pickup, Quit termbox.Key
+	Up, Down, Left, Right, Pickup, Consume, Quit termbox.Key
 }
 
 type MonsterController struct {
@@ -75,7 +77,7 @@ type Volume struct {
 }
 
 type Inventory struct {
-	Items []Entity
+	Items map[Entity]bool
 }
 
 type Information struct {
@@ -83,8 +85,6 @@ type Information struct {
 }
 
 type Pickupable struct {
-}
-type Dropable struct {
 }
 
 type StashedFlag struct {
@@ -95,9 +95,21 @@ type Health struct {
 	Max, Current int
 }
 
-type Violent struct {
-	BaseAttackDmg int
+type Fighter struct {
+	Strength int
+	Weapon   Entity
+}
+
+type Damage struct {
+	Amount int
 }
 
 type Opaque struct {
+}
+
+type Consumable struct {
+}
+
+type Effects struct {
+	Effects []Effect
 }

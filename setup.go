@@ -7,7 +7,7 @@ import (
 	"github.com/nsf/termbox-go"
 )
 
-func generateRooms(ecsManager *ecs.Manager, width, height int) {
+func generateGame(ecsManager *ecs.Manager, width, height int) {
 
 	addWallsAround(ecsManager, width+1, height+1)
 
@@ -70,16 +70,28 @@ func generateRooms(ecsManager *ecs.Manager, width, height int) {
 		}
 	}
 
-	// just for good touch, add treasure and monsters
+	// then add people and items
+	addedPlayer := false
 	itemCount := 60
 	for itemCount > 0 {
-		x := rand.Intn(width-2) + 1
-		y := rand.Intn(height-2) + 1
-		if tiles[x][y] {
-			if rand.Intn(8) > 1 {
-				addTreasure(ecsManager, x+1, y+1)
+		x := rand.Intn(width-2) + 2
+		y := rand.Intn(height-2) + 2
+		if tiles[x-1][y-1] {
+			if !addedPlayer {
+				addedPlayer = true
+				addPlayer(ecsManager, x, y)
+				continue
+			}
+
+			r := rand.Intn(4)
+			if r == 0 {
+				addTreasure(ecsManager, x, y)
+			} else if r == 1 {
+				addMonster(ecsManager, x, y)
+			} else if r == 2 {
+				addPotion(ecsManager, x, y)
 			} else {
-				addMonster(ecsManager, x+1, y+1)
+				addWeapon(ecsManager, x, y)
 			}
 			itemCount--
 		}
@@ -137,18 +149,20 @@ func addPlayer(ecsManager *ecs.Manager, x, y int) {
 	awarnessComponent := ecs.EntityAwarness{}
 	memoryComponent := ecs.EntityMemory{}
 	controllerComponent := ecs.PlayerController{
-		Up:     termbox.Key('w'),
-		Down:   termbox.Key('s'),
-		Left:   termbox.Key('a'),
-		Right:  termbox.Key('d'),
-		Pickup: termbox.Key('e'),
-		Quit:   termbox.KeyEsc,
+		Up:      termbox.Key('w'),
+		Down:    termbox.Key('s'),
+		Left:    termbox.Key('a'),
+		Right:   termbox.Key('d'),
+		Pickup:  termbox.Key('e'),
+		Consume: termbox.Key('r'),
+		Quit:    termbox.KeyEsc,
 	}
 	inventoryComponent := ecs.Inventory{}
 	informationComponent := ecs.Information{"Player", "the hero of our story"}
 	volumeComponent := ecs.Volume{}
-	violentComponent := ecs.Violent{4}
-	healthComponent := ecs.Health{20, 20}
+	fighterComponent := ecs.Fighter{10, 0}
+	damageComponent := ecs.Damage{1}
+	healthComponent := ecs.Health{100, 80}
 
 	player := []ecs.Component{
 		{ecs.POSITION, positionComponent},
@@ -160,7 +174,8 @@ func addPlayer(ecsManager *ecs.Manager, x, y int) {
 		{ecs.INVENTORY, inventoryComponent},
 		{ecs.INFORMATION, informationComponent},
 		{ecs.VOLUME, volumeComponent},
-		{ecs.VIOLENT, violentComponent},
+		{ecs.FIGHTER, fighterComponent},
+		{ecs.DAMAGE, damageComponent},
 		{ecs.HEALTH, healthComponent},
 	}
 
@@ -175,8 +190,9 @@ func addMonster(ecsManager *ecs.Manager, x, y int) {
 	positionComponent := ecs.Position{x, y}
 	inventoryComponent := ecs.Inventory{}
 	volumeComponent := ecs.Volume{}
-	violentComponent := ecs.Violent{4}
-	healthComponent := ecs.Health{20, 20}
+	fighterComponent := ecs.Fighter{10, 0}
+	damageComponent := ecs.Damage{3}
+	healthComponent := ecs.Health{50, 50}
 	visionComponent := ecs.Vision{10}
 	awarnessComponent := ecs.EntityAwarness{}
 
@@ -187,7 +203,8 @@ func addMonster(ecsManager *ecs.Manager, x, y int) {
 		{ecs.VISION, visionComponent},
 		{ecs.INVENTORY, inventoryComponent},
 		{ecs.VOLUME, volumeComponent},
-		{ecs.VIOLENT, violentComponent},
+		{ecs.FIGHTER, fighterComponent},
+		{ecs.DAMAGE, damageComponent},
 		{ecs.HEALTH, healthComponent},
 	}
 
@@ -214,17 +231,77 @@ func addMonster(ecsManager *ecs.Manager, x, y int) {
 }
 
 func addTreasure(ecsManager *ecs.Manager, x, y int) {
-
-	treasureInfos := [][]string{{"gold coin", "scratched, but still usable"}, {"gem", "red and uncut"}, {"silver coin", "might buy you a mug"}}
-	treasureInfo := treasureInfos[rand.Intn(len(treasureInfos))]
-
 	treasure := []ecs.Component{
 		{ecs.POSITION, ecs.Position{x, y}},
 		{ecs.DISPLAYABLE, ecs.Displayable{true, termbox.RGBToAttribute(200, 200, 20), '$', 102}},
 		{ecs.PICKUPABLE, ecs.Pickupable{}},
-		{ecs.DROPABLE, ecs.Dropable{}},
-		{ecs.INFORMATION, ecs.Information{treasureInfo[0], treasureInfo[1]}},
 	}
 
+	treasureInfos := [][]ecs.Component{
+		{
+			{ecs.INFORMATION, ecs.Information{"gold coin", "scratched, but still usable"}}},
+		{
+			{ecs.INFORMATION, ecs.Information{"gem", "red and uncut"}}},
+		{
+			{ecs.INFORMATION, ecs.Information{"silver coin", "might buy you a mug"}}},
+	}
+	treasureInfo := treasureInfos[rand.Intn(len(treasureInfos))]
+
+	treasure = append(treasure, treasureInfo...)
+
 	ecsManager.AddEntity(treasure)
+}
+
+func addWeapon(ecsManager *ecs.Manager, x, y int) {
+
+	weapon := []ecs.Component{
+		{ecs.POSITION, ecs.Position{x, y}},
+		{ecs.PICKUPABLE, ecs.Pickupable{}},
+	}
+
+	weaponInfos := [][]ecs.Component{
+		{
+			{ecs.DISPLAYABLE, ecs.Displayable{true, termbox.RGBToAttribute(150, 150, 150), '|', 102}},
+			{ecs.INFORMATION, ecs.Information{"sword", "rusted"}},
+			{ecs.DAMAGE, ecs.Damage{16}},
+		},
+		{
+			{ecs.DISPLAYABLE, ecs.Displayable{true, termbox.RGBToAttribute(80, 40, 30), '|', 102}},
+			{ecs.INFORMATION, ecs.Information{"stick", "primative, but better then nothing"}},
+			{ecs.DAMAGE, ecs.Damage{8}},
+		},
+	}
+
+	weaponInfo := weaponInfos[rand.Intn(len(weaponInfos))]
+
+	weapon = append(weapon, weaponInfo...)
+
+	ecsManager.AddEntity(weapon)
+}
+
+func addPotion(ecsManager *ecs.Manager, x, y int) {
+
+	potion := []ecs.Component{
+		{ecs.POSITION, ecs.Position{x, y}},
+		{ecs.PICKUPABLE, ecs.Pickupable{}},
+		{ecs.DISPLAYABLE, ecs.Displayable{true, termbox.RGBToAttribute(240, 250, 0), 'o', 102}},
+		{ecs.CONSUMABLE, ecs.Consumable{}},
+	}
+
+	potionInfos := [][]ecs.Component{
+		{
+			{ecs.EFFECTS, ecs.Effects{[]ecs.Effect{
+				ecs.Effect{
+					ecs.PICKED_UP,
+					ecs.HealEffect{10},
+				},
+			}}},
+		},
+	}
+
+	potionInfo := potionInfos[rand.Intn(len(potionInfos))]
+
+	potion = append(potion, potionInfo...)
+
+	ecsManager.AddEntity(potion)
 }

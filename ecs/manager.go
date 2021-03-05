@@ -7,7 +7,7 @@ import (
 )
 
 type EventHandler interface {
-	handleEvent(*Manager, Event) (returnEvents []Event)
+	handleEvent(*Manager, Event) []Event
 }
 
 type Manager struct {
@@ -16,6 +16,7 @@ type Manager struct {
 	eventHandlers  []EventHandler
 	entityCounter  Entity
 	running        bool
+	player         Entity
 }
 
 func New() Manager {
@@ -25,6 +26,7 @@ func New() Manager {
 	newManager.eventHandlers = make([]EventHandler, 0)
 	newManager.entityCounter = 0
 	newManager.running = false
+	newManager.player = 0
 
 	return newManager
 }
@@ -74,6 +76,11 @@ func (m *Manager) AddComponenet(entity Entity, component Component) bool {
 			positionComponent := component.Data.(Position)
 			m.positionLookup.add(entity, positionComponent.X, positionComponent.Y)
 		}
+
+		// manager special case
+		if component.ID == PLAYER_CONTROLLER {
+			m.player = entity
+		}
 		return true
 	}
 	return false
@@ -84,13 +91,13 @@ func (m *Manager) Run() {
 
 	if pressed {
 		// send event from player so we know where to look for key mappings
-		buttonEvent := []Event{{KEY_PRESSED, KeyPressed{key}, 0}}
+		buttonEvent := []Event{{KEY_PRESSED, KeyPressed{key}, m.player}}
 		m.sendEvents(buttonEvent)
 	}
 }
 
 func (m *Manager) getComponent(entity Entity, componentID ComponentID) (interface{}, bool) {
-	components, ok := m.getComponents(componentID)
+	components, ok := m.lookupTable[componentID]
 	if ok {
 		data, ok := components[entity]
 		if ok {
@@ -100,6 +107,7 @@ func (m *Manager) getComponent(entity Entity, componentID ComponentID) (interfac
 	return nil, false
 }
 
+// can we reove this? promotes inefficient code
 func (m *Manager) getComponents(componentID ComponentID) (map[Entity]interface{}, bool) {
 	_, ok := m.lookupTable[componentID]
 	if ok {
@@ -108,20 +116,20 @@ func (m *Manager) getComponents(componentID ComponentID) (map[Entity]interface{}
 	return nil, false
 }
 
-func (m *Manager) setComponent(entity Entity, component Component) {
+func (m *Manager) setComponent(entity Entity, componentID ComponentID, data interface{}) {
 	// for position lookup
-	if component.ID == POSITION {
+	if componentID == POSITION {
 		oldPositionData, hasPosition := m.getComponent(entity, POSITION)
 		if hasPosition {
 			oldPosition := oldPositionData.(Position)
-			newPosition := component.Data.(Position)
+			newPosition := data.(Position)
 			m.positionLookup.move(entity, oldPosition.X, oldPosition.Y, newPosition.X, newPosition.Y)
 		}
 	}
 
-	_, ok := m.lookupTable[component.ID]
+	_, ok := m.lookupTable[componentID]
 	if ok {
-		m.lookupTable[component.ID][entity] = component.Data
+		m.lookupTable[componentID][entity] = data
 	}
 }
 
@@ -197,11 +205,11 @@ func (m *Manager) sendEvents(events []Event) {
 		if !sentDisplay && len(events) == 0 {
 			sentDisplay = true
 			// use 0 to display as player
-			events = append(events, Event{DISPLAY, Display{}, 3868})
+			events = append(events, Event{DISPLAY, Display{}, m.player})
 		}
 	}
-	gui.Show()
 	gui.DrawCorner(time.Since(timer).String())
+
 	gui.Show()
 
 }

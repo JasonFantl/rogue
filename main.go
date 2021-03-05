@@ -1,11 +1,17 @@
 package main
 
 import (
+	"math/rand"
+	"time"
+
 	"github.com/jasonfantl/rogue/ecs"
 	"github.com/jasonfantl/rogue/gui"
 )
 
 func main() {
+
+	// disable to get the same results, good for testing
+	rand.Seed(time.Now().UnixNano())
 
 	gui.Setup()
 	defer gui.Quit()
@@ -24,6 +30,7 @@ func main() {
 	inventoryHandler := ecs.InventoryHandler{}
 	eventPrinter := ecs.EventPrinterHandler{}
 	memoryHandler := ecs.MemoryHandler{}
+	effectHandler := ecs.EffectsHandler{}
 
 	// the order that these are added matters
 	// they follow this order of execution
@@ -31,9 +38,11 @@ func main() {
 	ecsManager.AddEventHandler(&inputHandler)
 	ecsManager.AddEventHandler(&monsterHandler)
 	ecsManager.AddEventHandler(&attackHandler)
-	ecsManager.AddEventHandler(&deathHandler)
 	ecsManager.AddEventHandler(&movementHandler)
 	ecsManager.AddEventHandler(&inventoryHandler)
+	ecsManager.AddEventHandler(&effectHandler)
+	// inventory before death, otherwise we cant drop all of its items
+	ecsManager.AddEventHandler(&deathHandler)
 
 	// display stuff, all happens on the same event, no queue
 	// vision updates awarness
@@ -43,10 +52,7 @@ func main() {
 	ecsManager.AddEventHandler(&displayHandler)
 	ecsManager.AddEventHandler(&eventPrinter)
 
-	//////// ENTITIES //////////////
-	addPlayer(&ecsManager, 2, 2)
-
-	generateRooms(&ecsManager, 20, 20)
+	generateGame(&ecsManager, 100, 100)
 
 	ecsManager.Start()
 

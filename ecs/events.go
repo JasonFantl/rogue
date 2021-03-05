@@ -20,6 +20,8 @@ const (
 	TRY_PICK_UP
 	PLAYER_TRY_PICK_UP // need to get rid of later, not necessary
 	PICKED_UP
+	TRY_CONSUME
+	CONSUMED
 	TRY_ATTACK
 	DAMAGED
 	DIED
@@ -58,11 +60,19 @@ type PickedUp struct {
 }
 
 type TryAttack struct {
-	who Entity
-	dmg int
+	who    Entity
+	weapon Entity
 }
 
 type Damaged struct {
+}
+
+type TryConsume struct {
+	what Entity
+}
+
+type Consumed struct {
+	byWho Entity
 }
 
 type Died struct {
