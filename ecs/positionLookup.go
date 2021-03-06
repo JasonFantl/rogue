@@ -12,9 +12,11 @@ func (p PositionLookup) checkInited(x, y int) {
 		p[x][y] = make([]Entity, 0)
 	}
 }
-func (p PositionLookup) add(entity Entity, x, y int) {
+func (p PositionLookup) add(entities []Entity, x, y int) {
 	p.checkInited(x, y)
-	p[x][y] = append(p[x][y], entity)
+	for _, entity := range entities {
+		p[x][y] = append(p[x][y], entity)
+	}
 }
 
 func (p PositionLookup) remove(entity Entity, x, y int) {
@@ -33,6 +35,17 @@ func (p PositionLookup) remove(entity Entity, x, y int) {
 		p[x][y][index] = p[x][y][len(p[x][y])-1]
 		p[x][y] = p[x][y][:len(p[x][y])-1]
 	}
+}
+
+func (p PositionLookup) get(x, y int) []Entity {
+	_, ok := p[x]
+	if ok {
+		entities, ok := p[x][y]
+		if ok {
+			return entities
+		}
+	}
+	return []Entity{}
 }
 
 func (p PositionLookup) move(entity Entity, x, y, nx, ny int) {

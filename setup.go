@@ -72,7 +72,7 @@ func generateGame(ecsManager *ecs.Manager, width, height int) {
 
 	// then add people and items
 	addedPlayer := false
-	itemCount := 60
+	itemCount := 100
 	for itemCount > 0 {
 		x := rand.Intn(width-2) + 2
 		y := rand.Intn(height-2) + 2
@@ -145,18 +145,9 @@ func addPlayer(ecsManager *ecs.Manager, x, y int) {
 
 	positionComponent := ecs.Position{x, y}
 	displayComponent := ecs.Displayable{true, termbox.RGBToAttribute(200, 200, 250), '@', 199}
-	visionComponent := ecs.Vision{10}
+	visionComponent := ecs.Vision{20}
 	awarnessComponent := ecs.EntityAwarness{}
 	memoryComponent := ecs.EntityMemory{}
-	controllerComponent := ecs.PlayerController{
-		Up:      termbox.Key('w'),
-		Down:    termbox.Key('s'),
-		Left:    termbox.Key('a'),
-		Right:   termbox.Key('d'),
-		Pickup:  termbox.Key('e'),
-		Consume: termbox.Key('r'),
-		Quit:    termbox.KeyEsc,
-	}
 	inventoryComponent := ecs.Inventory{}
 	informationComponent := ecs.Information{"Player", "the hero of our story"}
 	volumeComponent := ecs.Volume{}
@@ -170,7 +161,6 @@ func addPlayer(ecsManager *ecs.Manager, x, y int) {
 		{ecs.ENTITY_AWARENESS, awarnessComponent},
 		{ecs.ENTITY_MEMORY, memoryComponent},
 		{ecs.VISION, visionComponent},
-		{ecs.PLAYER_CONTROLLER, controllerComponent},
 		{ecs.INVENTORY, inventoryComponent},
 		{ecs.INFORMATION, informationComponent},
 		{ecs.VOLUME, volumeComponent},
@@ -179,7 +169,22 @@ func addPlayer(ecsManager *ecs.Manager, x, y int) {
 		{ecs.HEALTH, healthComponent},
 	}
 
-	ecsManager.AddEntity(player)
+	playerID := ecsManager.AddEntity(player)
+
+	user := []ecs.Component{
+		{ecs.PLAYER_CONTROLLER, ecs.PlayerController{
+			Controlling: playerID,
+			Up:          termbox.Key('w'),
+			Down:        termbox.Key('s'),
+			Left:        termbox.Key('a'),
+			Right:       termbox.Key('d'),
+			Pickup:      termbox.Key('e'),
+			Consume:     termbox.Key('r'),
+			Quit:        termbox.KeyEsc,
+		},
+		}}
+
+	ecsManager.AddEntity(user)
 }
 
 func addMonster(ecsManager *ecs.Manager, x, y int) {

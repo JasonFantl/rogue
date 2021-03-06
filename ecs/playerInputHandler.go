@@ -8,9 +8,10 @@ func (h *PlayerInputHandler) handleEvent(m *Manager, event Event) (returnEvents 
 	if event.ID == KEY_PRESSED {
 		keyPressedEvent := event.data.(KeyPressed)
 
+		controllerData, ok := m.getComponent(event.entity, PLAYER_CONTROLLER)
+
 		timestep := false
 
-		controllerData, ok := m.getComponent(event.entity, PLAYER_CONTROLLER)
 		if ok {
 			controllerComponent := controllerData.(PlayerController)
 
@@ -19,36 +20,36 @@ func (h *PlayerInputHandler) handleEvent(m *Manager, event Event) (returnEvents 
 			case controllerComponent.Down:
 				timestep = true
 				returnEvents = append(returnEvents,
-					Event{TRY_MOVE, TryMove{0, 1}, event.entity},
+					Event{TRY_MOVE, TryMove{0, 1}, controllerComponent.Controlling},
 				)
 			case controllerComponent.Up:
 				timestep = true
 				returnEvents = append(returnEvents,
-					Event{TRY_MOVE, TryMove{0, -1}, event.entity},
+					Event{TRY_MOVE, TryMove{0, -1}, controllerComponent.Controlling},
 				)
 			case controllerComponent.Left:
 				timestep = true
 				returnEvents = append(returnEvents,
-					Event{TRY_MOVE, TryMove{-1, 0}, event.entity},
+					Event{TRY_MOVE, TryMove{-1, 0}, controllerComponent.Controlling},
 				)
 			case controllerComponent.Right:
 				timestep = true
 				returnEvents = append(returnEvents,
-					Event{TRY_MOVE, TryMove{1, 0}, event.entity},
+					Event{TRY_MOVE, TryMove{1, 0}, controllerComponent.Controlling},
 				)
 			case controllerComponent.Pickup:
 				timestep = true
 				returnEvents = append(returnEvents,
-					Event{PLAYER_TRY_PICK_UP, PlayerTryPickUp{}, event.entity},
+					Event{PLAYER_TRY_PICK_UP, PlayerTryPickUp{}, controllerComponent.Controlling},
 				)
 			case controllerComponent.Consume:
 				timestep = true
 				returnEvents = append(returnEvents,
-					Event{TRY_CONSUME, TryConsume{}, event.entity},
+					Event{TRY_CONSUME, TryConsume{}, controllerComponent.Controlling},
 				)
 			case controllerComponent.Quit:
 				returnEvents = append(returnEvents,
-					Event{QUIT, Quit{}, event.entity},
+					Event{QUIT, Quit{}, controllerComponent.Controlling},
 				)
 			default:
 				returnEvents = append(returnEvents,
@@ -58,7 +59,7 @@ func (h *PlayerInputHandler) handleEvent(m *Manager, event Event) (returnEvents 
 		}
 
 		if timestep {
-			timeStepEvent := Event{TIMESTEP, TimeStep{}, 0}
+			timeStepEvent := Event{TIMESTEP, TimeStep{}, event.entity}
 			returnEvents = append([]Event{timeStepEvent}, returnEvents...)
 		}
 	}

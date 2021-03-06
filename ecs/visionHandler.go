@@ -20,9 +20,9 @@ func (s *VisionHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 				positionComponent := positionData.(Position)
 
 				// clear old awarness first
-				awarnessComponent.AwareOf = make([]Entity, 0)
+				awarnessComponent.AwareOf = make(map[int]map[int][]Entity)
 
-				updateAwareOf(m, positionComponent, visionComponent, &awarnessComponent.AwareOf)
+				updateAwareOf(m, positionComponent, visionComponent, awarnessComponent.AwareOf)
 
 				m.setComponent(entity, ENTITY_AWARENESS, awarnessComponent)
 			}
@@ -32,24 +32,55 @@ func (s *VisionHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 	return returnEvents
 }
 
-func updateAwareOf(m *Manager, position Position, vision Vision, awareOf *[]Entity) {
+func updateAwareOf(m *Manager, position Position, vision Vision, awareOf PositionLookup) {
 	// add where we are
 	entities := m.getEntitiesFromPos(position.X, position.Y)
-	*awareOf = append(*awareOf, entities...)
+	awareOf.add(entities, position.X, position.Y)
 
 	for octant := 0; octant < 8; octant++ {
 		updateOctant(m, position, vision, awareOf, octant)
 	}
 }
 
-func updateOctant(m *Manager, position Position, vision Vision, awareOf *[]Entity, octant int) {
-	// first create bouds of octant
-	bounds := make([]int, vision.Radius)
+func getOctantBounds(radius int) []int {
+	//---from display
+	// // get bounds, just do quarter circle
+	// type bound struct{ row, col int }
+	// bounds := make([]bound, 0)
 
-	circleX := vision.Radius
+	// circleX := displayRadius
+	// circleY := 0
+
+	// // Initialising the value of P
+	// P := 1 - displayRadius
+	// for circleX > circleY {
+	// 	//circle math
+	// 	circleY++
+	// 	// Mid-point is inside or on the perimeter
+	// 	if P <= 0 {
+	// 		P = P + 2*circleY + 1
+	// 	} else { // Mid-point is outside the perimeter
+	// 		circleX--
+	// 		P = P + 2*circleY - 2*circleX + 1
+	// 	}
+	// 	// All the perimeter points have already been displayed
+	// 	if circleX < circleY {
+	// 		break
+	// 	}
+
+	// 	bounds = append(bounds, bound{circleY, circleX})
+	// 	if circleX != circleY && P > 0 {
+	// 		bounds = append(bounds, bound{circleX, circleY})
+	// 	}
+	// }
+	bounds := make([]int, 0)
+
+	circleX := radius
 	circleY := 0
 	// Initialising the value of P
-	P := 1 - vision.Radius
+	P := 1 - radius
+
+	bounds = append(bounds, circleX)
 	for circleX > circleY {
 		//circle math
 		circleY++
@@ -64,8 +95,15 @@ func updateOctant(m *Manager, position Position, vision Vision, awareOf *[]Entit
 		if circleX < circleY {
 			break
 		}
-		bounds[circleY] = circleX
+		bounds = append(bounds, circleX)
 	}
+
+	return bounds
+}
+
+func updateOctant(m *Manager, position Position, vision Vision, awareOf PositionLookup, octant int) {
+	// first create bouds of octant
+	bounds := getOctantBounds(vision.Radius)
 
 	line := ShadowLine{}
 
@@ -76,19 +114,16 @@ func updateOctant(m *Manager, position Position, vision Vision, awareOf *[]Entit
 				break
 			}
 			// in bounds, continue on
-			delta := transformOctant(row, col, octant)
-			x := position.X + delta.X
-			y := position.Y + delta.Y
+			dx, dy := transformOctant(row, col, octant)
+			x := position.X + dx
+			y := position.Y + dy
 
 			// Set the visibility of this tile.
-			bottomVisible := !line.isInShadow(float64(row), float64(col)-0.5)
-			leftVisible := !line.isInShadow(float64(row)-0.5, float64(col))
-
-			visible := bottomVisible || leftVisible
+			visible := !line.isInShadow(projectTile(row, col))
 
 			if visible {
 				entities := m.getEntitiesFromPos(x, y)
-				*awareOf = append(*awareOf, entities...)
+				awareOf.add(entities, x, y)
 
 				// Add any opaque tiles to the shadow map.
 				isOpaque := false
@@ -108,26 +143,26 @@ func updateOctant(m *Manager, position Position, vision Vision, awareOf *[]Entit
 	}
 }
 
-func transformOctant(row, col, octant int) Position {
+func transformOctant(row, col, octant int) (int, int) {
 	switch octant {
 	case 0:
-		return Position{col, -row}
+		return col, -row
 	case 1:
-		return Position{row, -col}
+		return row, -col
 	case 2:
-		return Position{row, col}
+		return row, col
 	case 3:
-		return Position{col, row}
+		return col, row
 	case 4:
-		return Position{-col, row}
+		return -col, row
 	case 5:
-		return Position{-row, col}
+		return -row, col
 	case 6:
-		return Position{-row, -col}
+		return -row, -col
 	case 7:
-		return Position{-col, -row}
+		return -col, -row
 	}
-	return Position{0, 0}
+	return 0, 0
 }
 
 // ---- shadow line -----
@@ -135,9 +170,9 @@ type ShadowLine struct {
 	Shadows []Shadow
 }
 
-func (s ShadowLine) isInShadow(r, c float64) bool {
+func (s ShadowLine) isInShadow(inS Shadow) bool {
 	for _, shadow := range s.Shadows {
-		if shadow.contains(r, c) {
+		if shadow.contains(inS) {
 			return true
 		}
 	}
@@ -194,10 +229,8 @@ type Shadow struct {
 	Start, End float64
 }
 
-func (s Shadow) contains(r, c float64) bool {
-	slope := c / r
-
-	return s.Start <= slope && slope <= s.End
+func (s Shadow) contains(inS Shadow) bool {
+	return s.Start <= inS.Start && inS.End <= s.End
 }
 
 func projectTile(r, c int) Shadow {

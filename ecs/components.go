@@ -48,6 +48,7 @@ type Displayable struct {
 }
 
 type PlayerController struct {
+	Controlling                                  Entity
 	Up, Down, Left, Right, Pickup, Consume, Quit termbox.Key
 }
 
@@ -60,7 +61,7 @@ type Vision struct {
 }
 
 type EntityAwarness struct {
-	AwareOf []Entity
+	AwareOf PositionLookup
 }
 
 // perhaps make more general later. right now its only walls.

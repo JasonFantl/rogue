@@ -16,7 +16,7 @@ type Manager struct {
 	eventHandlers  []EventHandler
 	entityCounter  Entity
 	running        bool
-	player         Entity
+	user           Entity
 }
 
 func New() Manager {
@@ -26,7 +26,7 @@ func New() Manager {
 	newManager.eventHandlers = make([]EventHandler, 0)
 	newManager.entityCounter = 0
 	newManager.running = false
-	newManager.player = 0
+	newManager.user = 0
 
 	return newManager
 }
@@ -35,7 +35,7 @@ func (m *Manager) Start() {
 	m.running = true
 	// make sure to display
 	startingEvents := []Event{
-		{DEBUG_EVENT, DebugEvent{"waking up handlers"}, 0},
+		{DEBUG_EVENT, DebugEvent{"waking up handlers"}, m.user},
 	}
 	m.sendEvents(startingEvents)
 }
@@ -62,7 +62,6 @@ func (m *Manager) AddEntity(componenets []Component) Entity {
 func (m *Manager) AddComponenet(entity Entity, component Component) bool {
 	// check component map is initalized
 	componentList, ok := m.lookupTable[component.ID]
-
 	if !ok {
 		m.lookupTable[component.ID] = make(map[Entity]interface{})
 	}
@@ -74,12 +73,12 @@ func (m *Manager) AddComponenet(entity Entity, component Component) bool {
 		// for position lookup
 		if component.ID == POSITION {
 			positionComponent := component.Data.(Position)
-			m.positionLookup.add(entity, positionComponent.X, positionComponent.Y)
+			m.positionLookup.add([]Entity{entity}, positionComponent.X, positionComponent.Y)
 		}
 
 		// manager special case
 		if component.ID == PLAYER_CONTROLLER {
-			m.player = entity
+			m.user = entity
 		}
 		return true
 	}
@@ -90,8 +89,7 @@ func (m *Manager) Run() {
 	key, pressed := gui.GetKeyPress()
 
 	if pressed {
-		// send event from player so we know where to look for key mappings
-		buttonEvent := []Event{{KEY_PRESSED, KeyPressed{key}, m.player}}
+		buttonEvent := []Event{{KEY_PRESSED, KeyPressed{key}, m.user}}
 		m.sendEvents(buttonEvent)
 	}
 }
@@ -151,10 +149,7 @@ func (m *Manager) removeComponent(entity Entity, componentID ComponentID) {
 
 func (m *Manager) removeEntity(entity Entity) {
 	for componentID := range m.lookupTable {
-		// special case so we dont remove the ability to quit the game
-		if componentID != PLAYER_CONTROLLER {
-			m.removeComponent(entity, componentID)
-		}
+		m.removeComponent(entity, componentID)
 	}
 }
 
@@ -171,14 +166,18 @@ func (m *Manager) getEntitiesFromPos(x, y int) (entities []Entity) {
 
 func (m *Manager) sendEvents(events []Event) {
 
+	/////// manager stuff //////
+	timer := time.Now()
+	blockFinished := Event{DEBUG_EVENT, DebugEvent{"-----------------------------"}, 999999999}
+	events = append(events, blockFinished)
+	sentDisplay := false
+	userData, _ := m.getComponent(m.user, PLAYER_CONTROLLER)
+	userComponent := userData.(PlayerController)
+	//////////////////////////////
+
 	// we re-display every time an independent event is fired, must clear the screen first
 	gui.Clear()
-	timer := time.Now()
 
-	blockFinished := Event{DEBUG_EVENT, DebugEvent{"-----------------------------"}, 999999999}
-	sentDisplay := false
-
-	events = append(events, blockFinished)
 	// queue style event handling
 	for len(events) > 0 {
 		sendingEvent := events[0] // pop
@@ -190,9 +189,7 @@ func (m *Manager) sendEvents(events []Event) {
 		}
 
 		for _, eventHandler := range m.eventHandlers {
-
 			respondingEvents := eventHandler.handleEvent(m, sendingEvent)
-
 			events = append(events, respondingEvents...)
 		}
 
@@ -200,12 +197,21 @@ func (m *Manager) sendEvents(events []Event) {
 		if sendingEvent.ID == QUIT {
 			m.running = false
 		}
+		if sendingEvent.ID == DIED && sendingEvent.entity == userComponent.Controlling {
+			monsters, isMonster := m.getComponents(MONSTER_CONTROLLER)
+			if isMonster {
+				for monster, _ := range monsters {
+					userComponent.Controlling = monster
+					break
+				}
+			}
+			m.setComponent(m.user, PLAYER_CONTROLLER, userComponent)
+		}
 
 		// display stuff
 		if !sentDisplay && len(events) == 0 {
 			sentDisplay = true
-			// use 0 to display as player
-			events = append(events, Event{DISPLAY, Display{}, m.player})
+			events = append(events, Event{DISPLAY, Display{}, userComponent.Controlling})
 		}
 	}
 	gui.DrawCorner(time.Since(timer).String())

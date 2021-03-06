@@ -16,26 +16,26 @@ func (s *MemoryHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 				memoryComponent := memoryData.(EntityMemory)
 				awarnessComponent := awarnessData.(EntityAwarness)
 
-				for _, item := range awarnessComponent.AwareOf {
-					_, itemIsMemorable := m.getComponent(item, MEMORABLE)
-					itemDisplayData, itemHasDisplay := m.getComponent(item, DISPLAYABLE)
-					itemPositionData, itemHasPosition := m.getComponent(item, POSITION)
+				for x, row := range awarnessComponent.AwareOf {
+					for y, items := range row {
+						for _, item := range items {
+							_, itemIsMemorable := m.getComponent(item, MEMORABLE)
+							itemDisplayData, itemHasDisplay := m.getComponent(item, DISPLAYABLE)
 
-					if itemIsMemorable && itemHasDisplay && itemHasPosition {
-						itemDisplayComponent := itemDisplayData.(Displayable)
-						itemPositionComponent := itemPositionData.(Position)
+							if itemIsMemorable && itemHasDisplay {
+								itemDisplayComponent := itemDisplayData.(Displayable)
 
-						x := itemPositionComponent.X
-						y := itemPositionComponent.Y
-						// make sure memory is inited
-						if memoryComponent.Memory == nil {
-							memoryComponent.Memory = make(map[int]map[int]Displayable)
+								// make sure memory is inited
+								if memoryComponent.Memory == nil {
+									memoryComponent.Memory = make(map[int]map[int]Displayable)
+								}
+								if memoryComponent.Memory[x] == nil {
+									memoryComponent.Memory[x] = make(map[int]Displayable)
+								}
+
+								memoryComponent.Memory[x][y] = itemDisplayComponent
+							}
 						}
-						if memoryComponent.Memory[x] == nil {
-							memoryComponent.Memory[x] = make(map[int]Displayable)
-						}
-
-						memoryComponent.Memory[x][y] = itemDisplayComponent
 					}
 				}
 				m.setComponent(entity, ENTITY_MEMORY, memoryComponent)

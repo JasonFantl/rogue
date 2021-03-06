@@ -43,12 +43,20 @@ func (h *MonsterHandler) handleEvent(m *Manager, event Event) (returnEvents []Ev
 			if hasPosition && hasAwarness {
 				awarnessComponent := awarnessData.(EntityAwarness)
 
-				for _, item := range awarnessComponent.AwareOf {
-					if h.isTreasure(m, monster, item) {
-						actionPossibilities = append(actionPossibilities, TREASURE_MOVE)
-
-						break
+				seeTreasure := func() bool {
+					for _, row := range awarnessComponent.AwareOf {
+						for _, items := range row {
+							for _, item := range items {
+								if h.isTreasure(m, monster, item) {
+									return true
+								}
+							}
+						}
 					}
+					return false
+				}
+				if seeTreasure() {
+					actionPossibilities = append(actionPossibilities, TREASURE_MOVE)
 				}
 			}
 
@@ -141,21 +149,21 @@ func (h *MonsterHandler) moveToTreasure(m *Manager, monster Entity) (returnEvent
 	dx := 999
 	dy := 999
 
-	for _, item := range awarnessComponent.AwareOf {
-		if h.isTreasure(m, monster, item) {
+	for itemX, row := range awarnessComponent.AwareOf {
+		for itemY, items := range row {
+			for _, item := range items {
+				if h.isTreasure(m, monster, item) {
+					newDx := itemX - positionComponent.X
+					newDy := itemY - positionComponent.Y
 
-			itemPositionData, _ := m.getComponent(item, POSITION)
-			itemPositionComponent := itemPositionData.(Position)
+					oldDis := dx*dx + dy*dy
+					newDis := newDx*newDx + newDy*newDy
 
-			newDx := itemPositionComponent.X - positionComponent.X
-			newDy := itemPositionComponent.Y - positionComponent.Y
-
-			oldDis := dx*dx + dy*dy
-			newDis := newDx*newDx + newDy*newDy
-
-			if newDis < oldDis {
-				dx = newDx
-				dy = newDy
+					if newDis < oldDis {
+						dx = newDx
+						dy = newDy
+					}
+				}
 			}
 		}
 	}

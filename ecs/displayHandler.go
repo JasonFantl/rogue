@@ -15,12 +15,7 @@ type DisplayHandler struct {
 func (h *DisplayHandler) handleEvent(m *Manager, event Event) (returnEvents []Event) {
 
 	if event.ID == DISPLAY {
-		_, playerExist := m.getComponent(event.entity, INVENTORY)
-		if playerExist {
-			h.showEntity(m, event.entity)
-		} else {
-			h.showAll(m)
-		}
+		h.showEntity(m, event.entity)
 	}
 
 	return returnEvents
@@ -28,44 +23,49 @@ func (h *DisplayHandler) handleEvent(m *Manager, event Event) (returnEvents []Ev
 
 func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 
+	// get and check all the components necessary
+	positionData, hasPosition := m.getComponent(entity, POSITION)
+	memoryData, hasMemory := m.getComponent(entity, ENTITY_MEMORY)
+	awarnessData, hasAwarness := m.getComponent(entity, ENTITY_AWARENESS)
+
+	inventoryData, hasInventory := m.getComponent(entity, INVENTORY)
+
+	informationData, hasInformation := m.getComponent(entity, INFORMATION)
+	healthData, hasHealth := m.getComponent(entity, HEALTH)
+
+	fighterData, isFighter := m.getComponent(entity, FIGHTER)
+
 	/////////////// GRID /////////////////
 
 	// need to keep track of priorities
 	// maps 2d pos to unique int
-	fgPriorities := make(map[int]int)
-	bgPriorities := make(map[int]int)
-
-	maxX := 0
-
-	displayRadius := 20
+	fgPriorities := make(map[int]map[int]int)
+	bgPriorities := make(map[int]map[int]int)
 
 	// main function
 	display := func(x, y int, displayComponent Displayable) {
-		x = x + displayRadius
-		y = y + displayRadius
-
-		if x > maxX {
-			maxX = x
+		priorityMap := bgPriorities
+		if displayComponent.IsForeground {
+			priorityMap = fgPriorities
 		}
 
-		uniqueID := x + (x+y)*(x+y+1)/2
+		_, ok := priorityMap[x]
+		if !ok {
+			priorityMap[x] = make(map[int]int)
+		}
+		currentPriority, ok := priorityMap[x][y]
 
-		if displayComponent.IsForeground {
-			currentPriority, ok := fgPriorities[uniqueID]
-			if !ok || displayComponent.Priority > currentPriority {
+		if !ok || displayComponent.Priority > currentPriority {
+			if displayComponent.IsForeground {
 				gui.DrawFg(x, y, displayComponent.Rune, displayComponent.Color)
-				fgPriorities[uniqueID] = displayComponent.Priority
-			}
-		} else {
-			currentPriority, ok := bgPriorities[uniqueID]
-			if !ok || displayComponent.Priority > currentPriority {
+			} else {
 				gui.DrawBg(x, y, displayComponent.Color)
-				bgPriorities[uniqueID] = displayComponent.Priority
 			}
+			priorityMap[x][y] = displayComponent.Priority
 		}
 	}
 
-	positionData, hasPosition := m.getComponent(entity, POSITION)
+	displayRadius := 20
 
 	if hasPosition {
 		positionComponent := positionData.(Position)
@@ -73,118 +73,124 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 		visionData, hasVision := m.getComponent(entity, VISION)
 		if hasVision {
 			visionComponent := visionData.(Vision)
-			displayRadius = visionComponent.Radius * 2
+			displayRadius = visionComponent.Radius
 		}
 
-		// currently dislay all of memory and then overwrite, could be optimized
-		// ---------- MEMORY ---------
-		memoryData, hasMemory := m.getComponent(entity, ENTITY_MEMORY)
+		// ---------- MAP ---------
 
-		if hasMemory {
-			memoryComponent := memoryData.(EntityMemory)
+		if hasAwarness && hasPosition {
+			awarnessComponent := awarnessData.(EntityAwarness)
+			positionComponent := positionData.(Position)
 
-			// get bounds, just do quarter circle
-			type bound struct{ row, col int }
-			bounds := make([]bound, 0)
+			displayCell := func(dx, dy int) {
+				itemX := positionComponent.X + dx
+				itemY := positionComponent.Y + dy
 
-			circleX := displayRadius
-			circleY := 0
+				// display items we are aware of
+				wasAware := false
+				items := awarnessComponent.AwareOf.get(itemX, itemY)
 
-			// Initialising the value of P
-			P := 1 - displayRadius
-			for circleX > circleY {
-				//circle math
-				circleY++
-				// Mid-point is inside or on the perimeter
-				if P <= 0 {
-					P = P + 2*circleY + 1
-				} else { // Mid-point is outside the perimeter
-					circleX--
-					P = P + 2*circleY - 2*circleX + 1
-				}
-				// All the perimeter points have already been displayed
-				if circleX < circleY {
-					break
+				for _, item := range items {
+					itemDisplayData, itemHasDisplay := m.getComponent(item, DISPLAYABLE)
+					if itemHasDisplay {
+						itemDisplayComponent := itemDisplayData.(Displayable)
+
+						wasAware = true
+						display(dx, dy, itemDisplayComponent)
+					}
 				}
 
-				bounds = append(bounds, bound{circleY, circleX})
-				if circleX != circleY && P > 0 {
-					bounds = append(bounds, bound{circleX, circleY})
-				}
-			}
-
-			for _, b := range bounds {
-				for dy := -b.row; dy <= b.row; dy++ {
-					for dx := -b.col; dx < b.col; dx++ {
-						itemX := positionComponent.X + dx
-						itemY := positionComponent.Y + dy
-						col, ok := memoryComponent.Memory[itemX]
+				// if no aware items, try memory
+				if !wasAware && hasMemory {
+					memoryComponent := memoryData.(EntityMemory)
+					col, ok := memoryComponent.Memory[itemX]
+					if ok {
+						toDisplay, ok := col[itemY]
 						if ok {
-							toDisplay, ok := col[itemY]
-							if ok {
-								// convert display to fadded memory
-								r, g, b := termbox.AttributeToRGB(toDisplay.Color)
-								fadeConstant := 4
-								fadedColor := termbox.RGBToAttribute(r/uint8(fadeConstant), g/uint8(fadeConstant), b/uint8(fadeConstant))
-								fadedMemory := Displayable{toDisplay.IsForeground, fadedColor, toDisplay.Rune, 1}
-								display(dx, dy, fadedMemory)
-							}
+							// convert display to fadded memory
+							r, g, b := termbox.AttributeToRGB(toDisplay.Color)
+							fadeConstant := 4
+							fadedColor := termbox.RGBToAttribute(r/uint8(fadeConstant), g/uint8(fadeConstant), b/uint8(fadeConstant))
+							fadedMemory := Displayable{toDisplay.IsForeground, fadedColor, toDisplay.Rune, 1}
+							display(dx, dy, fadedMemory)
 						}
 					}
 				}
 			}
-		}
 
-		// ---------- AWARNESS ---------
-		awarnessData, hasAwarness := m.getComponent(entity, ENTITY_AWARENESS)
+			bounds := getOctantBounds(displayRadius)
 
-		if hasAwarness {
-			awarnessComponent := awarnessData.(EntityAwarness)
-
-			for _, item := range awarnessComponent.AwareOf {
-				displayData, hasDisplay := m.getComponent(item, DISPLAYABLE)
-				positionData, hasPosition := m.getComponent(item, POSITION)
-
-				if hasDisplay && hasPosition {
-					seenDisplayComponent := displayData.(Displayable)
-					seenPositionComponent := positionData.(Position)
-
-					x := seenPositionComponent.X - positionComponent.X
-					y := seenPositionComponent.Y - positionComponent.Y
-
-					display(x, y, seenDisplayComponent)
+			for row, col := range bounds {
+				for dx := -col; dx < col; dx++ {
+					displayCell(dx, row)
+					displayCell(dx, -row)
+				}
+				if row == len(bounds)-1 || bounds[row+1] != col {
+					for dx := -row; dx < row; dx++ {
+						displayCell(dx, col)
+						displayCell(dx, -col)
+					}
 				}
 			}
 		}
+
+		// --------- BELOW YOU --------------
+
+		items := make([]Entity, 0)
+		belowYou := m.getEntitiesFromPos(positionComponent.X, positionComponent.Y)
+		for _, item := range belowYou {
+			_, hasPickupable := m.getComponent(item, PICKUPABLE)
+			_, isStashed := m.getComponent(item, STASHED_FLAG)
+			if hasPickupable && !isStashed {
+				items = append(items, item)
+			}
+		}
+
+		displayString := ""
+		for _, item := range items {
+			informationData, informationOk := m.getComponent(item, INFORMATION)
+			if informationOk {
+				informationComponent := informationData.(Information)
+				displayString += informationComponent.Name + ", "
+			} else {
+				displayString += "?, "
+			}
+		}
+		if displayString != "" {
+			displayString = displayString[:len(displayString)-2]
+			gui.DrawText(-len(displayString)/2, displayRadius, displayString)
+		}
 	}
 
-	///////////// INVENTORY ///////////////////
+	// ------------- PLAYER STATS ---------------
 
-	currentLineNum := 1
-	inventoryData, hasInventory := m.getComponent(entity, INVENTORY)
+	if hasInformation {
+		informationComponent := informationData.(Information)
+		gui.DrawText(-len(informationComponent.Name)/2, -displayRadius-4, informationComponent.Name)
+	}
+	if hasHealth {
+		healthComponent := healthData.(Health)
+		healthString := "HP " + strconv.Itoa(healthComponent.Current) + "/" + strconv.Itoa(healthComponent.Max)
+		gui.DrawText(-displayRadius-len(healthString)/2, -displayRadius, healthString)
+	}
+	if isFighter {
+		fighterComponent := fighterData.(Fighter)
+		strengthString := "STR " + strconv.Itoa(fighterComponent.Strength)
+		gui.DrawText(displayRadius/2+len(strengthString)/2, -displayRadius, strengthString)
+	}
+
+	// -------------- INVENTORY ---------------
 
 	if hasInventory {
 		inventoryComponent := inventoryData.(Inventory)
 
-		// if we can, print entities information
-		informationData, hasInformation := m.getComponent(entity, INFORMATION)
-		healthData, hasHealth := m.getComponent(entity, HEALTH)
+		currentLineNum := -displayRadius + 4
+		gui.DrawText(displayRadius+1, currentLineNum, "Inventory: ")
+		currentLineNum++
 
-		if hasInformation {
-			informationComponent := informationData.(Information)
-			displayData := informationComponent.Name
-
-			if hasHealth {
-				healthComponent := healthData.(Health)
-				displayData += " : " + strconv.Itoa(healthComponent.Current) + "/" + strconv.Itoa(healthComponent.Max)
-			}
-			gui.DrawText(maxX+3, currentLineNum, displayData)
-			currentLineNum++
-		}
-
-		// then print each of its items
+		// then print each of its items (in sorted order)
 		keys := make([]int, 0)
-		for k, _ := range inventoryComponent.Items {
+		for k := range inventoryComponent.Items {
 			keys = append(keys, int(k))
 		}
 		sort.Ints(keys)
@@ -197,119 +203,29 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 				informationComponent := informationData.(Information)
 
 				informationString := informationComponent.Name + " : " + informationComponent.Details
-				gui.DrawText(maxX+5, currentLineNum, informationString)
+				gui.DrawText(displayRadius+5, currentLineNum, informationString)
 				currentLineNum++
 			} else {
-				gui.DrawText(maxX+5, currentLineNum, "? : no information on item")
+				gui.DrawText(displayRadius+5, currentLineNum, "? : no information on item")
 				currentLineNum++
 			}
 		}
 	}
-}
 
-func (s *DisplayHandler) showAll(m *Manager) {
+	// -------- EQUIPED ----------
 
-	/////////////// GRID /////////////////
+	if isFighter {
+		fighterComponent := fighterData.(Fighter)
 
-	// need to keep track of priorities
-	// maps 2d pos to unique int
-	fgPriorities := make(map[int]int)
-	bgPriorities := make(map[int]int)
+		informationData, informationOk := m.getComponent(fighterComponent.Weapon, INFORMATION)
 
-	maxX := 0
-
-	// get new positions, the looping is currently as horrible as I can make it
-	displayComponents, ok := m.getComponents(DISPLAYABLE)
-	if ok {
-		for entity, displayData := range displayComponents {
-			positionData, positionOk := m.getComponent(entity, POSITION)
-
-			if positionOk {
-				positionComponent := positionData.(Position)
-				displayComponent := displayData.(Displayable)
-
-				x := positionComponent.X
-				y := positionComponent.Y
-
-				if x > maxX {
-					maxX = x
-				}
-
-				uniqueID := x + (x+y)*(x+y+1)/2
-
-				if displayComponent.IsForeground {
-					currentPriority, ok := fgPriorities[uniqueID]
-					if !ok || displayComponent.Priority > currentPriority {
-						gui.DrawFg(x, y, displayComponent.Rune, displayComponent.Color)
-						fgPriorities[uniqueID] = displayComponent.Priority
-					}
-				} else {
-					currentPriority, ok := bgPriorities[uniqueID]
-					if !ok || displayComponent.Priority > currentPriority {
-						gui.DrawBg(x, y, displayComponent.Color)
-						bgPriorities[uniqueID] = displayComponent.Priority
-					}
-				}
-			}
-		}
-	}
-
-	///////////// INVENTORY ///////////////////
-
-	currentLineNum := 1
-	inventoryComponents, ok := m.getComponents(INVENTORY)
-
-	keys := make([]int, 0)
-	for k, _ := range inventoryComponents {
-		keys = append(keys, int(k))
-	}
-	sort.Ints(keys)
-
-	for _, key := range keys {
-		entity := Entity(key)
-		inventoryData := inventoryComponents[entity]
-
-		inventoryComponent := inventoryData.(Inventory)
-
-		// if we can, print entities information
-		informationData, hasInformation := m.getComponent(entity, INFORMATION)
-		healthData, hasHealth := m.getComponent(entity, HEALTH)
-
-		if hasInformation {
+		if informationOk {
 			informationComponent := informationData.(Information)
-			displayData := informationComponent.Name
 
-			if hasHealth {
-				healthComponent := healthData.(Health)
-				displayData += " : " + strconv.Itoa(healthComponent.Current) + "/" + strconv.Itoa(healthComponent.Max)
-			}
-			gui.DrawText(maxX+3, currentLineNum, displayData)
-			currentLineNum++
-		}
+			gui.DrawText(-displayRadius-10, -1, "Weapon:")
+			gui.DrawText(-displayRadius-5, 0, informationComponent.Name)
 
-		// then print each of its items
-
-		// then print each of its items
-		keys := make([]int, 0)
-		for k, _ := range inventoryComponent.Items {
-			keys = append(keys, int(k))
-		}
-		sort.Ints(keys)
-
-		for _, key := range keys {
-			item := Entity(key)
-			informationData, informationOk := m.getComponent(item, INFORMATION)
-
-			if informationOk {
-				informationComponent := informationData.(Information)
-
-				informationString := informationComponent.Name + " : " + informationComponent.Details
-				gui.DrawText(maxX+5, currentLineNum, informationString)
-				currentLineNum++
-			} else {
-				gui.DrawText(maxX+5, currentLineNum, "? : no information on item")
-				currentLineNum++
-			}
 		}
 	}
+
 }

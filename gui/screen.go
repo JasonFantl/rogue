@@ -18,25 +18,25 @@ func Setup() {
 }
 
 func DrawText(x, y int, text string) {
+	x, y = center(x, y)
 	for i, r := range text {
 		termbox.SetCell(x+i, y, r, termbox.RGBToAttribute(200, 200, 200), termbox.ColorDefault)
 	}
 }
 
 func DrawCorner(text string) {
-	DrawText(0, 0, text)
+	width, height := termbox.Size()
+	DrawText(-width/2, -height/2, text)
 }
 
 func DrawFg(x, y int, r rune, c termbox.Attribute) {
-	// _, h := s.Size()
-	// invertedY := h - y
+	x, y = center(x, y)
 	termbox.SetFg(x, y, c)
 	termbox.SetChar(x, y, r)
 }
 
 func DrawBg(x, y int, c termbox.Attribute) {
-	// _, h := s.Size()
-	// invertedY := h - y
+	x, y = center(x, y)
 	termbox.SetBg(x, y, c)
 }
 
@@ -47,6 +47,11 @@ func UpdateErrors(toDisplay string) {
 	// this assumes max error msg is 50 chars
 	DrawText(w-50, errorLine, toDisplay)
 	errorLine++
+}
+
+func center(x, y int) (int, int) {
+	width, height := termbox.Size()
+	return x + width/2, y + height/2
 }
 
 func Clear() {
