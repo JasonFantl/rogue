@@ -145,7 +145,7 @@ func addPlayer(ecsManager *ecs.Manager, x, y int) {
 
 	positionComponent := ecs.Position{x, y}
 	displayComponent := ecs.Displayable{true, termbox.RGBToAttribute(200, 200, 250), '@', 199}
-	visionComponent := ecs.Vision{20}
+	visionComponent := ecs.Vision{10}
 	awarnessComponent := ecs.EntityAwarness{}
 	memoryComponent := ecs.EntityMemory{}
 	inventoryComponent := ecs.Inventory{}

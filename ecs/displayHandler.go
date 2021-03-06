@@ -28,6 +28,7 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 	memoryData, hasMemory := m.getComponent(entity, ENTITY_MEMORY)
 	awarnessData, hasAwarness := m.getComponent(entity, ENTITY_AWARENESS)
 
+	visionData, hasVision := m.getComponent(entity, VISION)
 	inventoryData, hasInventory := m.getComponent(entity, INVENTORY)
 
 	informationData, hasInformation := m.getComponent(entity, INFORMATION)
@@ -35,54 +36,49 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 
 	fighterData, isFighter := m.getComponent(entity, FIGHTER)
 
-	/////////////// GRID /////////////////
-
-	// need to keep track of priorities
-	// maps 2d pos to unique int
-	fgPriorities := make(map[int]map[int]int)
-	bgPriorities := make(map[int]map[int]int)
-
-	// main function
-	display := func(x, y int, displayComponent Displayable) {
-		priorityMap := bgPriorities
-		if displayComponent.IsForeground {
-			priorityMap = fgPriorities
-		}
-
-		_, ok := priorityMap[x]
-		if !ok {
-			priorityMap[x] = make(map[int]int)
-		}
-		currentPriority, ok := priorityMap[x][y]
-
-		if !ok || displayComponent.Priority > currentPriority {
-			if displayComponent.IsForeground {
-				gui.DrawFg(x, y, displayComponent.Rune, displayComponent.Color)
-			} else {
-				gui.DrawBg(x, y, displayComponent.Color)
-			}
-			priorityMap[x][y] = displayComponent.Priority
-		}
-	}
-
+	// display is a circle
 	displayRadius := 20
 
+	if hasVision {
+		visionComponent := visionData.(Vision)
+		displayRadius = visionComponent.Radius
+	}
+
+	// ------- position related --------
 	if hasPosition {
 		positionComponent := positionData.(Position)
 
-		visionData, hasVision := m.getComponent(entity, VISION)
-		if hasVision {
-			visionComponent := visionData.(Vision)
-			displayRadius = visionComponent.Radius
-		}
-
 		// ---------- MAP ---------
 
-		if hasAwarness && hasPosition {
-			awarnessComponent := awarnessData.(EntityAwarness)
-			positionComponent := positionData.(Position)
+		fgPriorities := make(map[int]map[int]int)
+		bgPriorities := make(map[int]map[int]int)
 
-			displayCell := func(dx, dy int) {
+		display := func(x, y int, displayComponent Displayable) {
+			priorityMap := bgPriorities
+			if displayComponent.IsForeground {
+				priorityMap = fgPriorities
+			}
+
+			_, ok := priorityMap[x]
+			if !ok {
+				priorityMap[x] = make(map[int]int)
+			}
+			currentPriority, ok := priorityMap[x][y]
+
+			if !ok || displayComponent.Priority > currentPriority {
+				if displayComponent.IsForeground {
+					gui.DrawFg(x, y, displayComponent.Rune, displayComponent.Color)
+				} else {
+					gui.DrawBg(x, y, displayComponent.Color)
+				}
+				priorityMap[x][y] = displayComponent.Priority
+			}
+		}
+
+		if hasAwarness {
+			awarnessComponent := awarnessData.(EntityAwarness)
+
+			displayXY := func(dx, dy int) {
 				itemX := positionComponent.X + dx
 				itemY := positionComponent.Y + dy
 
@@ -122,13 +118,13 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 
 			for row, col := range bounds {
 				for dx := -col; dx < col; dx++ {
-					displayCell(dx, row)
-					displayCell(dx, -row)
+					displayXY(dx, row)
+					displayXY(dx, -row)
 				}
 				if row == len(bounds)-1 || bounds[row+1] != col {
 					for dx := -row; dx < row; dx++ {
-						displayCell(dx, col)
-						displayCell(dx, -col)
+						displayXY(dx, col)
+						displayXY(dx, -col)
 					}
 				}
 			}
@@ -158,7 +154,7 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 		}
 		if displayString != "" {
 			displayString = displayString[:len(displayString)-2]
-			gui.DrawText(-len(displayString)/2, displayRadius, displayString)
+			gui.DrawText(-len(displayString)/2, displayRadius+5, displayString)
 		}
 	}
 
@@ -172,6 +168,23 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 		healthComponent := healthData.(Health)
 		healthString := "HP " + strconv.Itoa(healthComponent.Current) + "/" + strconv.Itoa(healthComponent.Max)
 		gui.DrawText(-displayRadius-len(healthString)/2, -displayRadius, healthString)
+
+		bounds := getOctantBounds(displayRadius)
+		healthRadians := healthComponent.Current * 8 * len(bounds) / healthComponent.Max
+		healthDisplayed := 0
+		for octant := 0; octant < 8; octant++ {
+			for i := range bounds {
+				if healthDisplayed <= healthRadians {
+					k := i
+					if octant%2 == 1 {
+						k = len(bounds) - k - 1
+					}
+					dx, dy := transformOctant(k, bounds[k], octant)
+					gui.DrawBg(dx, dy, termbox.RGBToAttribute(120, 0, 20))
+					healthDisplayed++
+				}
+			}
+		}
 	}
 	if isFighter {
 		fighterComponent := fighterData.(Fighter)
@@ -181,7 +194,7 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 
 	// -------------- INVENTORY ---------------
 
-	if hasInventory {
+	if false && hasInventory {
 		inventoryComponent := inventoryData.(Inventory)
 
 		currentLineNum := -displayRadius + 4
@@ -222,8 +235,8 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 		if informationOk {
 			informationComponent := informationData.(Information)
 
-			gui.DrawText(-displayRadius-10, -1, "Weapon:")
-			gui.DrawText(-displayRadius-5, 0, informationComponent.Name)
+			gui.DrawText(-displayRadius-15, -1, "Weapon:")
+			gui.DrawText(-displayRadius-10, 0, informationComponent.Name)
 
 		}
 	}

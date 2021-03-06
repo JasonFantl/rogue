@@ -150,17 +150,17 @@ func transformOctant(row, col, octant int) (int, int) {
 	case 1:
 		return row, -col
 	case 2:
-		return row, col
+		return -row, -col
 	case 3:
-		return col, row
+		return -col, -row
 	case 4:
 		return -col, row
 	case 5:
 		return -row, col
 	case 6:
-		return -row, -col
+		return row, col
 	case 7:
-		return -col, -row
+		return col, row
 	}
 	return 0, 0
 }
