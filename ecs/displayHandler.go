@@ -230,14 +230,21 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 	if isFighter {
 		fighterComponent := fighterData.(Fighter)
 
-		informationData, informationOk := m.getComponent(fighterComponent.Weapon, INFORMATION)
+		weaponInformationData, weaponInformationOk := m.getComponent(fighterComponent.Weapon, INFORMATION)
+		armorInformationData, armorInformationOk := m.getComponent(fighterComponent.Armor, INFORMATION)
 
-		if informationOk {
-			informationComponent := informationData.(Information)
+		if weaponInformationOk {
+			informationComponent := weaponInformationData.(Information)
 
 			gui.DrawText(-displayRadius-15, -1, "Weapon:")
 			gui.DrawText(-displayRadius-10, 0, informationComponent.Name)
+		}
 
+		if armorInformationOk {
+			informationComponent := armorInformationData.(Information)
+
+			gui.DrawText(-displayRadius-15, 1, "Armor:")
+			gui.DrawText(-displayRadius-10, 2, informationComponent.Name)
 		}
 	}
 

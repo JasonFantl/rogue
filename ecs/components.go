@@ -26,9 +26,9 @@ const (
 	VOLUME
 	FIGHTER
 	DAMAGE
+	DAMAGE_RESISTANCE
 	OPAQUE
 	DISPLAYABLE
-	CONSUMABLE
 	MEMORABLE
 	PICKUPABLE
 	STASHED_FLAG
@@ -99,16 +99,18 @@ type Health struct {
 type Fighter struct {
 	Strength int
 	Weapon   Entity
+	Armor    Entity
 }
 
 type Damage struct {
 	Amount int
 }
 
-type Opaque struct {
+type DamageResistance struct {
+	Amount int
 }
 
-type Consumable struct {
+type Opaque struct {
 }
 
 type Effects struct {

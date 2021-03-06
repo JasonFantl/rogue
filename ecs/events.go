@@ -60,8 +60,7 @@ type PickedUp struct {
 }
 
 type TryAttack struct {
-	who    Entity
-	weapon Entity
+	who Entity
 }
 
 type Damaged struct {

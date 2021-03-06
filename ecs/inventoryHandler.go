@@ -2,33 +2,7 @@ package ecs
 
 type InventoryHandler struct{}
 
-func (s *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []Event) {
-
-	// handy functions
-
-	isTreasure := func(entity Entity) bool {
-		_, pickupableOk := m.getComponent(entity, PICKUPABLE)
-		_, stashedOk := m.getComponent(entity, STASHED_FLAG)
-
-		return pickupableOk && !stashedOk
-	}
-
-	// add stashed component to item MAKE SURE TO REMOVE WHEN DROPPED!
-	pickup := func(entity Entity, inventoryComponent Inventory) {
-		stashedComponent := Component{STASHED_FLAG, StashedFlag{event.entity}}
-		m.AddComponenet(entity, stashedComponent)
-
-		// make sure the inventory is inited
-		if inventoryComponent.Items == nil {
-			inventoryComponent.Items = make(map[Entity]bool)
-		}
-
-		// then add it to our inventory
-		inventoryComponent.Items[entity] = true
-		m.setComponent(event.entity, INVENTORY, inventoryComponent)
-
-		returnEvents = append(returnEvents, Event{PICKED_UP, PickedUp{event.entity}, entity})
-	}
+func (h *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []Event) {
 
 	if event.ID == PLAYER_TRY_PICK_UP {
 		positionData, hasPosition := m.getComponent(event.entity, POSITION)
@@ -37,7 +11,7 @@ func (s *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []
 
 			entities := m.getEntitiesFromPos(positionComponent.X, positionComponent.Y)
 			for _, item := range entities {
-				if isTreasure(item) {
+				if h.isTreasure(m, item) {
 					returnEvents = append(returnEvents, Event{TRY_PICK_UP, TryPickUp{item}, event.entity})
 					break // dont need to check anymore
 				}
@@ -61,36 +35,10 @@ func (s *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []
 			if otherHasPosition {
 				otherPositionComponent := otherPositionData.(Position)
 				sameLocation := otherPositionComponent.X == positionComponent.X && otherPositionComponent.Y == positionComponent.Y
-				if sameLocation && isTreasure(tryPickUpEvent.what) {
-					pickup(tryPickUpEvent.what, inventoryComponent)
+				if sameLocation && h.isTreasure(m, tryPickUpEvent.what) {
+					response := h.pickup(m, tryPickUpEvent.what, event.entity, inventoryComponent)
+					returnEvents = append(returnEvents, response)
 				}
-			}
-		}
-	}
-
-	if event.ID == PICKED_UP {
-		pickedUpEvent := event.data.(PickedUp)
-
-		FighterData, isFighter := m.getComponent(pickedUpEvent.byWho, FIGHTER)
-		itemDamageData, itemDoesDamage := m.getComponent(event.entity, DAMAGE)
-
-		if isFighter && itemDoesDamage {
-			fighterComponent := FighterData.(Fighter)
-			itemDamageComponent := itemDamageData.(Damage)
-
-			isBetterWeapon := true
-
-			currentWeaponDamageData, currentDoesDamage := m.getComponent(fighterComponent.Weapon, DAMAGE)
-			if currentDoesDamage {
-				currentWeaponDamageComponent := currentWeaponDamageData.(Damage)
-				if itemDamageComponent.Amount < currentWeaponDamageComponent.Amount {
-					isBetterWeapon = false
-				}
-			}
-
-			if isBetterWeapon {
-				fighterComponent.Weapon = event.entity
-				m.setComponent(pickedUpEvent.byWho, FIGHTER, fighterComponent)
 			}
 		}
 	}
@@ -142,4 +90,28 @@ func (s *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []
 	}
 
 	return returnEvents
+}
+
+func (h *InventoryHandler) isTreasure(m *Manager, entity Entity) bool {
+	_, pickupableOk := m.getComponent(entity, PICKUPABLE)
+	_, stashedOk := m.getComponent(entity, STASHED_FLAG)
+
+	return pickupableOk && !stashedOk
+}
+
+// add stashed component to item MAKE SURE TO REMOVE WHEN DROPPED!
+func (h *InventoryHandler) pickup(m *Manager, entity, parent Entity, inventoryComponent Inventory) Event {
+	stashedComponent := Component{STASHED_FLAG, StashedFlag{parent}}
+	m.AddComponenet(entity, stashedComponent)
+
+	// make sure the inventory is inited
+	if inventoryComponent.Items == nil {
+		inventoryComponent.Items = make(map[Entity]bool)
+	}
+
+	// then add it to our inventory
+	inventoryComponent.Items[entity] = true
+	m.setComponent(parent, INVENTORY, inventoryComponent)
+
+	return Event{PICKED_UP, PickedUp{parent}, entity}
 }

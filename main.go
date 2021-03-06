@@ -31,6 +31,7 @@ func main() {
 	eventPrinter := ecs.EventPrinterHandler{}
 	memoryHandler := ecs.MemoryHandler{}
 	effectHandler := ecs.EffectsHandler{}
+	equippingHandler := ecs.EquippingHandler{}
 
 	// the order that these are added matters
 	// they follow this order of execution
@@ -39,8 +40,9 @@ func main() {
 	ecsManager.AddEventHandler(&monsterHandler)
 	ecsManager.AddEventHandler(&attackHandler)
 	ecsManager.AddEventHandler(&movementHandler)
-	ecsManager.AddEventHandler(&inventoryHandler)
 	ecsManager.AddEventHandler(&effectHandler)
+	ecsManager.AddEventHandler(&equippingHandler)
+	ecsManager.AddEventHandler(&inventoryHandler)
 	// inventory before death, otherwise we cant drop all of its items
 	ecsManager.AddEventHandler(&deathHandler)
 

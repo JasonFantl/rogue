@@ -83,15 +83,17 @@ func generateGame(ecsManager *ecs.Manager, width, height int) {
 				continue
 			}
 
-			r := rand.Intn(4)
+			r := rand.Intn(5)
 			if r == 0 {
 				addTreasure(ecsManager, x, y)
 			} else if r == 1 {
 				addMonster(ecsManager, x, y)
 			} else if r == 2 {
 				addPotion(ecsManager, x, y)
-			} else {
+			} else if r == 3 {
 				addWeapon(ecsManager, x, y)
+			} else {
+				addArmor(ecsManager, x, y)
 			}
 			itemCount--
 		}
@@ -151,7 +153,7 @@ func addPlayer(ecsManager *ecs.Manager, x, y int) {
 	inventoryComponent := ecs.Inventory{}
 	informationComponent := ecs.Information{"Player", "the hero of our story"}
 	volumeComponent := ecs.Volume{}
-	fighterComponent := ecs.Fighter{10, 0}
+	fighterComponent := ecs.Fighter{10, 0, 0}
 	damageComponent := ecs.Damage{1}
 	healthComponent := ecs.Health{100, 80}
 
@@ -195,7 +197,7 @@ func addMonster(ecsManager *ecs.Manager, x, y int) {
 	positionComponent := ecs.Position{x, y}
 	inventoryComponent := ecs.Inventory{}
 	volumeComponent := ecs.Volume{}
-	fighterComponent := ecs.Fighter{10, 0}
+	fighterComponent := ecs.Fighter{10, 0, 0}
 	damageComponent := ecs.Damage{3}
 	healthComponent := ecs.Health{50, 50}
 	visionComponent := ecs.Vision{10}
@@ -284,13 +286,39 @@ func addWeapon(ecsManager *ecs.Manager, x, y int) {
 	ecsManager.AddEntity(weapon)
 }
 
+func addArmor(ecsManager *ecs.Manager, x, y int) {
+
+	armor := []ecs.Component{
+		{ecs.POSITION, ecs.Position{x, y}},
+		{ecs.PICKUPABLE, ecs.Pickupable{}},
+	}
+
+	armorInfos := [][]ecs.Component{
+		{
+			{ecs.DISPLAYABLE, ecs.Displayable{true, termbox.RGBToAttribute(150, 100, 10), 'Y', 102}},
+			{ecs.INFORMATION, ecs.Information{"Leather armor", "sturdy and well worn"}},
+			{ecs.DAMAGE_RESISTANCE, ecs.DamageResistance{5}},
+		},
+		{
+			{ecs.DISPLAYABLE, ecs.Displayable{true, termbox.RGBToAttribute(212, 212, 212), 'Y', 102}},
+			{ecs.INFORMATION, ecs.Information{"Metal plate", "shiny, dented"}},
+			{ecs.DAMAGE_RESISTANCE, ecs.DamageResistance{10}},
+		},
+	}
+
+	weaponInfo := armorInfos[rand.Intn(len(armorInfos))]
+
+	armor = append(armor, weaponInfo...)
+
+	ecsManager.AddEntity(armor)
+}
+
 func addPotion(ecsManager *ecs.Manager, x, y int) {
 
 	potion := []ecs.Component{
 		{ecs.POSITION, ecs.Position{x, y}},
 		{ecs.PICKUPABLE, ecs.Pickupable{}},
 		{ecs.DISPLAYABLE, ecs.Displayable{true, termbox.RGBToAttribute(240, 250, 0), 'o', 102}},
-		{ecs.CONSUMABLE, ecs.Consumable{}},
 	}
 
 	potionInfos := [][]ecs.Component{

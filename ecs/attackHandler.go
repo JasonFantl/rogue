@@ -1,6 +1,10 @@
 package ecs
 
-import "github.com/nsf/termbox-go"
+import (
+	"math/rand"
+
+	"github.com/nsf/termbox-go"
+)
 
 type AttackHandler struct {
 }
@@ -14,11 +18,10 @@ func (s *AttackHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 
 		// get entitys current position and if it can attack
 		positionData, hasPosition := m.getComponent(event.entity, POSITION)
-		fighterData, hasfighter := m.getComponent(event.entity, FIGHTER)
+		_, isfighter := m.getComponent(event.entity, FIGHTER)
 
-		if hasPosition && hasfighter {
+		if hasPosition && isfighter {
 			positionComponent := positionData.(Position)
-			fighterComponent := fighterData.(Fighter)
 
 			// now check if new location is occupied by something with health
 			newX := positionComponent.X + moveEvent.dx
@@ -29,14 +32,8 @@ func (s *AttackHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 			for _, otherEntity := range m.getEntitiesFromPos(newX, newY) {
 				_, otherHasHealth := m.getComponent(otherEntity, HEALTH)
 
-				weapon := fighterComponent.Weapon
-				// if theres no weapon, use entity itself (basically just punching)
-				if weapon == 0 {
-					weapon = event.entity
-				}
-
 				if otherHasHealth {
-					returnEvents = append(returnEvents, Event{TRY_ATTACK, TryAttack{otherEntity, weapon}, event.entity})
+					returnEvents = append(returnEvents, Event{TRY_ATTACK, TryAttack{otherEntity}, event.entity})
 				}
 			}
 		}
@@ -48,18 +45,51 @@ func (s *AttackHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 		tryAttackEvent := event.data.(TryAttack)
 
 		// get components
-		healthData, hasHealth := m.getComponent(tryAttackEvent.who, HEALTH)
-		damageData, doesDamage := m.getComponent(tryAttackEvent.weapon, DAMAGE)
+		attackedHealthData, attackedHasHealth := m.getComponent(tryAttackEvent.who, HEALTH)
 		fighterData, isFighter := m.getComponent(event.entity, FIGHTER)
 
-		if hasHealth && doesDamage && isFighter {
-			healthComponent := healthData.(Health)
-			damageComponent := damageData.(Damage)
+		if attackedHasHealth && isFighter {
+			attackedHealthComponent := attackedHealthData.(Health)
 			fighterComponent := fighterData.(Fighter)
 
-			damage := fighterComponent.Strength + damageComponent.Amount
-			healthComponent.Current -= damage
-			m.setComponent(tryAttackEvent.who, HEALTH, healthComponent)
+			// base dmage
+			damage := fighterComponent.Strength
+
+			// weapon damage
+			// check if we have a weapon, otherwise use self as weapon
+			weapon := fighterComponent.Weapon
+			if weapon == 0 {
+				weapon = event.entity
+			}
+			damageData, doesDamage := m.getComponent(weapon, DAMAGE)
+			if doesDamage {
+				damageComponent := damageData.(Damage)
+				damage += damageComponent.Amount
+			}
+
+			// armor protection
+			attackedFighterData, attackedIsFighter := m.getComponent(tryAttackEvent.who, FIGHTER)
+			if attackedIsFighter {
+				attackedFighterComponent := attackedFighterData.(Fighter)
+
+				// check if we have a weapon, otherwise use self as weapon
+				armor := attackedFighterComponent.Armor
+				if armor == 0 {
+					armor = tryAttackEvent.who
+				}
+
+				armorData, attackedHasArmor := m.getComponent(armor, DAMAGE_RESISTANCE)
+				if attackedHasArmor {
+					armorComponent := armorData.(DamageResistance)
+					// how to use AC?
+					if rand.Intn(damage+1) < armorComponent.Amount {
+						damage = 0
+					}
+				}
+			}
+
+			attackedHealthComponent.Current -= damage
+			m.setComponent(tryAttackEvent.who, HEALTH, attackedHealthComponent)
 
 			returnEvents = append(returnEvents, Event{DAMAGED, Damaged{}, tryAttackEvent.who})
 		}
