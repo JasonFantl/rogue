@@ -18,9 +18,9 @@ func (effect HealEffect) trigger(m *Manager, event Event) (returnEvents []Event)
 	affected := event.entity // probably not this entity
 
 	switch event.ID {
-	case CONSUMED:
-		consumedEvent := event.data.(Consumed)
-		affected = consumedEvent.byWho
+	// case CONSUMED:
+	// 	consumedEvent := event.data.(Consumed)
+	// 	affected = consumedEvent.byWho
 	case PICKED_UP:
 		pickedUpEvent := event.data.(PickedUp)
 		affected = pickedUpEvent.byWho
@@ -33,6 +33,62 @@ func (effect HealEffect) trigger(m *Manager, event Event) (returnEvents []Event)
 		healthComponent.Current += effect.Amount
 
 		m.setComponent(affected, HEALTH, healthComponent)
+	}
+
+	return returnEvents
+}
+
+type VisionEffect struct {
+	Amount int
+}
+
+func (effect VisionEffect) trigger(m *Manager, event Event) (returnEvents []Event) {
+
+	affected := event.entity // probably not this entity
+
+	switch event.ID {
+	// case CONSUMED:
+	// 	consumedEvent := event.data.(Consumed)
+	// 	affected = consumedEvent.byWho
+	case PICKED_UP:
+		pickedUpEvent := event.data.(PickedUp)
+		affected = pickedUpEvent.byWho
+	}
+
+	visionData, hasVision := m.getComponent(affected, VISION)
+	if hasVision {
+		visionComponent := visionData.(Vision)
+		visionComponent.Radius += effect.Amount
+
+		m.setComponent(affected, VISION, visionComponent)
+	}
+
+	return returnEvents
+}
+
+type StrengthEffect struct {
+	Amount int
+}
+
+func (effect StrengthEffect) trigger(m *Manager, event Event) (returnEvents []Event) {
+
+	affected := event.entity // probably not this entity
+
+	switch event.ID {
+	// case CONSUMED:
+	// 	consumedEvent := event.data.(Consumed)
+	// 	affected = consumedEvent.byWho
+	case PICKED_UP:
+		pickedUpEvent := event.data.(PickedUp)
+		affected = pickedUpEvent.byWho
+	}
+
+	fighterData, isFighter := m.getComponent(affected, FIGHTER)
+	if isFighter {
+		fighterComponent := fighterData.(Fighter)
+		fighterComponent.Strength += effect.Amount
+
+		m.setComponent(affected, FIGHTER, fighterComponent)
 	}
 
 	return returnEvents

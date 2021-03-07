@@ -11,7 +11,7 @@ type EventHandler interface {
 }
 
 type Manager struct {
-	lookupTable    map[ComponentID]map[Entity]interface{}
+	entityTable    map[ComponentID]map[Entity]interface{}
 	positionLookup PositionLookup
 	eventHandlers  []EventHandler
 	entityCounter  Entity
@@ -21,7 +21,7 @@ type Manager struct {
 
 func New() Manager {
 	newManager := Manager{}
-	newManager.lookupTable = make(map[ComponentID]map[Entity]interface{})
+	newManager.entityTable = make(map[ComponentID]map[Entity]interface{})
 	newManager.positionLookup = make(map[int]map[int][]Entity, 0)
 	newManager.eventHandlers = make([]EventHandler, 0)
 	newManager.entityCounter = 0
@@ -44,6 +44,15 @@ func (m *Manager) Running() bool {
 	return m.running
 }
 
+func (m *Manager) Run() {
+	key, pressed := gui.GetKeyPress()
+
+	if pressed {
+		buttonEvent := []Event{{KEY_PRESSED, KeyPressed{key}, m.user}}
+		m.sendEvents(buttonEvent)
+	}
+}
+
 func (m *Manager) AddEventHandler(eventHandler EventHandler) {
 	m.eventHandlers = append(m.eventHandlers, eventHandler)
 }
@@ -61,14 +70,14 @@ func (m *Manager) AddEntity(componenets []Component) Entity {
 
 func (m *Manager) AddComponenet(entity Entity, component Component) bool {
 	// check component map is initalized
-	componentList, ok := m.lookupTable[component.ID]
+	componentList, ok := m.entityTable[component.ID]
 	if !ok {
-		m.lookupTable[component.ID] = make(map[Entity]interface{})
+		m.entityTable[component.ID] = make(map[Entity]interface{})
 	}
 
 	// check entity doesnt already have component
 	if _, ok := componentList[entity]; !ok {
-		m.lookupTable[component.ID][entity] = component.Data
+		m.entityTable[component.ID][entity] = component.Data
 
 		// for position lookup
 		if component.ID == POSITION {
@@ -85,17 +94,8 @@ func (m *Manager) AddComponenet(entity Entity, component Component) bool {
 	return false
 }
 
-func (m *Manager) Run() {
-	key, pressed := gui.GetKeyPress()
-
-	if pressed {
-		buttonEvent := []Event{{KEY_PRESSED, KeyPressed{key}, m.user}}
-		m.sendEvents(buttonEvent)
-	}
-}
-
 func (m *Manager) getComponent(entity Entity, componentID ComponentID) (interface{}, bool) {
-	components, ok := m.lookupTable[componentID]
+	components, ok := m.entityTable[componentID]
 	if ok {
 		data, ok := components[entity]
 		if ok {
@@ -107,9 +107,9 @@ func (m *Manager) getComponent(entity Entity, componentID ComponentID) (interfac
 
 // can we reove this? promotes inefficient code
 func (m *Manager) getComponents(componentID ComponentID) (map[Entity]interface{}, bool) {
-	_, ok := m.lookupTable[componentID]
+	_, ok := m.entityTable[componentID]
 	if ok {
-		return m.lookupTable[componentID], true
+		return m.entityTable[componentID], true
 	}
 	return nil, false
 }
@@ -125,14 +125,14 @@ func (m *Manager) setComponent(entity Entity, componentID ComponentID, data inte
 		}
 	}
 
-	_, ok := m.lookupTable[componentID]
+	_, ok := m.entityTable[componentID]
 	if ok {
-		m.lookupTable[componentID][entity] = data
+		m.entityTable[componentID][entity] = data
 	}
 }
 
 func (m *Manager) removeComponent(entity Entity, componentID ComponentID) {
-	components, ok := m.lookupTable[componentID]
+	components, ok := m.entityTable[componentID]
 	if ok {
 		// for position lookup
 		if componentID == POSITION {
@@ -143,12 +143,12 @@ func (m *Manager) removeComponent(entity Entity, componentID ComponentID) {
 			}
 		}
 
-		delete(m.lookupTable[componentID], entity)
+		delete(m.entityTable[componentID], entity)
 	}
 }
 
 func (m *Manager) removeEntity(entity Entity) {
-	for componentID := range m.lookupTable {
+	for componentID := range m.entityTable {
 		m.removeComponent(entity, componentID)
 	}
 }
@@ -216,6 +216,5 @@ func (m *Manager) sendEvents(events []Event) {
 	}
 	gui.DrawCorner(time.Since(timer).String())
 
-	gui.Show()
-
+	go gui.Show()
 }

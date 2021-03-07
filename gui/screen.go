@@ -15,6 +15,8 @@ func Setup() {
 	}
 
 	termbox.SetOutputMode(termbox.OutputRGB)
+
+	go eventListener()
 }
 
 func DrawText(x, y int, text string) {
@@ -44,17 +46,17 @@ func DrawBg(x, y int, c termbox.Attribute) {
 var errorLine = 0
 
 func UpdateErrors(text string) {
-	w, _ := termbox.Size()
-	// this assumes max error msg is 50 chars
-	for i, r := range text {
-		termbox.SetCell(w-50+i, errorLine, r, termbox.RGBToAttribute(150, 150, 150), termbox.ColorDefault)
-	}
-	errorLine++
+	// w, _ := termbox.Size()
+	// // this assumes max error msg is 50 chars
+	// for i, r := range text {
+	// 	termbox.SetCell(w-50+i, errorLine, r, termbox.RGBToAttribute(150, 150, 150), termbox.ColorDefault)
+	// }
+	// errorLine++
 }
 
 func offset(x, y int) (int, int) {
 	width, height := termbox.Size()
-	return x + width/4, y + height/2
+	return x + width/2, y + height/2
 }
 
 func Clear() {

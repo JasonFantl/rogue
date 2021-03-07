@@ -236,15 +236,17 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 		if weaponInformationOk {
 			informationComponent := weaponInformationData.(Information)
 
-			gui.DrawText(-displayRadius-15, -1, "Weapon:")
-			gui.DrawText(-displayRadius-10, 0, informationComponent.Name)
+			nameOff := len(informationComponent.Name)
+			gui.DrawText(-displayRadius-10-len("Weapon:")/2, -1, "Weapon:")
+			gui.DrawText(-displayRadius-10-nameOff/2, 0, informationComponent.Name)
 		}
 
 		if armorInformationOk {
 			informationComponent := armorInformationData.(Information)
 
-			gui.DrawText(-displayRadius-15, 1, "Armor:")
-			gui.DrawText(-displayRadius-10, 2, informationComponent.Name)
+			nameOff := len(informationComponent.Name)
+			gui.DrawText(-displayRadius-10-len("Armor:")/2, 2, "Armor:")
+			gui.DrawText(-displayRadius-10-nameOff/2, 3, informationComponent.Name)
 		}
 	}
 
