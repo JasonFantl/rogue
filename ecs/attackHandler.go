@@ -3,7 +3,7 @@ package ecs
 import (
 	"math/rand"
 
-	"github.com/nsf/termbox-go"
+	"github.com/jasonfantl/rogue/gui"
 )
 
 type AttackHandler struct {
@@ -117,7 +117,7 @@ func (s *AttackHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 
 				blood := []Component{
 					{POSITION, Position{positionComponent.X, positionComponent.Y}},
-					{DISPLAYABLE, Displayable{false, termbox.RGBToAttribute(100, 10, 20), ' ', 102}},
+					{DISPLAYABLE, Displayable{gui.GetSprite(gui.BLOOD)}},
 					{INFORMATION, Information{"Blood", bloodInfo}},
 				}
 

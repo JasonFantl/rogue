@@ -1,73 +1,101 @@
 package gui
 
 import (
-	"fmt"
+	"image/color"
+	"log"
+	"sort"
+	"strconv"
 
-	"github.com/nsf/termbox-go"
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
+	"github.com/hajimehoshi/ebiten/v2/text"
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/opentype"
 )
 
+const (
+	screenWidth  = 1000
+	screenHeight = 500
+	screenScale  = 50.0
+)
+
+var (
+	screen *ebiten.Image
+)
+
+var mplusNormalFont font.Face
+
 func Setup() {
-	// Initialize screen
-	err := termbox.Init()
+	ebiten.SetFullscreen(false)
+	loadSprites()
+	loadFont()
+}
 
+func loadFont() {
+	tt, err := opentype.Parse(fonts.MPlus1pRegular_ttf)
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 
-	termbox.SetOutputMode(termbox.OutputRGB)
-
-	go eventListener()
-}
-
-func DrawText(x, y int, text string) {
-	x, y = offset(x, y)
-	for i, r := range text {
-		termbox.SetCell(x+i, y, r, termbox.RGBToAttribute(200, 200, 200), termbox.ColorDefault)
-	}
-}
-
-func DrawCorner(text string) {
-	for i, r := range text {
-		termbox.SetCell(i, 0, r, termbox.RGBToAttribute(250, 250, 250), termbox.ColorDefault)
+	const dpi = 80
+	mplusNormalFont, err = opentype.NewFace(tt, &opentype.FaceOptions{
+		Size:    12,
+		DPI:     dpi,
+		Hinting: font.HintingFull,
+	})
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 
-func DrawFg(x, y int, r rune, c termbox.Attribute) {
-	x, y = offset(x, y)
-	termbox.SetFg(x, y, c)
-	termbox.SetChar(x, y, r)
+// need to implement this properly
+func DrawText(x, y int, inText string) {
+	x, y = screenCords(x, y)
+	text.Draw(screen, inText, mplusNormalFont, x, y, color.White)
+	// ebitenutil.DebugPrint(Screen, text)
 }
 
-func DrawBg(x, y int, c termbox.Attribute) {
-	x, y = offset(x, y)
-	termbox.SetBg(x, y, c)
+var debugString = ""
+
+func Debug(text string) {
+	debugString += text + "\n"
+	// ebitenutil.DebugPrint(screen, debugString)
 }
 
-var errorLine = 0
+func DisplayXY(x, y int, image *ebiten.Image, op *ebiten.DrawImageOptions) {
 
-func UpdateErrors(text string) {
-	// w, _ := termbox.Size()
-	// // this assumes max error msg is 50 chars
-	// for i, r := range text {
-	// 	termbox.SetCell(w-50+i, errorLine, r, termbox.RGBToAttribute(150, 150, 150), termbox.ColorDefault)
-	// }
-	// errorLine++
+	x, y = screenCords(x, y)
+
+	op.GeoM.Scale(screenScale/100.0, screenScale/100.0)
+	op.GeoM.Translate(float64(x), float64(y))
+
+	screen.DrawImage(image, op)
 }
 
-func offset(x, y int) (int, int) {
-	width, height := termbox.Size()
-	return x + width/2, y + height/2
+func DisplaySprites(x, y int, sprites []Sprite) {
+	sort.Slice(sprites, func(i, j int) bool {
+		return sprites[i].Priority < sprites[j].Priority
+	})
+
+	for _, sprite := range sprites {
+		op := &ebiten.DrawImageOptions{}
+		DisplayXY(x, y, sprite.Image, op)
+	}
+}
+
+func screenCords(x, y int) (int, int) {
+	return x*tileSize*screenScale/100 + screenWidth/2, y*tileSize*screenScale/100 + screenHeight/2
 }
 
 func Clear() {
-	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
-	errorLine = 0
+	screen = ebiten.NewImage(Dimensions())
+	debugString = strconv.Itoa(int(ebiten.Key('e'))) + "\n"
 }
 
-func Show() {
-	termbox.Flush()
+func GetImage() *ebiten.Image {
+	return screen
 }
 
-func Quit() {
-	termbox.Close()
+func Dimensions() (int, int) {
+	return screenWidth, screenHeight
 }

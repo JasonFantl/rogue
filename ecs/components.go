@@ -1,7 +1,8 @@
 package ecs
 
 import (
-	"github.com/nsf/termbox-go"
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/jasonfantl/rogue/gui"
 )
 
 type Entity uint64
@@ -41,15 +42,12 @@ type Position struct {
 }
 
 type Displayable struct {
-	IsForeground bool
-	Color        termbox.Attribute
-	Rune         rune
-	Priority     int // reserve 0-99 for memories, 100-199 for displays
+	Sprite gui.Sprite
 }
 
 type PlayerController struct {
 	Controlling                                  Entity
-	Up, Down, Left, Right, Pickup, Consume, Quit termbox.Key
+	Up, Down, Left, Right, Pickup, Consume, Quit ebiten.Key
 }
 
 type MonsterController struct {

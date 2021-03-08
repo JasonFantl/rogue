@@ -3,8 +3,9 @@ package main
 import (
 	"math/rand"
 
+	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/jasonfantl/rogue/ecs"
-	"github.com/nsf/termbox-go"
+	"github.com/jasonfantl/rogue/gui"
 )
 
 func generateGame(ecsManager *ecs.Manager, width, height int) {
@@ -50,7 +51,7 @@ func generateGame(ecsManager *ecs.Manager, width, height int) {
 func addPlayer(ecsManager *ecs.Manager, x, y int) {
 
 	positionComponent := ecs.Position{x, y}
-	displayComponent := ecs.Displayable{true, termbox.RGBToAttribute(200, 200, 250), '@', 199}
+	displayComponent := ecs.Displayable{gui.GetSprite(gui.PLAYER)}
 	visionComponent := ecs.Vision{20}
 	awarnessComponent := ecs.EntityAwarness{}
 	memoryComponent := ecs.EntityMemory{}
@@ -80,13 +81,12 @@ func addPlayer(ecsManager *ecs.Manager, x, y int) {
 	user := []ecs.Component{
 		{ecs.PLAYER_CONTROLLER, ecs.PlayerController{
 			Controlling: playerID,
-			Up:          termbox.Key('w'),
-			Down:        termbox.Key('s'),
-			Left:        termbox.Key('a'),
-			Right:       termbox.Key('d'),
-			Pickup:      termbox.Key('e'),
-			Consume:     termbox.Key('r'),
-			Quit:        termbox.KeyEsc,
+			Up:          ebiten.KeyW,
+			Down:        ebiten.KeyS,
+			Left:        ebiten.KeyA,
+			Right:       ebiten.KeyD,
+			Pickup:      ebiten.KeyE,
+			Quit:        ebiten.KeyEscape,
 		},
 		}}
 
@@ -121,15 +121,15 @@ func addMonster(ecsManager *ecs.Manager, x, y int) {
 
 	monsterInfos := [][]ecs.Component{
 		{
-			{ecs.DISPLAYABLE, ecs.Displayable{true, termbox.RGBToAttribute(200, 20, 20), 'M', 199}},
+			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.MONSTER)}},
 			{ecs.INFORMATION, ecs.Information{"Monster", "generic"}},
 		},
 		{
-			{ecs.DISPLAYABLE, ecs.Displayable{true, termbox.RGBToAttribute(20, 150, 80), 'O', 199}},
+			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.MONSTER)}},
 			{ecs.INFORMATION, ecs.Information{"Ogre", "Big and scary"}},
 		},
 		{
-			{ecs.DISPLAYABLE, ecs.Displayable{true, termbox.RGBToAttribute(100, 200, 50), 'g', 199}},
+			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.MONSTER)}},
 			{ecs.INFORMATION, ecs.Information{"Goblin", "green and scrawny, sill scary though"}},
 		},
 	}
@@ -144,7 +144,7 @@ func addMonster(ecsManager *ecs.Manager, x, y int) {
 func addTreasure(ecsManager *ecs.Manager, x, y int) {
 	treasure := []ecs.Component{
 		{ecs.POSITION, ecs.Position{x, y}},
-		{ecs.DISPLAYABLE, ecs.Displayable{true, termbox.RGBToAttribute(200, 200, 20), '$', 102}},
+		{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.TREASURE)}},
 		{ecs.PICKUPABLE, ecs.Pickupable{}},
 	}
 
@@ -172,12 +172,12 @@ func addWeapon(ecsManager *ecs.Manager, x, y int) {
 
 	weaponInfos := [][]ecs.Component{
 		{
-			{ecs.DISPLAYABLE, ecs.Displayable{true, termbox.RGBToAttribute(150, 150, 150), '|', 102}},
+			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.WEAPON)}},
 			{ecs.INFORMATION, ecs.Information{"sword", "rusted"}},
 			{ecs.DAMAGE, ecs.Damage{16}},
 		},
 		{
-			{ecs.DISPLAYABLE, ecs.Displayable{true, termbox.RGBToAttribute(80, 40, 30), '|', 102}},
+			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.WEAPON)}},
 			{ecs.INFORMATION, ecs.Information{"stick", "primative, but better then nothing"}},
 			{ecs.DAMAGE, ecs.Damage{8}},
 		},
@@ -199,12 +199,12 @@ func addArmor(ecsManager *ecs.Manager, x, y int) {
 
 	armorInfos := [][]ecs.Component{
 		{
-			{ecs.DISPLAYABLE, ecs.Displayable{true, termbox.RGBToAttribute(150, 100, 10), 'Y', 102}},
+			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.WEAPON)}},
 			{ecs.INFORMATION, ecs.Information{"Leather armor", "sturdy and well worn"}},
 			{ecs.DAMAGE_RESISTANCE, ecs.DamageResistance{5}},
 		},
 		{
-			{ecs.DISPLAYABLE, ecs.Displayable{true, termbox.RGBToAttribute(212, 212, 212), 'Y', 102}},
+			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.WEAPON)}},
 			{ecs.INFORMATION, ecs.Information{"Metal plate", "shiny, dented"}},
 			{ecs.DAMAGE_RESISTANCE, ecs.DamageResistance{10}},
 		},
@@ -226,7 +226,7 @@ func addPotion(ecsManager *ecs.Manager, x, y int) {
 
 	potionInfos := [][]ecs.Component{
 		{
-			{ecs.DISPLAYABLE, ecs.Displayable{true, termbox.RGBToAttribute(140, 20, 40), 'o', 102}},
+			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.POTION)}},
 			{ecs.INFORMATION, ecs.Information{"Potion", "glowing red"}},
 			{ecs.EFFECTS, ecs.Effects{[]ecs.Effect{
 				ecs.Effect{
@@ -236,7 +236,7 @@ func addPotion(ecsManager *ecs.Manager, x, y int) {
 			}}},
 		},
 		{
-			{ecs.DISPLAYABLE, ecs.Displayable{true, termbox.RGBToAttribute(40, 50, 250), 'o', 102}},
+			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.POTION)}},
 			{ecs.INFORMATION, ecs.Information{"Potion", "dark blue, hard to see"}},
 			{ecs.EFFECTS, ecs.Effects{[]ecs.Effect{
 				ecs.Effect{
@@ -246,7 +246,7 @@ func addPotion(ecsManager *ecs.Manager, x, y int) {
 			}}},
 		},
 		{
-			{ecs.DISPLAYABLE, ecs.Displayable{true, termbox.RGBToAttribute(40, 250, 50), 'o', 102}},
+			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.POTION)}},
 			{ecs.INFORMATION, ecs.Information{"Potion", "green, viscious"}},
 			{ecs.EFFECTS, ecs.Effects{[]ecs.Effect{
 				ecs.Effect{

@@ -1,31 +1,44 @@
 package gui
 
 import (
-	"github.com/nsf/termbox-go"
+	"time"
+
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-var ev termbox.Event
-var newEvent = false
+var previouslyPressed []ebiten.Key
 
-func GetKeyPress() (termbox.Key, bool) {
+var lastPressTime time.Time
+var keyDelay int64 = 100     // in Ms
+var quickTimeThresh int = 60 // in frames
 
-	if newEvent {
-		newEvent = false
-		if ev.Type == termbox.EventError {
-			panic(ev.Err)
+func GetKeyPress() (ebiten.Key, bool) {
+
+	// currently get most recent key
+
+	pressed := ebiten.Key(0)
+	durration := -1
+
+	for k := ebiten.Key(0); k <= ebiten.KeyMax; k++ {
+		if ebiten.IsKeyPressed(k) {
+			dur := inpututil.KeyPressDuration(k)
+			if durration == -1 || dur < durration {
+
+				pressed = k
+				durration = dur
+			}
 		}
+	}
 
-		if ev.Ch == 0 {
-			return ev.Key, true
+	if durration >= 0 { // got a key
+		dt := time.Since(lastPressTime).Milliseconds()
+
+		if inpututil.IsKeyJustPressed(pressed) || durration > quickTimeThresh || dt > keyDelay {
+			lastPressTime = time.Now()
+			return pressed, true
 		}
-		return termbox.Key(ev.Ch), true
 	}
-	return termbox.Key(0), false
-}
 
-func eventListener() {
-	for true {
-		ev = termbox.PollEvent()
-		newEvent = true
-	}
+	return 0, false
 }

@@ -4,8 +4,8 @@ import (
 	"sort"
 	"strconv"
 
+	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/jasonfantl/rogue/gui"
-	"github.com/nsf/termbox-go"
 )
 
 // Display is special, not like the other handlers
@@ -50,31 +50,6 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 
 		// ---------- MAP ---------
 
-		fgPriorities := make(map[int]map[int]int)
-		bgPriorities := make(map[int]map[int]int)
-
-		display := func(x, y int, displayComponent Displayable) {
-			priorityMap := bgPriorities
-			if displayComponent.IsForeground {
-				priorityMap = fgPriorities
-			}
-
-			_, ok := priorityMap[x]
-			if !ok {
-				priorityMap[x] = make(map[int]int)
-			}
-			currentPriority, ok := priorityMap[x][y]
-
-			if !ok || displayComponent.Priority > currentPriority {
-				if displayComponent.IsForeground {
-					gui.DrawFg(x, y, displayComponent.Rune, displayComponent.Color)
-				} else {
-					gui.DrawBg(x, y, displayComponent.Color)
-				}
-				priorityMap[x][y] = displayComponent.Priority
-			}
-		}
-
 		if hasAwarness {
 			awarnessComponent := awarnessData.(EntityAwarness)
 
@@ -83,35 +58,33 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 				itemY := positionComponent.Y + dy
 
 				// display items we are aware of
-				wasAware := false
 				items := awarnessComponent.AwareOf.get(itemX, itemY)
 
+				displayables := make([]gui.Sprite, 0)
 				for _, item := range items {
 					itemDisplayData, itemHasDisplay := m.getComponent(item, DISPLAYABLE)
 					if itemHasDisplay {
 						itemDisplayComponent := itemDisplayData.(Displayable)
-
-						wasAware = true
-						display(dx, dy, itemDisplayComponent)
+						displayables = append(displayables, itemDisplayComponent.Sprite)
 					}
 				}
 
-				// if no aware items, try memory
-				if !wasAware && hasMemory {
+				// display memory
+				if hasMemory {
 					memoryComponent := memoryData.(EntityMemory)
 					col, ok := memoryComponent.Memory[itemX]
 					if ok {
 						toDisplay, ok := col[itemY]
 						if ok {
-							// convert display to fadded memory
-							r, g, b := termbox.AttributeToRGB(toDisplay.Color)
-							fadeConstant := 4
-							fadedColor := termbox.RGBToAttribute(r/uint8(fadeConstant), g/uint8(fadeConstant), b/uint8(fadeConstant))
-							fadedMemory := Displayable{toDisplay.IsForeground, fadedColor, toDisplay.Rune, 1}
-							display(dx, dy, fadedMemory)
+							// add faded dispay to make memory different
+							// displayables = append(displayables, toDisplay.Sprite)
+							ob := ebiten.DrawImageOptions{}
+							ob.ColorM.Scale(1, 1, 1, 0.5)
+							gui.DisplayXY(dx, dy, toDisplay.Sprite.Image, &ob)
 						}
 					}
 				}
+				gui.DisplaySprites(dx, dy, displayables)
 			}
 
 			bounds := getOctantBounds(displayRadius)
@@ -180,7 +153,8 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 						k = len(bounds) - k - 1
 					}
 					dx, dy := transformOctant(k, bounds[k], octant)
-					gui.DrawBg(dx, dy, termbox.RGBToAttribute(120, 0, 20))
+
+					gui.DisplaySprites(dx, dy, []gui.Sprite{gui.GetSprite(gui.BLOOD)})
 					healthDisplayed++
 				}
 			}

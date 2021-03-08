@@ -1,8 +1,6 @@
 package ecs
 
 import (
-	"time"
-
 	"github.com/jasonfantl/rogue/gui"
 )
 
@@ -167,7 +165,7 @@ func (m *Manager) getEntitiesFromPos(x, y int) (entities []Entity) {
 func (m *Manager) sendEvents(events []Event) {
 
 	/////// manager stuff //////
-	timer := time.Now()
+	// timer := time.Now()
 	blockFinished := Event{DEBUG_EVENT, DebugEvent{"-----------------------------"}, 999999999}
 	events = append(events, blockFinished)
 	sentDisplay := false
@@ -214,7 +212,6 @@ func (m *Manager) sendEvents(events []Event) {
 			events = append(events, Event{DISPLAY, Display{}, userComponent.Controlling})
 		}
 	}
-	gui.DrawCorner(time.Since(timer).String())
 
-	go gui.Show()
+	// gui.DrawCorner(time.Since(timer).String())
 }

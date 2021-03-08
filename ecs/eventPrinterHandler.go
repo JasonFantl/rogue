@@ -13,7 +13,7 @@ type EventPrinterHandler struct {
 
 func (h *EventPrinterHandler) handleEvent(m *Manager, event Event) (returnEvents []Event) {
 
-	stringifiedEvent := ""
+	stringifiedEvent := "pressed"
 	//special case
 	if event.ID == DEBUG_EVENT {
 		stringifiedEvent = fmt.Sprintf("%T : %s : %v", event.data, event.data.(DebugEvent).err, event.entity)
@@ -25,7 +25,7 @@ func (h *EventPrinterHandler) handleEvent(m *Manager, event Event) (returnEvents
 
 	// keep in mind this wont display any errors between display frames
 	// would have to call gui.Show() on every event to make sure we see it, but that messes with the visuals
-	gui.UpdateErrors(stringifiedEvent)
+	gui.Debug(stringifiedEvent)
 
 	return returnEvents
 }

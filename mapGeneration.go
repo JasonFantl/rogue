@@ -4,7 +4,7 @@ import (
 	"math/rand"
 
 	"github.com/jasonfantl/rogue/ecs"
-	"github.com/nsf/termbox-go"
+	"github.com/jasonfantl/rogue/gui"
 )
 
 func generateCaveMask(ecsManager *ecs.Manager, width, height int) [][]bool {
@@ -133,16 +133,16 @@ func generateForest(ecsManager *ecs.Manager, width, height, xOff, yOff int) {
 }
 
 func grassFloor(x, y int) []ecs.Component {
-	return floor(x, y, vary(termbox.RGBToAttribute(15, 110, 0), 6))
+	return floor(x, y, gui.GetSprite(gui.GRASS_FLOOR))
 }
 
 func dirtFloor(x, y int) []ecs.Component {
-	return floor(x, y, vary(termbox.RGBToAttribute(70, 50, 0), 10))
+	return floor(x, y, gui.GetSprite(gui.DIRT_FLOOR))
 }
 
 func addTree(ecsManager *ecs.Manager, x, y int) {
 
-	ecsManager.AddEntity(wall(x, y, termbox.RGBToAttribute(60, 40, 0)))
+	ecsManager.AddEntity(wall(x, y, gui.GetSprite(gui.STONE_WALL)))
 
 	treeRadius := rand.Intn(5) + 2
 	for dx := -treeRadius; dx <= treeRadius; dx++ {
@@ -153,10 +153,10 @@ func addTree(ecsManager *ecs.Manager, x, y int) {
 				continue
 			}
 
-			colorTint := uint8(treeRadius*treeRadius - (dx*dx+dy*dy)/2)
+			// colorTint := uint8(treeRadius*treeRadius - (dx*dx+dy*dy)/2)
 			leaf := []ecs.Component{
 				{ecs.POSITION, ecs.Position{x + dx, y + dy}},
-				{ecs.DISPLAYABLE, ecs.Displayable{false, vary(termbox.RGBToAttribute(40, 110-colorTint, 20), 4), ' ', 103}},
+				{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.LEAF)}},
 				{ecs.MEMORABLE, ecs.Memorable{}},
 			}
 
@@ -166,15 +166,15 @@ func addTree(ecsManager *ecs.Manager, x, y int) {
 }
 
 func stoneFloor(x, y int) []ecs.Component {
-	return floor(x, y, vary(termbox.RGBToAttribute(100, 100, 100), 6))
+	return floor(x, y, gui.GetSprite(gui.STONE_FLOOR))
 }
 func stoneWall(x, y int) []ecs.Component {
-	return wall(x, y, termbox.RGBToAttribute(250, 250, 250))
+	return wall(x, y, gui.GetSprite(gui.STONE_WALL))
 }
 
-func floor(x, y int, color termbox.Attribute) []ecs.Component {
+func floor(x, y int, sprite gui.Sprite) []ecs.Component {
 	positionComponent := ecs.Position{x, y}
-	displayComponent := ecs.Displayable{false, color, ' ', 101}
+	displayComponent := ecs.Displayable{sprite}
 	memorableComponent := ecs.Memorable{}
 
 	return []ecs.Component{
@@ -184,9 +184,9 @@ func floor(x, y int, color termbox.Attribute) []ecs.Component {
 	}
 }
 
-func wall(x, y int, color termbox.Attribute) []ecs.Component {
+func wall(x, y int, sprite gui.Sprite) []ecs.Component {
 	positionComponent := ecs.Position{x, y}
-	displayComponent := ecs.Displayable{false, color, ' ', 199}
+	displayComponent := ecs.Displayable{sprite}
 	memorableComponent := ecs.Memorable{}
 	volumeTag := ecs.Volume{}
 	opaqueTag := ecs.Opaque{}
@@ -200,21 +200,21 @@ func wall(x, y int, color termbox.Attribute) []ecs.Component {
 	}
 }
 
-func vary(color termbox.Attribute, colorVariance int) termbox.Attribute {
+// func vary(color termbox.Attribute, colorVariance int) termbox.Attribute {
 
-	r, g, b := termbox.AttributeToRGB(color)
-	dr := uint8(rand.Intn(colorVariance))
-	dg := uint8(rand.Intn(colorVariance))
-	db := uint8(rand.Intn(colorVariance))
+// 	r, g, b := termbox.AttributeToRGB(color)
+// 	dr := uint8(rand.Intn(colorVariance))
+// 	dg := uint8(rand.Intn(colorVariance))
+// 	db := uint8(rand.Intn(colorVariance))
 
-	if r < 1<<7-dr {
-		r += dr
-	}
-	if g < 1<<7-dg {
-		g += dg
-	}
-	if b < 1<<7-db {
-		b += db
-	}
-	return termbox.RGBToAttribute(r, g, b)
-}
+// 	if r < 1<<7-dr {
+// 		r += dr
+// 	}
+// 	if g < 1<<7-dg {
+// 		g += dg
+// 	}
+// 	if b < 1<<7-db {
+// 		b += db
+// 	}
+// 	return termbox.RGBToAttribute(r, g, b)
+// }

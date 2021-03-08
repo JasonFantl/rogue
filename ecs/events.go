@@ -1,6 +1,8 @@
 package ecs
 
-import "github.com/nsf/termbox-go"
+import (
+	"github.com/hajimehoshi/ebiten/v2"
+)
 
 type EventID int
 
@@ -31,7 +33,7 @@ const (
 type TimeStep struct{}
 
 type KeyPressed struct {
-	key termbox.Key
+	key ebiten.Key
 }
 
 type Moved struct {
