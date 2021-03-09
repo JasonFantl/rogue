@@ -29,7 +29,7 @@ func (s *AttackHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 
 			// should you be able to attack everthing in the tile at once? yes for now
 			// attacks each individually
-			for _, otherEntity := range m.getEntitiesFromPos(newX, newY) {
+			for otherEntity := range m.getEntitiesFromPos(newX, newY) {
 				_, otherHasHealth := m.getComponent(otherEntity, HEALTH)
 
 				if otherHasHealth {

@@ -20,7 +20,7 @@ type Manager struct {
 func New() Manager {
 	newManager := Manager{}
 	newManager.entityTable = make(map[ComponentID]map[Entity]interface{})
-	newManager.positionLookup = make(map[int]map[int][]Entity, 0)
+	newManager.positionLookup = PositionLookup{}
 	newManager.eventHandlers = make([]EventHandler, 0)
 	newManager.entityCounter = 0
 	newManager.running = false
@@ -80,7 +80,7 @@ func (m *Manager) AddComponenet(entity Entity, component Component) bool {
 		// for position lookup
 		if component.ID == POSITION {
 			positionComponent := component.Data.(Position)
-			m.positionLookup.add([]Entity{entity}, positionComponent.X, positionComponent.Y)
+			m.positionLookup.add(map[Entity]bool{entity: true}, positionComponent.X, positionComponent.Y)
 		}
 
 		// manager special case
@@ -151,15 +151,8 @@ func (m *Manager) removeEntity(entity Entity) {
 	}
 }
 
-func (m *Manager) getEntitiesFromPos(x, y int) (entities []Entity) {
-	col, ok := m.positionLookup[x]
-	if ok {
-		entities, ok := col[y]
-		if ok {
-			return entities
-		}
-	}
-	return []Entity{}
+func (m *Manager) getEntitiesFromPos(x, y int) (entities map[Entity]bool) {
+	return m.positionLookup.get(x, y)
 }
 
 func (m *Manager) sendEvents(events []Event) {

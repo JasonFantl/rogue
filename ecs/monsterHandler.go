@@ -46,7 +46,7 @@ func (h *MonsterHandler) handleEvent(m *Manager, event Event) (returnEvents []Ev
 				seeTreasure := func() bool {
 					for _, row := range awarnessComponent.AwareOf {
 						for _, items := range row {
-							for _, item := range items {
+							for item := range items {
 								if h.isTreasure(m, monster, item) {
 									return true
 								}
@@ -65,7 +65,7 @@ func (h *MonsterHandler) handleEvent(m *Manager, event Event) (returnEvents []Ev
 				positionComponent := positionData.(Position)
 
 				entites := m.getEntitiesFromPos(positionComponent.X, positionComponent.Y)
-				for _, entity := range entites {
+				for entity := range entites {
 					_, hasPickUpAble := m.getComponent(entity, PICKUPABLE)
 					_, hasStashed := m.getComponent(entity, STASHED_FLAG)
 					isTreasure := hasPickUpAble && !hasStashed
@@ -151,7 +151,7 @@ func (h *MonsterHandler) moveToTreasure(m *Manager, monster Entity) (returnEvent
 
 	for itemX, row := range awarnessComponent.AwareOf {
 		for itemY, items := range row {
-			for _, item := range items {
+			for item := range items {
 				if h.isTreasure(m, monster, item) {
 					newDx := itemX - positionComponent.X
 					newDy := itemY - positionComponent.Y
@@ -201,7 +201,7 @@ func (s *MonsterHandler) pickup(m *Manager, monster Entity) (returnEvents []Even
 	positionComponent := positionData.(Position)
 
 	entities := m.getEntitiesFromPos(positionComponent.X, positionComponent.Y)
-	for _, entity := range entities {
+	for entity := range entities {
 		_, hasPickUpAble := m.getComponent(entity, PICKUPABLE)
 		_, hasStashed := m.getComponent(entity, STASHED_FLAG)
 		isTreasure := hasPickUpAble && !hasStashed

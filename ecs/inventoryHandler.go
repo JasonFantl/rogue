@@ -10,7 +10,7 @@ func (h *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []
 			positionComponent := positionData.(Position)
 
 			entities := m.getEntitiesFromPos(positionComponent.X, positionComponent.Y)
-			for _, item := range entities {
+			for item := range entities {
 				if h.isTreasure(m, item) {
 					returnEvents = append(returnEvents, Event{TRY_PICK_UP, TryPickUp{item}, event.entity})
 					break // dont need to check anymore

@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	tileSize = 16
+	tileSize = 8
 )
 
 var (
@@ -60,7 +60,7 @@ const (
 	POTION
 	TREASURE
 	LEAF
-	FADED
+	TREE_TRUNK
 )
 
 // priorities :
@@ -70,21 +70,25 @@ const (
 func loadPremadeSprites() {
 	preMadeSprites = make(map[int]Sprite, 0)
 
-	preMadeSprites[GRASS_FLOOR] = Sprite{extractImage(0, 0), 1}
-	preMadeSprites[DIRT_FLOOR] = Sprite{extractImage(1, 0), 1}
-	preMadeSprites[STONE_FLOOR] = Sprite{extractImage(2, 0), 1}
-	preMadeSprites[STONE_WALL] = Sprite{extractImage(3, 0), 99}
+	baseOb := ebiten.DrawImageOptions{}
+	leafOb := ebiten.DrawImageOptions{}
+	leafOb.ColorM.Scale(0.5, 0.5, 1, 0.5)
 
-	preMadeSprites[PLAYER] = Sprite{extractImage(0, 1), 59}
-	preMadeSprites[TREASURE] = Sprite{extractImage(1, 1), 11}
-	preMadeSprites[POTION] = Sprite{extractImage(2, 1), 11}
-	preMadeSprites[MONSTER] = Sprite{extractImage(3, 1), 58}
+	preMadeSprites[GRASS_FLOOR] = Sprite{extractImage(0, 0), baseOb, 1}
+	preMadeSprites[DIRT_FLOOR] = Sprite{extractImage(1, 0), baseOb, 1}
+	preMadeSprites[STONE_FLOOR] = Sprite{extractImage(2, 0), baseOb, 1}
+	preMadeSprites[STONE_WALL] = Sprite{extractImage(3, 0), baseOb, 99}
+	preMadeSprites[BLOOD] = Sprite{extractImage(4, 0), baseOb, 2}
 
-	preMadeSprites[LEAF] = Sprite{extractImage(1, 2), 91}
-	preMadeSprites[BLOOD] = Sprite{extractImage(2, 2), 2}
-	preMadeSprites[FADED] = Sprite{extractImage(3, 2), 99}
+	preMadeSprites[PLAYER] = Sprite{extractImage(0, 1), baseOb, 59}
+	preMadeSprites[TREASURE] = Sprite{extractImage(1, 1), baseOb, 11}
+	preMadeSprites[POTION] = Sprite{extractImage(2, 1), baseOb, 11}
+	preMadeSprites[WEAPON] = Sprite{extractImage(3, 1), baseOb, 11}
 
-	preMadeSprites[WEAPON] = Sprite{extractImage(3, 1), 11}
+	preMadeSprites[MONSTER] = Sprite{extractImage(0, 1), baseOb, 58}
+	preMadeSprites[TREE_TRUNK] = Sprite{extractImage(1, 0), baseOb, 91}
+	preMadeSprites[LEAF] = Sprite{extractImage(0, 0), leafOb, 91}
+
 }
 
 func extractImage(x, y int) *ebiten.Image {
@@ -94,9 +98,17 @@ func extractImage(x, y int) *ebiten.Image {
 
 type Sprite struct {
 	Image    *ebiten.Image
+	Options  ebiten.DrawImageOptions
 	Priority int
 }
 
 func GetSprite(id int) Sprite {
 	return preMadeSprites[id]
+}
+
+// handleing alpha is weird, need to keep priorities, but not overturn aware tiles
+func Fade(sprite Sprite) Sprite {
+	sprite.Options.ColorM.Scale(1, 1, 1, 0.5)
+	sprite.Priority -= 100
+	return sprite
 }

@@ -18,7 +18,7 @@ func (s *MemoryHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 
 				for x, row := range awarnessComponent.AwareOf {
 					for y, items := range row {
-						for _, item := range items {
+						for item := range items {
 							_, itemIsMemorable := m.getComponent(item, MEMORABLE)
 							itemDisplayData, itemHasDisplay := m.getComponent(item, DISPLAYABLE)
 

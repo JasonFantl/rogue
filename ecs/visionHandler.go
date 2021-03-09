@@ -20,7 +20,7 @@ func (s *VisionHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 				positionComponent := positionData.(Position)
 
 				// clear old awarness first
-				awarnessComponent.AwareOf = make(map[int]map[int][]Entity)
+				awarnessComponent.AwareOf = PositionLookup{}
 
 				updateAwareOf(m, positionComponent, visionComponent, awarnessComponent.AwareOf)
 
@@ -127,7 +127,7 @@ func updateOctant(m *Manager, position Position, vision Vision, awareOf Position
 
 				// Add any opaque tiles to the shadow map.
 				isOpaque := false
-				for _, entity := range entities {
+				for entity := range entities {
 					_, hasOpaque := m.getComponent(entity, OPAQUE)
 					if hasOpaque {
 						isOpaque = true

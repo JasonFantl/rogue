@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"golang.org/x/image/font"
@@ -14,9 +15,9 @@ import (
 )
 
 const (
-	screenWidth  = 1000
+	screenWidth  = 800
 	screenHeight = 500
-	screenScale  = 50.0
+	screenScale  = 200.0
 )
 
 var (
@@ -52,24 +53,23 @@ func loadFont() {
 func DrawText(x, y int, inText string) {
 	x, y = screenCords(x, y)
 	text.Draw(screen, inText, mplusNormalFont, x, y, color.White)
-	// ebitenutil.DebugPrint(Screen, text)
 }
 
 var debugString = ""
 
 func Debug(text string) {
 	debugString += text + "\n"
-	// ebitenutil.DebugPrint(screen, debugString)
+	ebitenutil.DebugPrint(screen, debugString)
 }
 
-func DisplayXY(x, y int, image *ebiten.Image, op *ebiten.DrawImageOptions) {
+func DisplaySprite(x, y int, sprite Sprite) {
 
 	x, y = screenCords(x, y)
 
-	op.GeoM.Scale(screenScale/100.0, screenScale/100.0)
-	op.GeoM.Translate(float64(x), float64(y))
+	sprite.Options.GeoM.Scale(screenScale/100.0, screenScale/100.0)
+	sprite.Options.GeoM.Translate(float64(x), float64(y))
 
-	screen.DrawImage(image, op)
+	screen.DrawImage(sprite.Image, &sprite.Options)
 }
 
 func DisplaySprites(x, y int, sprites []Sprite) {
@@ -78,8 +78,7 @@ func DisplaySprites(x, y int, sprites []Sprite) {
 	})
 
 	for _, sprite := range sprites {
-		op := &ebiten.DrawImageOptions{}
-		DisplayXY(x, y, sprite.Image, op)
+		DisplaySprite(x, y, sprite)
 	}
 }
 

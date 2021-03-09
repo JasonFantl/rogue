@@ -24,7 +24,7 @@ func (s *MoveHandler) handleEvent(m *Manager, event Event) (returnEvents []Event
 			newY := positionComponent.Y + moveEvent.dy
 			canMove := true
 
-			for _, otherEntity := range m.getEntitiesFromPos(newX, newY) {
+			for otherEntity := range m.getEntitiesFromPos(newX, newY) {
 				// since we use getEntitiesFromPos, it must have the same position
 				_, otherHasVolume := m.getComponent(otherEntity, VOLUME)
 

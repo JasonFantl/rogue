@@ -4,7 +4,6 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/jasonfantl/rogue/gui"
 )
 
@@ -61,26 +60,27 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 				items := awarnessComponent.AwareOf.get(itemX, itemY)
 
 				displayables := make([]gui.Sprite, 0)
-				for _, item := range items {
+				for item := range items {
 					itemDisplayData, itemHasDisplay := m.getComponent(item, DISPLAYABLE)
 					if itemHasDisplay {
-						itemDisplayComponent := itemDisplayData.(Displayable)
-						displayables = append(displayables, itemDisplayComponent.Sprite)
+						// we want to ignore stashed items
+						_, itemIsStashed := m.getComponent(item, STASHED_FLAG)
+						if !itemIsStashed {
+							itemDisplayComponent := itemDisplayData.(Displayable)
+							displayables = append(displayables, itemDisplayComponent.Sprite)
+						}
 					}
 				}
 
 				// display memory
-				if hasMemory {
+				if len(displayables) == 0 && hasMemory {
 					memoryComponent := memoryData.(EntityMemory)
 					col, ok := memoryComponent.Memory[itemX]
 					if ok {
 						toDisplay, ok := col[itemY]
 						if ok {
 							// add faded dispay to make memory different
-							// displayables = append(displayables, toDisplay.Sprite)
-							ob := ebiten.DrawImageOptions{}
-							ob.ColorM.Scale(1, 1, 1, 0.5)
-							gui.DisplayXY(dx, dy, toDisplay.Sprite.Image, &ob)
+							displayables = append(displayables, gui.Fade(toDisplay.Sprite))
 						}
 					}
 				}
@@ -89,15 +89,21 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 
 			bounds := getOctantBounds(displayRadius)
 
-			for row, col := range bounds {
-				for dx := -col; dx < col; dx++ {
-					displayXY(dx, row)
-					displayXY(dx, -row)
-				}
-				if row == len(bounds)-1 || bounds[row+1] != col {
-					for dx := -row; dx < row; dx++ {
-						displayXY(dx, col)
-						displayXY(dx, -col)
+			displayXY(0, 0)
+			for octant := 0; octant < 8; octant++ {
+				for row := 1; row < displayRadius; row++ {
+					for col := 0; col <= row; col++ {
+						if bounds[col] == row {
+							break
+						}
+						if octant%2 == 0 {
+							if col == 0 || col == row {
+								continue
+							}
+						}
+						// in bounds, continue on
+						dx, dy := transformOctant(row, col, octant)
+						displayXY(dx, dy)
 					}
 				}
 			}
@@ -107,7 +113,7 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 
 		items := make([]Entity, 0)
 		belowYou := m.getEntitiesFromPos(positionComponent.X, positionComponent.Y)
-		for _, item := range belowYou {
+		for item := range belowYou {
 			_, hasPickupable := m.getComponent(item, PICKUPABLE)
 			_, isStashed := m.getComponent(item, STASHED_FLAG)
 			if hasPickupable && !isStashed {

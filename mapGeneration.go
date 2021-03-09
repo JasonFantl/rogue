@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math"
 	"math/rand"
 
 	"github.com/jasonfantl/rogue/ecs"
@@ -82,8 +83,8 @@ func generateForest(ecsManager *ecs.Manager, width, height, xOff, yOff int) {
 		for dx := -pathWidth - rand.Intn(2); dx < pathWidth+rand.Intn(2); dx++ {
 			x := pathX + dx + xOff
 			y := pathY + yOff
-			// randomly place stone in path
-			if rand.Intn(5) == 0 {
+			// randomly place stone in path, more the closer we are to the cave
+			if rand.Intn((height-pathY)/4+1) == 0 {
 				ecsManager.AddEntity(stoneFloor(x, y))
 			} else {
 				ecsManager.AddEntity(dirtFloor(x, y))
@@ -103,7 +104,7 @@ func generateForest(ecsManager *ecs.Manager, width, height, xOff, yOff int) {
 	}
 	//tree likelyhood
 	treeChance := 50
-	stoneChance := 50
+	stoneChance := 100
 
 	for dx := 0; dx < width; dx++ {
 		for dy := 0; dy < height; dy++ {
@@ -142,16 +143,12 @@ func dirtFloor(x, y int) []ecs.Component {
 
 func addTree(ecsManager *ecs.Manager, x, y int) {
 
-	ecsManager.AddEntity(wall(x, y, gui.GetSprite(gui.STONE_WALL)))
+	ecsManager.AddEntity(wall(x, y, gui.GetSprite(gui.TREE_TRUNK)))
 
 	treeRadius := rand.Intn(5) + 2
 	for dx := -treeRadius; dx <= treeRadius; dx++ {
-		for dy := -treeRadius; dy <= treeRadius; dy++ {
-			thickness := 1
-			hasLeaf := (rand.Intn(treeRadius-thickness)+thickness)*treeRadius > (dx*dx + dy*dy)
-			if (dx == 0 && dy == 0) || !hasLeaf {
-				continue
-			}
+		uy := treeRadius - int(math.Abs(float64(dx)))
+		for dy := -uy; dy <= uy; dy++ {
 
 			// colorTint := uint8(treeRadius*treeRadius - (dx*dx+dy*dy)/2)
 			leaf := []ecs.Component{
