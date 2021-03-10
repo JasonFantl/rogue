@@ -62,6 +62,8 @@ func Debug(text string) {
 	ebitenutil.DebugPrint(screen, debugString)
 }
 
+// weird stuff with semi-tranparent sprites
+// something to so with compositeMode?
 func DisplaySprite(x, y int, sprite Sprite) {
 
 	x, y = screenCords(x, y)

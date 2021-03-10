@@ -16,8 +16,22 @@ func (s *MemoryHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 				memoryComponent := memoryData.(EntityMemory)
 				awarnessComponent := awarnessData.(EntityAwarness)
 
+				// make sure memory is inited
+				if memoryComponent.Memory == nil {
+					memoryComponent.Memory = make(map[int]map[int][]Displayable)
+				}
+
 				for x, row := range awarnessComponent.AwareOf {
+					// make sure memory is inited
+					if memoryComponent.Memory[x] == nil {
+						memoryComponent.Memory[x] = make(map[int][]Displayable)
+					}
 					for y, items := range row {
+						// make sure memory is inited
+						if memoryComponent.Memory[x][y] == nil {
+							memoryComponent.Memory[x][y] = make([]Displayable, 0)
+						}
+						updatedEntities := make([]Displayable, 0)
 						for item := range items {
 							_, itemIsMemorable := m.getComponent(item, MEMORABLE)
 							itemDisplayData, itemHasDisplay := m.getComponent(item, DISPLAYABLE)
@@ -25,17 +39,10 @@ func (s *MemoryHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 							if itemIsMemorable && itemHasDisplay {
 								itemDisplayComponent := itemDisplayData.(Displayable)
 
-								// make sure memory is inited
-								if memoryComponent.Memory == nil {
-									memoryComponent.Memory = make(map[int]map[int]Displayable)
-								}
-								if memoryComponent.Memory[x] == nil {
-									memoryComponent.Memory[x] = make(map[int]Displayable)
-								}
-
-								memoryComponent.Memory[x][y] = itemDisplayComponent
+								updatedEntities = append(updatedEntities, itemDisplayComponent)
 							}
 						}
+						memoryComponent.Memory[x][y] = updatedEntities
 					}
 				}
 				m.setComponent(entity, ENTITY_MEMORY, memoryComponent)

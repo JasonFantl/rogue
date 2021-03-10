@@ -19,12 +19,11 @@ func generateCaveMask(ecsManager *ecs.Manager, width, height int) [][]bool {
 
 	// first: generate static noise with solid sides
 	sideThickness := 2
-	openingSize := 20
+	// openingSize := 30
 	for x := 0; x < width; x++ {
 		tiles[x] = make([]bool, height)
 		for y := 0; y < height; y++ {
-			if (x < sideThickness || x > width-sideThickness || y < sideThickness || y > height-sideThickness) &&
-				!(y < sideThickness && x > width/2-openingSize/2 && x < width/2+openingSize/2) {
+			if x < sideThickness-1 || x > width-sideThickness || y < sideThickness-1 || y > height-sideThickness {
 				tiles[x][y] = false
 				continue
 			}
@@ -73,13 +72,17 @@ func generateForest(ecsManager *ecs.Manager, width, height, xOff, yOff int) {
 
 	placed := make(map[int]map[int]bool, 0)
 	// generate path to cave
-	pathWidth := 3
+	basePathWidth := 3
 
 	pathX := width / 2
 	pathY := height
 
 	for pathY >= 0 {
 
+		pathWidth := basePathWidth
+		if pathY > height-10 {
+			pathWidth += pathY - (height - 10)
+		}
 		for dx := -pathWidth - rand.Intn(2); dx < pathWidth+rand.Intn(2); dx++ {
 			x := pathX + dx + xOff
 			y := pathY + yOff
@@ -98,13 +101,16 @@ func generateForest(ecsManager *ecs.Manager, width, height, xOff, yOff int) {
 			placed[x][y] = true
 		}
 
-		pathX += rand.Intn(3) - 1
+		// maybe generate house (town later)
+		if pathY == height/2 {
+			generateHouse(ecsManager, 5, 4, xOff+pathY+6, yOff+pathY, -1)
+		}
 
+		pathX += rand.Intn(3) - 1
 		pathY--
 	}
 	//tree likelyhood
 	treeChance := 50
-	stoneChance := 100
 
 	for dx := 0; dx < width; dx++ {
 		for dy := 0; dy < height; dy++ {
@@ -120,7 +126,7 @@ func generateForest(ecsManager *ecs.Manager, width, height, xOff, yOff int) {
 				}
 			}
 
-			if rand.Intn(stoneChance) == 0 {
+			if rand.Intn(height-dy) == 0 {
 				ecsManager.AddEntity(stoneFloor(x, y))
 				continue
 			} else if rand.Intn(treeChance) == 0 {
@@ -128,6 +134,26 @@ func generateForest(ecsManager *ecs.Manager, width, height, xOff, yOff int) {
 				continue
 			} else {
 				ecsManager.AddEntity(grassFloor(x, y))
+			}
+		}
+	}
+}
+
+// assumes path runs down along y axis
+func generateTown(ecsManager *ecs.Manager, width, height, xOff, yOff int) {
+
+}
+
+// assumes path runs down along y axis
+func generateHouse(ecsManager *ecs.Manager, width, height, xOff, yOff int, direction int) {
+	for dx := -width / 2; dx <= width/2; dx++ {
+		for dy := -height / 2; dy <= height/2; dy++ {
+			x := dx + xOff
+			y := dy + yOff
+
+			if (dx == -width/2 || dx == width/2 || dy == -height/2 || dy == height/2) &&
+				!(dx == direction*width/2 && dy == 0) {
+				ecsManager.AddEntity(treeTrunk(x, y))
 			}
 		}
 	}
@@ -143,22 +169,27 @@ func dirtFloor(x, y int) []ecs.Component {
 
 func addTree(ecsManager *ecs.Manager, x, y int) {
 
-	ecsManager.AddEntity(wall(x, y, gui.GetSprite(gui.TREE_TRUNK)))
+	ecsManager.AddEntity(treeTrunk(x, y))
 
 	treeRadius := rand.Intn(5) + 2
 	for dx := -treeRadius; dx <= treeRadius; dx++ {
 		uy := treeRadius - int(math.Abs(float64(dx)))
 		for dy := -uy; dy <= uy; dy++ {
 
-			// colorTint := uint8(treeRadius*treeRadius - (dx*dx+dy*dy)/2)
-			leaf := []ecs.Component{
-				{ecs.POSITION, ecs.Position{x + dx, y + dy}},
-				{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.LEAF)}},
-				{ecs.MEMORABLE, ecs.Memorable{}},
-			}
-
-			ecsManager.AddEntity(leaf)
+			ecsManager.AddEntity(leaf(x+dx, y+dy))
 		}
+	}
+}
+
+func treeTrunk(x, y int) []ecs.Component {
+	return wall(x, y, gui.GetSprite(gui.TREE_TRUNK))
+}
+
+func leaf(x, y int) []ecs.Component {
+	return []ecs.Component{
+		{ecs.POSITION, ecs.Position{x, y}},
+		{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.LEAF)}},
+		{ecs.MEMORABLE, ecs.Memorable{}},
 	}
 }
 

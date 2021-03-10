@@ -1,17 +1,3 @@
-// Copyright 2018 The Ebiten Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package gui
 
 import (
@@ -28,7 +14,7 @@ const (
 )
 
 var (
-	tilesImage *ebiten.Image
+	tileSheet *ebiten.Image
 )
 
 func loadSprites() {
@@ -41,7 +27,7 @@ func loadSprites() {
 		log.Fatal(err)
 	}
 
-	tilesImage = ebiten.NewImageFromImage(img)
+	tileSheet = ebiten.NewImageFromImage(img)
 
 	loadPremadeSprites()
 }
@@ -71,29 +57,30 @@ func loadPremadeSprites() {
 	preMadeSprites = make(map[int]Sprite, 0)
 
 	baseOb := ebiten.DrawImageOptions{}
-	leafOb := ebiten.DrawImageOptions{}
+	leafOb := baseOb
 	leafOb.ColorM.Scale(0.5, 0.5, 1, 0.5)
 
-	preMadeSprites[GRASS_FLOOR] = Sprite{extractImage(0, 0), baseOb, 1}
-	preMadeSprites[DIRT_FLOOR] = Sprite{extractImage(1, 0), baseOb, 1}
-	preMadeSprites[STONE_FLOOR] = Sprite{extractImage(2, 0), baseOb, 1}
-	preMadeSprites[STONE_WALL] = Sprite{extractImage(3, 0), baseOb, 99}
-	preMadeSprites[BLOOD] = Sprite{extractImage(4, 0), baseOb, 2}
+	preMadeSprites[GRASS_FLOOR] = Sprite{extractImage(0, 0), baseOb, 3}
+	preMadeSprites[DIRT_FLOOR] = Sprite{extractImage(1, 0), baseOb, 2}
+	preMadeSprites[STONE_FLOOR] = Sprite{extractImage(2, 0), baseOb, 4}
+	preMadeSprites[STONE_WALL] = Sprite{extractImage(3, 0), baseOb, 98}
+	preMadeSprites[BLOOD] = Sprite{extractImage(4, 0), baseOb, 9}
+	preMadeSprites[TREE_TRUNK] = Sprite{extractImage(5, 0), baseOb, 91}
 
 	preMadeSprites[PLAYER] = Sprite{extractImage(0, 1), baseOb, 59}
-	preMadeSprites[TREASURE] = Sprite{extractImage(1, 1), baseOb, 11}
-	preMadeSprites[POTION] = Sprite{extractImage(2, 1), baseOb, 11}
-	preMadeSprites[WEAPON] = Sprite{extractImage(3, 1), baseOb, 11}
+	preMadeSprites[MONSTER] = Sprite{extractImage(1, 1), baseOb, 58}
 
-	preMadeSprites[MONSTER] = Sprite{extractImage(0, 1), baseOb, 58}
-	preMadeSprites[TREE_TRUNK] = Sprite{extractImage(1, 0), baseOb, 91}
-	preMadeSprites[LEAF] = Sprite{extractImage(0, 0), leafOb, 91}
+	preMadeSprites[TREASURE] = Sprite{extractImage(0, 2), baseOb, 11}
+	preMadeSprites[POTION] = Sprite{extractImage(1, 2), baseOb, 12}
+	preMadeSprites[WEAPON] = Sprite{extractImage(2, 2), baseOb, 13}
+
+	preMadeSprites[LEAF] = Sprite{extractImage(0, 0), leafOb, 92}
 
 }
 
 func extractImage(x, y int) *ebiten.Image {
 	x, y = x*tileSize, y*tileSize
-	return tilesImage.SubImage(image.Rect(x, y, x+tileSize, y+tileSize)).(*ebiten.Image)
+	return tileSheet.SubImage(image.Rect(x, y, x+tileSize, y+tileSize)).(*ebiten.Image)
 }
 
 type Sprite struct {
@@ -108,7 +95,7 @@ func GetSprite(id int) Sprite {
 
 // handleing alpha is weird, need to keep priorities, but not overturn aware tiles
 func Fade(sprite Sprite) Sprite {
-	sprite.Options.ColorM.Scale(1, 1, 1, 0.5)
+	sprite.Options.ColorM.Scale(0.5, 0.5, 0.5, 1)
 	sprite.Priority -= 100
 	return sprite
 }

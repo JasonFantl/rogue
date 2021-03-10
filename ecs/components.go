@@ -66,7 +66,7 @@ type EntityAwarness struct {
 // and make it so mulitple things can be remembered on the same tile.
 // this will be more complicated then it initially seems.
 type EntityMemory struct {
-	Memory map[int]map[int]Displayable
+	Memory map[int]map[int][]Displayable
 }
 
 type Memorable struct {

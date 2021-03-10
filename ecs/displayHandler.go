@@ -73,14 +73,16 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 				}
 
 				// display memory
-				if len(displayables) == 0 && hasMemory {
+				if hasMemory {
 					memoryComponent := memoryData.(EntityMemory)
 					col, ok := memoryComponent.Memory[itemX]
 					if ok {
-						toDisplay, ok := col[itemY]
+						items, ok := col[itemY]
 						if ok {
-							// add faded dispay to make memory different
-							displayables = append(displayables, gui.Fade(toDisplay.Sprite))
+							for _, item := range items {
+								// add faded dispay to make memory look different
+								displayables = append(displayables, gui.Fade(item.Sprite))
+							}
 						}
 					}
 				}
