@@ -135,7 +135,7 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 		}
 		if displayString != "" {
 			displayString = displayString[:len(displayString)-2]
-			gui.DrawText(-len(displayString)/2, displayRadius+5, displayString)
+			gui.DrawText(0, displayRadius+5, displayString)
 		}
 	}
 
@@ -143,27 +143,28 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 
 	if hasInformation {
 		informationComponent := informationData.(Information)
-		gui.DrawText(-len(informationComponent.Name)/2, -displayRadius-4, informationComponent.Name)
+		gui.DrawText(0, -displayRadius-4, informationComponent.Name)
 	}
 	if hasHealth {
 		healthComponent := healthData.(Health)
 		healthString := "HP " + strconv.Itoa(healthComponent.Current) + "/" + strconv.Itoa(healthComponent.Max)
-		gui.DrawText(-displayRadius-len(healthString)/2, -displayRadius, healthString)
+		gui.DrawText(-displayRadius, -displayRadius, healthString)
 
 		bounds := getOctantBounds(displayRadius)
-		healthRadians := healthComponent.Current * 8 * len(bounds) / healthComponent.Max
+		healthPercent := healthComponent.Current * 8 * len(bounds) / healthComponent.Max
 		healthDisplayed := 0
-		for octant := 0; octant < 8; octant++ {
+		for octant := 2; octant < 6; octant++ {
 			for i := range bounds {
-				if healthDisplayed <= healthRadians {
+				if healthDisplayed <= healthPercent {
 					k := i
 					if octant%2 == 1 {
 						k = len(bounds) - k - 1
 					}
 					dx, dy := transformOctant(k, bounds[k], octant)
 
-					gui.DisplaySprites(dx, dy, []gui.Sprite{gui.GetSprite(gui.BLOOD)})
-					healthDisplayed++
+					gui.DisplaySprites(dx, -dy, []gui.Sprite{gui.GetSprite(gui.BLOOD)})
+					gui.DisplaySprites(-dx, -dy, []gui.Sprite{gui.GetSprite(gui.BLOOD)})
+					healthDisplayed += 2
 				}
 			}
 		}
@@ -171,7 +172,7 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 	if isFighter {
 		fighterComponent := fighterData.(Fighter)
 		strengthString := "STR " + strconv.Itoa(fighterComponent.Strength)
-		gui.DrawText(displayRadius/2+len(strengthString)/2, -displayRadius, strengthString)
+		gui.DrawText(displayRadius, -displayRadius, strengthString)
 	}
 
 	// -------------- INVENTORY ---------------
@@ -218,17 +219,15 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 		if weaponInformationOk {
 			informationComponent := weaponInformationData.(Information)
 
-			nameOff := len(informationComponent.Name)
-			gui.DrawText(-displayRadius-10-len("Weapon:")/2, -1, "Weapon:")
-			gui.DrawText(-displayRadius-10-nameOff/2, 0, informationComponent.Name)
+			gui.DrawText(-displayRadius-10, -1, "Weapon:")
+			gui.DrawText(-displayRadius-10, 0, informationComponent.Name)
 		}
 
 		if armorInformationOk {
 			informationComponent := armorInformationData.(Information)
 
-			nameOff := len(informationComponent.Name)
-			gui.DrawText(-displayRadius-10-len("Armor:")/2, 2, "Armor:")
-			gui.DrawText(-displayRadius-10-nameOff/2, 3, informationComponent.Name)
+			gui.DrawText(-displayRadius-10, 2, "Armor:")
+			gui.DrawText(-displayRadius-10, 3, informationComponent.Name)
 		}
 	}
 

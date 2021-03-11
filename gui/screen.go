@@ -2,64 +2,42 @@ package gui
 
 import (
 	"image/color"
-	"log"
 	"sort"
 	"strconv"
 
+	"github.com/hajimehoshi/bitmapfont/v2"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
 	"github.com/hajimehoshi/ebiten/v2/text"
-	"golang.org/x/image/font"
-	"golang.org/x/image/font/opentype"
 )
 
 const (
 	screenWidth  = 800
 	screenHeight = 500
-	screenScale  = 200.0
+	screenScale  = 100.0
 )
 
 var (
 	screen *ebiten.Image
 )
 
-var mplusNormalFont font.Face
-
 func Setup() {
 	ebiten.SetFullscreen(false)
 	loadSprites()
-	loadFont()
-}
-
-func loadFont() {
-	tt, err := opentype.Parse(fonts.MPlus1pRegular_ttf)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	const dpi = 80
-	mplusNormalFont, err = opentype.NewFace(tt, &opentype.FaceOptions{
-		Size:    12,
-		DPI:     dpi,
-		Hinting: font.HintingFull,
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
 }
 
 // need to implement this properly
 func DrawText(x, y int, inText string) {
 	x, y = screenCords(x, y)
-	text.Draw(screen, inText, mplusNormalFont, x, y, color.White)
+	// then center text
+	textWidth := text.BoundString(bitmapfont.Face, inText).Dx()
+	x -= textWidth / 2
+	text.Draw(screen, inText, bitmapfont.Face, x, y, color.White)
 }
 
 var debugString = ""
 
 func Debug(text string) {
 	debugString += text + "\n"
-	ebitenutil.DebugPrint(screen, debugString)
 }
 
 // weird stuff with semi-tranparent sprites
@@ -94,6 +72,7 @@ func Clear() {
 }
 
 func GetImage() *ebiten.Image {
+	// ebitenutil.DebugPrint(screen, debugString)
 	return screen
 }
 

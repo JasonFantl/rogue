@@ -72,7 +72,9 @@ func generateForest(ecsManager *ecs.Manager, width, height, xOff, yOff int) {
 
 	placed := make(map[int]map[int]bool, 0)
 	// generate path to cave
-	basePathWidth := 3
+	basePathWidth := 5
+
+	townHeight := 60
 
 	pathX := width / 2
 	pathY := height
@@ -103,12 +105,13 @@ func generateForest(ecsManager *ecs.Manager, width, height, xOff, yOff int) {
 
 		// maybe generate house (town later)
 		if pathY == height/2 {
-			generateHouse(ecsManager, 5, 4, xOff+pathY+6, yOff+pathY, -1)
+			generateTown(ecsManager, placed, pathWidth, townHeight, xOff+pathX, yOff+pathY)
 		}
 
 		pathX += rand.Intn(3) - 1
 		pathY--
 	}
+
 	//tree likelyhood
 	treeChance := 50
 
@@ -140,20 +143,42 @@ func generateForest(ecsManager *ecs.Manager, width, height, xOff, yOff int) {
 }
 
 // assumes path runs down along y axis
-func generateTown(ecsManager *ecs.Manager, width, height, xOff, yOff int) {
+func generateTown(ecsManager *ecs.Manager, placed map[int]map[int]bool, pathDistance, height, xOff, yOff int) {
+	houseSpacing := 5
 
+	for houseSide := -1; houseSide <= 1; houseSide += 2 {
+
+		for houseY := 0; houseY < height; houseY += houseSpacing + rand.Intn(4) {
+			houseWidth := rand.Intn(5) + 4
+			houseHeight := rand.Intn(5) + 4
+
+			houseX := (rand.Intn(3) + pathDistance + houseWidth) * houseSide
+
+			generateHouse(ecsManager, placed, houseWidth, houseHeight, xOff+houseX, yOff+houseY, houseSide)
+			houseY += houseHeight
+		}
+	}
 }
 
 // assumes path runs down along y axis
-func generateHouse(ecsManager *ecs.Manager, width, height, xOff, yOff int, direction int) {
+func generateHouse(ecsManager *ecs.Manager, placed map[int]map[int]bool, width, height, xOff, yOff int, direction int) {
 	for dx := -width / 2; dx <= width/2; dx++ {
 		for dy := -height / 2; dy <= height/2; dy++ {
 			x := dx + xOff
 			y := dy + yOff
 
-			if (dx == -width/2 || dx == width/2 || dy == -height/2 || dy == height/2) &&
-				!(dx == direction*width/2 && dy == 0) {
-				ecsManager.AddEntity(treeTrunk(x, y))
+			_, inited := placed[x]
+			if !inited {
+				placed[x] = map[int]bool{}
+			}
+			placed[x][y] = true
+			ecsManager.AddEntity(stoneFloor(x, y))
+
+			if dx == -width/2 || dx == width/2 || dy == -height/2 || dy == height/2 {
+				// leave space for door
+				if !(dx == -direction*width/2 && dy == 0) {
+					ecsManager.AddEntity(treeTrunk(x, y))
+				}
 			}
 		}
 	}

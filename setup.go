@@ -22,7 +22,7 @@ func generateGame(ecsManager *ecs.Manager, width, height int) {
 	}
 
 	// then add cave entities
-	itemCount := width
+	itemCount := width + height
 	for itemCount > 0 {
 		x := rand.Intn(width)
 		y := rand.Intn(height)
@@ -52,7 +52,7 @@ func addPlayer(ecsManager *ecs.Manager, x, y int) {
 
 	positionComponent := ecs.Position{x, y}
 	displayComponent := ecs.Displayable{gui.GetSprite(gui.PLAYER)}
-	visionComponent := ecs.Vision{20}
+	visionComponent := ecs.Vision{10}
 	awarnessComponent := ecs.EntityAwarness{}
 	memoryComponent := ecs.EntityMemory{}
 	inventoryComponent := ecs.Inventory{}
