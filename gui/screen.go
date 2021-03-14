@@ -3,10 +3,10 @@ package gui
 import (
 	"image/color"
 	"sort"
-	"strconv"
 
 	"github.com/hajimehoshi/bitmapfont/v2"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/text"
 )
 
@@ -17,7 +17,7 @@ const (
 )
 
 var (
-	screen *ebiten.Image
+	screen *ebiten.Image = ebiten.NewImage(Dimensions())
 )
 
 func Setup() {
@@ -34,14 +34,19 @@ func DrawText(x, y int, inText string) {
 	text.Draw(screen, inText, bitmapfont.Face, x, y, color.White)
 }
 
-var debugString = ""
-
-func Debug(text string) {
-	debugString += text + "\n"
+// need to implement this properly
+func DrawTextUncentered(x, y int, inText string) {
+	x, y = screenCords(x, y)
+	// then center text
+	// textWidth := text.BoundString(bitmapfont.Face, inText).Dx()
+	// x -= textWidth / 2
+	text.Draw(screen, inText, bitmapfont.Face, x, y, color.White)
 }
 
-// weird stuff with semi-tranparent sprites
-// something to so with compositeMode?
+func Debug(text string) {
+	ebitenutil.DebugPrint(screen, text)
+}
+
 func DisplaySprite(x, y int, sprite Sprite) {
 
 	x, y = screenCords(x, y)
@@ -68,11 +73,9 @@ func screenCords(x, y int) (int, int) {
 
 func Clear() {
 	screen = ebiten.NewImage(Dimensions())
-	debugString = strconv.Itoa(int(ebiten.Key('e'))) + "\n"
 }
 
 func GetImage() *ebiten.Image {
-	// ebitenutil.DebugPrint(screen, debugString)
 	return screen
 }
 

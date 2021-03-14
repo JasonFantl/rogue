@@ -24,14 +24,15 @@ func (g *Game) Start() {
 	// the order that these are added matters
 	// they follow this order of execution
 
-	g.ecsManager.AddEventHandler(&ecs.PlayerInputHandler{})
-	g.ecsManager.AddEventHandler(&ecs.MonsterHandler{})
+	g.ecsManager.AddEventHandler(&ecs.UserHandler{})
+	g.ecsManager.AddEventHandler(&ecs.BrainHandler{})
 	g.ecsManager.AddEventHandler(&ecs.AttackHandler{})
 	g.ecsManager.AddEventHandler(&ecs.MoveHandler{})
 	g.ecsManager.AddEventHandler(&ecs.EffectsHandler{})
 	g.ecsManager.AddEventHandler(&ecs.EquippingHandler{})
 	g.ecsManager.AddEventHandler(&ecs.InventoryHandler{})
 	// inventory before death, otherwise we cant drop all of its items
+	g.ecsManager.AddEventHandler(&ecs.ConsumptionHandler{})
 	g.ecsManager.AddEventHandler(&ecs.DeathHandler{})
 
 	// display stuff, all happens on the same event, no queue
@@ -42,7 +43,7 @@ func (g *Game) Start() {
 	g.ecsManager.AddEventHandler(&ecs.DisplayHandler{})
 	g.ecsManager.AddEventHandler(&ecs.EventPrinterHandler{})
 
-	generateGame(&g.ecsManager, 500, 500)
+	generateGame(&g.ecsManager, 200, 200)
 
 	g.ecsManager.Start()
 

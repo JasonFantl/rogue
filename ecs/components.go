@@ -33,8 +33,9 @@ const (
 	MEMORABLE
 	PICKUPABLE
 	STASHED_FLAG
-	PLAYER_CONTROLLER
-	MONSTER_CONTROLLER
+	USER
+	BRAIN
+	CONSUMABLE
 )
 
 type Position struct {
@@ -45,13 +46,14 @@ type Displayable struct {
 	Sprite gui.Sprite
 }
 
-type PlayerController struct {
-	Controlling                                  Entity
-	Up, Down, Left, Right, Pickup, Consume, Quit ebiten.Key
+type User struct {
+	Controlling                                                    Entity
+	UpKey, DownKey, LeftKey, RightKey, PickupKey, MenuKey, QuitKey ebiten.Key
+	Menu                                                           Menu
 }
 
-type MonsterController struct {
-	ActionPriorities []MonsterAction
+type Brain struct {
+	Desires []DesiredAction
 }
 
 type Vision struct {
@@ -84,6 +86,9 @@ type Information struct {
 }
 
 type Pickupable struct {
+}
+
+type Consumable struct {
 }
 
 type StashedFlag struct {

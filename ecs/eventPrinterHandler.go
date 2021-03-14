@@ -8,24 +8,30 @@ import (
 )
 
 type EventPrinterHandler struct {
-	lasteEventCall time.Time
+	debugString   string
+	lastEventCall time.Time
 }
 
 func (h *EventPrinterHandler) handleEvent(m *Manager, event Event) (returnEvents []Event) {
+	duration := time.Since(h.lastEventCall)
+	h.lastEventCall = time.Now()
 
 	stringifiedEvent := "pressed"
 	//special case
 	if event.ID == DEBUG_EVENT {
-		stringifiedEvent = fmt.Sprintf("%T : %s : %v", event.data, event.data.(DebugEvent).err, event.entity)
+		stringifiedEvent = fmt.Sprintf("%-20s : %-6v %s", event.data.(DebugEvent).err, event.entity, duration)
 	} else {
-		duration := time.Since(h.lasteEventCall)
-		stringifiedEvent = fmt.Sprintf("%-20T %-6v %s", event.data, event.entity, duration)
-		h.lasteEventCall = time.Now()
+		stringifiedEvent = fmt.Sprintf("%-20T : %-6v %s", event.data, event.entity, duration)
 	}
 
-	// keep in mind this wont display any errors between display frames
-	// would have to call gui.Show() on every event to make sure we see it, but that messes with the visuals
-	gui.Debug(stringifiedEvent)
+	h.debugString += stringifiedEvent + "\n"
+
+	if event.ID == DISPLAY {
+		gui.Debug(h.debugString)
+
+		// we start on a new line to leave space for frame rate in screen
+		h.debugString = "\n"
+	}
 
 	return returnEvents
 }

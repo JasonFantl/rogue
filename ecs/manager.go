@@ -1,6 +1,8 @@
 package ecs
 
 import (
+	"time"
+
 	"github.com/jasonfantl/rogue/gui"
 )
 
@@ -14,7 +16,7 @@ type Manager struct {
 	eventHandlers  []EventHandler
 	entityCounter  Entity
 	running        bool
-	user           Entity
+	user           User
 }
 
 func New() Manager {
@@ -24,7 +26,7 @@ func New() Manager {
 	newManager.eventHandlers = make([]EventHandler, 0)
 	newManager.entityCounter = 0
 	newManager.running = false
-	newManager.user = 0
+	newManager.user = User{}
 
 	return newManager
 }
@@ -33,7 +35,7 @@ func (m *Manager) Start() {
 	m.running = true
 	// make sure to display
 	startingEvents := []Event{
-		{DEBUG_EVENT, DebugEvent{"waking up handlers"}, m.user},
+		{DEBUG_EVENT, DebugEvent{"waking up handlers"}, m.user.Controlling},
 	}
 	m.sendEvents(startingEvents)
 }
@@ -46,7 +48,7 @@ func (m *Manager) Run() {
 	key, pressed := gui.GetKeyPress()
 
 	if pressed {
-		buttonEvent := []Event{{KEY_PRESSED, KeyPressed{key}, m.user}}
+		buttonEvent := []Event{{KEY_PRESSED, KeyPressed{key}, m.user.Controlling}}
 		m.sendEvents(buttonEvent)
 	}
 }
@@ -84,8 +86,8 @@ func (m *Manager) AddComponenet(entity Entity, component Component) bool {
 		}
 
 		// manager special case
-		if component.ID == PLAYER_CONTROLLER {
-			m.user = entity
+		if component.ID == USER {
+			m.user = component.Data.(User)
 		}
 		return true
 	}
@@ -157,27 +159,13 @@ func (m *Manager) getEntitiesFromPos(x, y int) (entities map[Entity]bool) {
 
 func (m *Manager) sendEvents(events []Event) {
 
-	/////// manager stuff //////
-	// timer := time.Now()
-	blockFinished := Event{DEBUG_EVENT, DebugEvent{"-----------------------------"}, 999999999}
-	events = append(events, blockFinished)
+	timer := time.Now()
 	sentDisplay := false
-	userData, _ := m.getComponent(m.user, PLAYER_CONTROLLER)
-	userComponent := userData.(PlayerController)
-	//////////////////////////////
-
-	// we re-display every time an independent event is fired, must clear the screen first
-	gui.Clear()
 
 	// queue style event handling
 	for len(events) > 0 {
 		sendingEvent := events[0] // pop
 		events = events[1:]       // dequeue
-
-		// debug info
-		if sendingEvent.entity == 999999999 && len(events) != 0 {
-			events = append(events, blockFinished)
-		}
 
 		for _, eventHandler := range m.eventHandlers {
 			respondingEvents := eventHandler.handleEvent(m, sendingEvent)
@@ -188,23 +176,13 @@ func (m *Manager) sendEvents(events []Event) {
 		if sendingEvent.ID == QUIT {
 			m.running = false
 		}
-		if sendingEvent.ID == DIED && sendingEvent.entity == userComponent.Controlling {
-			monsters, isMonster := m.getComponents(MONSTER_CONTROLLER)
-			if isMonster {
-				for monster, _ := range monsters {
-					userComponent.Controlling = monster
-					break
-				}
-			}
-			m.setComponent(m.user, PLAYER_CONTROLLER, userComponent)
-		}
 
 		// display stuff
 		if !sentDisplay && len(events) == 0 {
 			sentDisplay = true
-			events = append(events, Event{DISPLAY, Display{}, userComponent.Controlling})
+			events = append(events, Event{DISPLAY, Display{}, m.user.Controlling})
 		}
 	}
 
-	// gui.DrawCorner(time.Since(timer).String())
+	gui.Debug(time.Since(timer).String())
 }

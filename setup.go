@@ -50,43 +50,36 @@ func generateGame(ecsManager *ecs.Manager, width, height int) {
 
 func addPlayer(ecsManager *ecs.Manager, x, y int) {
 
-	positionComponent := ecs.Position{x, y}
-	displayComponent := ecs.Displayable{gui.GetSprite(gui.PLAYER)}
-	visionComponent := ecs.Vision{10}
-	awarnessComponent := ecs.EntityAwarness{}
-	memoryComponent := ecs.EntityMemory{}
-	inventoryComponent := ecs.Inventory{}
-	informationComponent := ecs.Information{"Player", "the hero of our story"}
-	volumeComponent := ecs.Volume{}
-	fighterComponent := ecs.Fighter{10, 0, 0}
-	damageComponent := ecs.Damage{1}
-	healthComponent := ecs.Health{100, 80}
-
 	player := []ecs.Component{
-		{ecs.POSITION, positionComponent},
-		{ecs.DISPLAYABLE, displayComponent},
-		{ecs.ENTITY_AWARENESS, awarnessComponent},
-		{ecs.ENTITY_MEMORY, memoryComponent},
-		{ecs.VISION, visionComponent},
-		{ecs.INVENTORY, inventoryComponent},
-		{ecs.INFORMATION, informationComponent},
-		{ecs.VOLUME, volumeComponent},
-		{ecs.FIGHTER, fighterComponent},
-		{ecs.DAMAGE, damageComponent},
-		{ecs.HEALTH, healthComponent},
+		{ecs.BRAIN, ecs.Brain{
+			[]ecs.DesiredAction{},
+		}},
+		{ecs.POSITION, ecs.Position{x, y}},
+		{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.PLAYER)}},
+		{ecs.ENTITY_AWARENESS, ecs.EntityAwarness{}},
+		{ecs.ENTITY_MEMORY, ecs.EntityMemory{}},
+		{ecs.VISION, ecs.Vision{20}},
+		{ecs.INVENTORY, ecs.Inventory{}},
+		{ecs.INFORMATION, ecs.Information{"Player", "the hero of our story"}},
+		{ecs.VOLUME, ecs.Volume{}},
+		{ecs.FIGHTER, ecs.Fighter{10, 0, 0}},
+		{ecs.DAMAGE, ecs.Damage{1}},
+		{ecs.HEALTH, ecs.Health{100, 80}},
 	}
 
 	playerID := ecsManager.AddEntity(player)
 
 	user := []ecs.Component{
-		{ecs.PLAYER_CONTROLLER, ecs.PlayerController{
+		{ecs.USER, ecs.User{
 			Controlling: playerID,
-			Up:          ebiten.KeyW,
-			Down:        ebiten.KeyS,
-			Left:        ebiten.KeyA,
-			Right:       ebiten.KeyD,
-			Pickup:      ebiten.KeyE,
-			Quit:        ebiten.KeyEscape,
+			UpKey:       ebiten.KeyW,
+			DownKey:     ebiten.KeyS,
+			LeftKey:     ebiten.KeyA,
+			RightKey:    ebiten.KeyD,
+			PickupKey:   ebiten.KeyE,
+			MenuKey:     ebiten.KeyQ,
+			QuitKey:     ebiten.KeyEscape,
+			Menu:        ecs.Menu{},
 		},
 		}}
 
@@ -95,41 +88,32 @@ func addPlayer(ecsManager *ecs.Manager, x, y int) {
 
 func addMonster(ecsManager *ecs.Manager, x, y int) {
 
-	controllerComponent := ecs.MonsterController{
-		[]ecs.MonsterAction{ecs.PICKUP, ecs.TREASURE_MOVE, ecs.RANDOM_MOVE, ecs.NOTHING},
-	}
-	positionComponent := ecs.Position{x, y}
-	inventoryComponent := ecs.Inventory{}
-	volumeComponent := ecs.Volume{}
-	fighterComponent := ecs.Fighter{10, 0, 0}
-	damageComponent := ecs.Damage{3}
-	healthComponent := ecs.Health{50, 50}
-	visionComponent := ecs.Vision{10}
-	awarnessComponent := ecs.EntityAwarness{}
-
 	monster := []ecs.Component{
-		{ecs.POSITION, positionComponent},
-		{ecs.MONSTER_CONTROLLER, controllerComponent},
-		{ecs.ENTITY_AWARENESS, awarnessComponent},
-		{ecs.VISION, visionComponent},
-		{ecs.INVENTORY, inventoryComponent},
-		{ecs.VOLUME, volumeComponent},
-		{ecs.FIGHTER, fighterComponent},
-		{ecs.DAMAGE, damageComponent},
-		{ecs.HEALTH, healthComponent},
+		{ecs.POSITION, ecs.Position{x, y}},
+		{ecs.BRAIN, ecs.Brain{
+			[]ecs.DesiredAction{ecs.PICKUP, ecs.TREASURE_MOVE, ecs.RANDOM_MOVE, ecs.DO_NOTHING},
+		}},
+		{ecs.ENTITY_AWARENESS, ecs.EntityAwarness{}},
+		{ecs.VISION, ecs.Vision{10}},
+		{ecs.VOLUME, ecs.Volume{}},
+		{ecs.FIGHTER, ecs.Fighter{10, 0, 0}},
+		{ecs.DAMAGE, ecs.Damage{3}},
+		{ecs.HEALTH, ecs.Health{50, 50}},
 	}
 
 	monsterInfos := [][]ecs.Component{
 		{
-			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.MONSTER)}},
+			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.MONSTER3)}},
 			{ecs.INFORMATION, ecs.Information{"Monster", "generic"}},
 		},
 		{
-			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.MONSTER)}},
+			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.MONSTER2)}},
+			{ecs.INVENTORY, ecs.Inventory{}},
 			{ecs.INFORMATION, ecs.Information{"Ogre", "Big and scary"}},
 		},
 		{
-			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.MONSTER)}},
+			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.MONSTER1)}},
+			{ecs.INVENTORY, ecs.Inventory{}},
 			{ecs.INFORMATION, ecs.Information{"Goblin", "green and scrawny, sill scary though"}},
 		},
 	}
@@ -141,20 +125,64 @@ func addMonster(ecsManager *ecs.Manager, x, y int) {
 	ecsManager.AddEntity(monster)
 }
 
+func addTownsMember(ecsManager *ecs.Manager, x, y int) {
+
+	controllerComponent := ecs.Brain{
+		[]ecs.DesiredAction{ecs.PICKUP, ecs.RANDOM_MOVE, ecs.DO_NOTHING},
+	}
+
+	positionComponent := ecs.Position{x, y}
+	inventoryComponent := ecs.Inventory{}
+	volumeComponent := ecs.Volume{}
+	damageComponent := ecs.Damage{3}
+	healthComponent := ecs.Health{50, 50}
+	visionComponent := ecs.Vision{10}
+	awarnessComponent := ecs.EntityAwarness{}
+
+	townsMember := []ecs.Component{
+		{ecs.POSITION, positionComponent},
+		{ecs.BRAIN, controllerComponent},
+		{ecs.ENTITY_AWARENESS, awarnessComponent},
+		{ecs.VISION, visionComponent},
+		{ecs.INVENTORY, inventoryComponent},
+		{ecs.VOLUME, volumeComponent},
+		{ecs.DAMAGE, damageComponent},
+		{ecs.HEALTH, healthComponent},
+	}
+
+	townsMemberInfos := [][]ecs.Component{
+		{
+			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.PLAYER)}},
+			{ecs.INFORMATION, ecs.Information{"Human", "lives in town"}},
+		},
+	}
+
+	townsMemberInfo := townsMemberInfos[rand.Intn(len(townsMemberInfos))]
+
+	townsMember = append(townsMember, townsMemberInfo...)
+
+	ecsManager.AddEntity(townsMember)
+}
+
 func addTreasure(ecsManager *ecs.Manager, x, y int) {
 	treasure := []ecs.Component{
 		{ecs.POSITION, ecs.Position{x, y}},
-		{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.TREASURE)}},
 		{ecs.PICKUPABLE, ecs.Pickupable{}},
 	}
 
 	treasureInfos := [][]ecs.Component{
 		{
-			{ecs.INFORMATION, ecs.Information{"gold coin", "scratched, but still usable"}}},
+			{ecs.INFORMATION, ecs.Information{"gold coin", "scratched, but still usable"}},
+			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.GOLD_COIN)}},
+		},
 		{
-			{ecs.INFORMATION, ecs.Information{"gem", "red and uncut"}}},
+			{ecs.INFORMATION, ecs.Information{"gem", "red and uncut"}},
+			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.GEM)}},
+		},
 		{
-			{ecs.INFORMATION, ecs.Information{"silver coin", "might buy you a mug"}}},
+			{ecs.INFORMATION, ecs.Information{"silver coin", "might buy you a mug"}},
+			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.SILVER_COIN)}},
+		},
 	}
 	treasureInfo := treasureInfos[rand.Intn(len(treasureInfos))]
 
@@ -172,12 +200,12 @@ func addWeapon(ecsManager *ecs.Manager, x, y int) {
 
 	weaponInfos := [][]ecs.Component{
 		{
-			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.WEAPON)}},
+			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.SWORD)}},
 			{ecs.INFORMATION, ecs.Information{"sword", "rusted"}},
 			{ecs.DAMAGE, ecs.Damage{16}},
 		},
 		{
-			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.WEAPON)}},
+			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.STICK)}},
 			{ecs.INFORMATION, ecs.Information{"stick", "primative, but better then nothing"}},
 			{ecs.DAMAGE, ecs.Damage{8}},
 		},
@@ -199,12 +227,12 @@ func addArmor(ecsManager *ecs.Manager, x, y int) {
 
 	armorInfos := [][]ecs.Component{
 		{
-			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.WEAPON)}},
+			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.LEATHER_ARMOR)}},
 			{ecs.INFORMATION, ecs.Information{"Leather armor", "sturdy and well worn"}},
 			{ecs.DAMAGE_RESISTANCE, ecs.DamageResistance{5}},
 		},
 		{
-			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.WEAPON)}},
+			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.METAL_ARMOR)}},
 			{ecs.INFORMATION, ecs.Information{"Metal plate", "shiny, dented"}},
 			{ecs.DAMAGE_RESISTANCE, ecs.DamageResistance{10}},
 		},
@@ -222,35 +250,34 @@ func addPotion(ecsManager *ecs.Manager, x, y int) {
 	potion := []ecs.Component{
 		{ecs.POSITION, ecs.Position{x, y}},
 		{ecs.PICKUPABLE, ecs.Pickupable{}},
+		{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.POTION)}},
+		{ecs.CONSUMABLE, ecs.Consumable{}},
 	}
 
 	potionInfos := [][]ecs.Component{
 		{
-			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.POTION)}},
 			{ecs.INFORMATION, ecs.Information{"Potion", "glowing red"}},
 			{ecs.EFFECTS, ecs.Effects{[]ecs.Effect{
 				ecs.Effect{
-					ecs.PICKED_UP,
+					ecs.CONSUMED,
 					ecs.HealEffect{10},
 				},
 			}}},
 		},
 		{
-			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.POTION)}},
 			{ecs.INFORMATION, ecs.Information{"Potion", "dark blue, hard to see"}},
 			{ecs.EFFECTS, ecs.Effects{[]ecs.Effect{
 				ecs.Effect{
-					ecs.PICKED_UP,
+					ecs.CONSUMED,
 					ecs.VisionEffect{2},
 				},
 			}}},
 		},
 		{
-			{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.POTION)}},
 			{ecs.INFORMATION, ecs.Information{"Potion", "green, viscious"}},
 			{ecs.EFFECTS, ecs.Effects{[]ecs.Effect{
 				ecs.Effect{
-					ecs.PICKED_UP,
+					ecs.CONSUMED,
 					ecs.StrengthEffect{1},
 				},
 			}}},

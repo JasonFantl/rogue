@@ -35,18 +35,25 @@ func loadSprites() {
 var preMadeSprites map[int]Sprite
 
 const (
-	PLAYER int = iota
+	GRASS_FLOOR int = iota
+	DIRT_FLOOR
 	STONE_FLOOR
 	STONE_WALL
-	WEAPON
-	MONSTER
 	BLOOD
-	GRASS_FLOOR
-	DIRT_FLOOR
-	POTION
-	TREASURE
-	LEAF
 	TREE_TRUNK
+	LEAF
+	PLAYER
+	MONSTER1
+	MONSTER2
+	MONSTER3
+	STICK
+	SWORD
+	METAL_ARMOR
+	LEATHER_ARMOR
+	GOLD_COIN
+	SILVER_COIN
+	GEM
+	POTION
 )
 
 // priorities :
@@ -68,11 +75,19 @@ func loadPremadeSprites() {
 	preMadeSprites[TREE_TRUNK] = Sprite{extractImage(5, 0), baseOb, 91}
 
 	preMadeSprites[PLAYER] = Sprite{extractImage(0, 1), baseOb, 59}
-	preMadeSprites[MONSTER] = Sprite{extractImage(1, 1), baseOb, 58}
+	preMadeSprites[MONSTER1] = Sprite{extractImage(1, 1), baseOb, 58}
+	preMadeSprites[MONSTER2] = Sprite{extractImage(2, 1), baseOb, 58}
+	preMadeSprites[MONSTER3] = Sprite{extractImage(3, 1), baseOb, 58}
 
-	preMadeSprites[TREASURE] = Sprite{extractImage(0, 2), baseOb, 11}
-	preMadeSprites[POTION] = Sprite{extractImage(1, 2), baseOb, 12}
-	preMadeSprites[WEAPON] = Sprite{extractImage(2, 2), baseOb, 13}
+	preMadeSprites[STICK] = Sprite{extractImage(0, 2), baseOb, 11}
+	preMadeSprites[SWORD] = Sprite{extractImage(1, 2), baseOb, 11}
+	preMadeSprites[METAL_ARMOR] = Sprite{extractImage(2, 2), baseOb, 11}
+	preMadeSprites[LEATHER_ARMOR] = Sprite{extractImage(3, 2), baseOb, 11}
+
+	preMadeSprites[GOLD_COIN] = Sprite{extractImage(0, 3), baseOb, 11}
+	preMadeSprites[SILVER_COIN] = Sprite{extractImage(1, 3), baseOb, 11}
+	preMadeSprites[GEM] = Sprite{extractImage(2, 3), baseOb, 11}
+	preMadeSprites[POTION] = Sprite{extractImage(3, 3), baseOb, 11}
 
 	preMadeSprites[LEAF] = Sprite{extractImage(0, 0), leafOb, 92}
 

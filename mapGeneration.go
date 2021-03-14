@@ -72,9 +72,9 @@ func generateForest(ecsManager *ecs.Manager, width, height, xOff, yOff int) {
 
 	placed := make(map[int]map[int]bool, 0)
 	// generate path to cave
-	basePathWidth := 5
+	basePathWidth := 3
 
-	townHeight := 60
+	townHeight := 30
 
 	pathX := width / 2
 	pathY := height
@@ -108,7 +108,10 @@ func generateForest(ecsManager *ecs.Manager, width, height, xOff, yOff int) {
 			generateTown(ecsManager, placed, pathWidth, townHeight, xOff+pathX, yOff+pathY)
 		}
 
-		pathX += rand.Intn(3) - 1
+		// lets not change dx in town
+		if pathY < height/2 || pathY > height/2+townHeight {
+			pathX += rand.Intn(3) - 1
+		}
 		pathY--
 	}
 
@@ -182,6 +185,7 @@ func generateHouse(ecsManager *ecs.Manager, placed map[int]map[int]bool, width, 
 			}
 		}
 	}
+	addTownsMember(ecsManager, xOff, yOff)
 }
 
 func grassFloor(x, y int) []ecs.Component {

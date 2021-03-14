@@ -14,104 +14,110 @@ type DisplayHandler struct {
 func (h *DisplayHandler) handleEvent(m *Manager, event Event) (returnEvents []Event) {
 
 	if event.ID == DISPLAY {
-		h.showEntity(m, event.entity)
+		gui.Clear()
+		h.showEntity(m, m.user.Controlling)
+		if m.user.Menu.active {
+			h.showMenu(m)
+		}
 	}
 
 	return returnEvents
 }
 
-func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
-
-	// get and check all the components necessary
-	positionData, hasPosition := m.getComponent(entity, POSITION)
-	memoryData, hasMemory := m.getComponent(entity, ENTITY_MEMORY)
-	awarnessData, hasAwarness := m.getComponent(entity, ENTITY_AWARENESS)
-
-	visionData, hasVision := m.getComponent(entity, VISION)
-	inventoryData, hasInventory := m.getComponent(entity, INVENTORY)
-
-	informationData, hasInformation := m.getComponent(entity, INFORMATION)
-	healthData, hasHealth := m.getComponent(entity, HEALTH)
-
-	fighterData, isFighter := m.getComponent(entity, FIGHTER)
+func (h *DisplayHandler) showEntity(m *Manager, entity Entity) {
 
 	// display is a circle
-	displayRadius := 20
+	displayRadius := 10
 
+	visionData, hasVision := m.getComponent(entity, VISION)
 	if hasVision {
 		visionComponent := visionData.(Vision)
 		displayRadius = visionComponent.Radius
 	}
 
-	// ------- position related --------
-	if hasPosition {
+	h.showGrid(m, entity, displayRadius)
+	h.showBelowYou(m, entity, displayRadius)
+	h.showStats(m, entity, displayRadius)
+	// h.showInventory(m, entity, displayRadius)
+	h.showEquiped(m, entity, displayRadius)
+
+}
+
+func (s *DisplayHandler) showGrid(m *Manager, entity Entity, displayRadius int) {
+	positionData, hasPosition := m.getComponent(entity, POSITION)
+	memoryData, hasMemory := m.getComponent(entity, ENTITY_MEMORY)
+	awarnessData, hasAwarness := m.getComponent(entity, ENTITY_AWARENESS)
+
+	if hasPosition && hasAwarness {
 		positionComponent := positionData.(Position)
+		awarnessComponent := awarnessData.(EntityAwarness)
 
-		// ---------- MAP ---------
+		displayXY := func(dx, dy int) {
+			itemX := positionComponent.X + dx
+			itemY := positionComponent.Y + dy
 
-		if hasAwarness {
-			awarnessComponent := awarnessData.(EntityAwarness)
+			// display items we are aware of
+			items := awarnessComponent.AwareOf.get(itemX, itemY)
 
-			displayXY := func(dx, dy int) {
-				itemX := positionComponent.X + dx
-				itemY := positionComponent.Y + dy
-
-				// display items we are aware of
-				items := awarnessComponent.AwareOf.get(itemX, itemY)
-
-				displayables := make([]gui.Sprite, 0)
-				for item := range items {
-					itemDisplayData, itemHasDisplay := m.getComponent(item, DISPLAYABLE)
-					if itemHasDisplay {
-						// we want to ignore stashed items
-						_, itemIsStashed := m.getComponent(item, STASHED_FLAG)
-						if !itemIsStashed {
-							itemDisplayComponent := itemDisplayData.(Displayable)
-							displayables = append(displayables, itemDisplayComponent.Sprite)
-						}
+			displayables := make([]gui.Sprite, 0)
+			for item := range items {
+				itemDisplayData, itemHasDisplay := m.getComponent(item, DISPLAYABLE)
+				if itemHasDisplay {
+					// we want to ignore stashed items
+					_, itemIsStashed := m.getComponent(item, STASHED_FLAG)
+					if !itemIsStashed {
+						itemDisplayComponent := itemDisplayData.(Displayable)
+						displayables = append(displayables, itemDisplayComponent.Sprite)
 					}
 				}
-
-				// display memory
-				if hasMemory {
-					memoryComponent := memoryData.(EntityMemory)
-					col, ok := memoryComponent.Memory[itemX]
-					if ok {
-						items, ok := col[itemY]
-						if ok {
-							for _, item := range items {
-								// add faded dispay to make memory look different
-								displayables = append(displayables, gui.Fade(item.Sprite))
-							}
-						}
-					}
-				}
-				gui.DisplaySprites(dx, dy, displayables)
 			}
 
-			bounds := getOctantBounds(displayRadius)
-
-			displayXY(0, 0)
-			for octant := 0; octant < 8; octant++ {
-				for row := 1; row < displayRadius; row++ {
-					for col := 0; col <= row; col++ {
-						if bounds[col] == row {
-							break
+			// display memory
+			if hasMemory {
+				memoryComponent := memoryData.(EntityMemory)
+				col, ok := memoryComponent.Memory[itemX]
+				if ok {
+					items, ok := col[itemY]
+					if ok {
+						for _, item := range items {
+							// add faded dispay to make memory look different
+							displayables = append(displayables, gui.Fade(item.Sprite))
 						}
-						if octant%2 == 0 {
-							if col == 0 || col == row {
-								continue
-							}
-						}
-						// in bounds, continue on
-						dx, dy := transformOctant(row, col, octant)
-						displayXY(dx, dy)
 					}
+				}
+			}
+			gui.DisplaySprites(dx, dy, displayables)
+		}
+
+		bounds := getOctantBounds(displayRadius)
+
+		displayXY(0, 0)
+		for octant := 0; octant < 8; octant++ {
+			for row := 1; row < displayRadius; row++ {
+				for col := 0; col <= row; col++ {
+					if bounds[col] == row {
+						break
+					}
+					if octant%2 == 0 {
+						if col == 0 || col == row {
+							continue
+						}
+					}
+					// in bounds, continue on
+					dx, dy := transformOctant(row, col, octant)
+					displayXY(dx, dy)
 				}
 			}
 		}
+	}
+}
 
-		// --------- BELOW YOU --------------
+func (s *DisplayHandler) showBelowYou(m *Manager, entity Entity, displayRadius int) {
+	positionData, hasPosition := m.getComponent(entity, POSITION)
+	_, hasAwarness := m.getComponent(entity, ENTITY_AWARENESS)
+
+	if hasPosition && hasAwarness {
+		positionComponent := positionData.(Position)
 
 		items := make([]Entity, 0)
 		belowYou := m.getEntitiesFromPos(positionComponent.X, positionComponent.Y)
@@ -138,8 +144,12 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 			gui.DrawText(0, displayRadius+5, displayString)
 		}
 	}
+}
 
-	// ------------- PLAYER STATS ---------------
+func (s *DisplayHandler) showStats(m *Manager, entity Entity, displayRadius int) {
+	informationData, hasInformation := m.getComponent(entity, INFORMATION)
+	healthData, hasHealth := m.getComponent(entity, HEALTH)
+	fighterData, isFighter := m.getComponent(entity, FIGHTER)
 
 	if hasInformation {
 		informationComponent := informationData.(Information)
@@ -174,10 +184,12 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 		strengthString := "STR " + strconv.Itoa(fighterComponent.Strength)
 		gui.DrawText(displayRadius, -displayRadius, strengthString)
 	}
+}
 
-	// -------------- INVENTORY ---------------
+func (s *DisplayHandler) showInventory(m *Manager, entity Entity, displayRadius int) {
+	inventoryData, hasInventory := m.getComponent(entity, INVENTORY)
 
-	if false && hasInventory {
+	if hasInventory {
 		inventoryComponent := inventoryData.(Inventory)
 
 		currentLineNum := -displayRadius + 4
@@ -207,8 +219,10 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 			}
 		}
 	}
+}
 
-	// -------- EQUIPED ----------
+func (s *DisplayHandler) showEquiped(m *Manager, entity Entity, displayRadius int) {
+	fighterData, isFighter := m.getComponent(entity, FIGHTER)
 
 	if isFighter {
 		fighterComponent := fighterData.(Fighter)
@@ -230,5 +244,51 @@ func (s *DisplayHandler) showEntity(m *Manager, entity Entity) {
 			gui.DrawText(-displayRadius-10, 3, informationComponent.Name)
 		}
 	}
+}
 
+func (h *DisplayHandler) showMenu(m *Manager) {
+	inventoryData, hasInventory := m.getComponent(m.user.Controlling, INVENTORY)
+
+	if hasInventory {
+		inventoryComponent := inventoryData.(Inventory)
+
+		keys := make([]int, 0)
+		for k := range inventoryComponent.Items {
+			keys = append(keys, int(k))
+		}
+		sort.Ints(keys)
+
+		selectedItem := m.user.Menu.getSelected(m)
+
+		inventoryText := "Inventory: "
+
+		for _, key := range keys {
+			item := Entity(key)
+
+			informationString := "? : no information on item"
+			informationData, informationOk := m.getComponent(item, INFORMATION)
+			if informationOk {
+				informationComponent := informationData.(Information)
+				informationString = informationComponent.Name
+			}
+
+			if item == selectedItem {
+				// display info
+				if informationOk {
+					informationComponent := informationData.(Information)
+					informationString += "\n    " + informationComponent.Details
+				}
+
+				_, isConsumable := m.getComponent(item, CONSUMABLE)
+				if isConsumable {
+					informationString += "\n    e to consume"
+				}
+				informationString = "\n- " + informationString
+			} else {
+				informationString = "\n  " + informationString
+			}
+			inventoryText += informationString
+		}
+		gui.DrawTextUncentered(0, 0, inventoryText)
+	}
 }

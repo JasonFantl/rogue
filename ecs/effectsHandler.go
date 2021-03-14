@@ -9,22 +9,24 @@ type Effect struct {
 	Reaction Triggerable
 }
 
+func selectEffected(event Event) Entity {
+	switch event.ID {
+	case CONSUMED:
+		consumedEvent := event.data.(Consumed)
+		return consumedEvent.byWho
+	case PICKED_UP:
+		pickedUpEvent := event.data.(PickedUp)
+		return pickedUpEvent.byWho
+	}
+	return event.entity
+}
+
 type HealEffect struct {
 	Amount int
 }
 
 func (effect HealEffect) trigger(m *Manager, event Event) (returnEvents []Event) {
-
-	affected := event.entity // probably not this entity
-
-	switch event.ID {
-	// case CONSUMED:
-	// 	consumedEvent := event.data.(Consumed)
-	// 	affected = consumedEvent.byWho
-	case PICKED_UP:
-		pickedUpEvent := event.data.(PickedUp)
-		affected = pickedUpEvent.byWho
-	}
+	affected := selectEffected(event)
 
 	// should probably send heal event rather then actually heal, but fine for now
 	healthData, hasHealth := m.getComponent(affected, HEALTH)
@@ -43,17 +45,7 @@ type VisionEffect struct {
 }
 
 func (effect VisionEffect) trigger(m *Manager, event Event) (returnEvents []Event) {
-
-	affected := event.entity // probably not this entity
-
-	switch event.ID {
-	// case CONSUMED:
-	// 	consumedEvent := event.data.(Consumed)
-	// 	affected = consumedEvent.byWho
-	case PICKED_UP:
-		pickedUpEvent := event.data.(PickedUp)
-		affected = pickedUpEvent.byWho
-	}
+	affected := selectEffected(event)
 
 	visionData, hasVision := m.getComponent(affected, VISION)
 	if hasVision {
@@ -72,16 +64,7 @@ type StrengthEffect struct {
 
 func (effect StrengthEffect) trigger(m *Manager, event Event) (returnEvents []Event) {
 
-	affected := event.entity // probably not this entity
-
-	switch event.ID {
-	// case CONSUMED:
-	// 	consumedEvent := event.data.(Consumed)
-	// 	affected = consumedEvent.byWho
-	case PICKED_UP:
-		pickedUpEvent := event.data.(PickedUp)
-		affected = pickedUpEvent.byWho
-	}
+	affected := selectEffected(event)
 
 	fighterData, isFighter := m.getComponent(affected, FIGHTER)
 	if isFighter {

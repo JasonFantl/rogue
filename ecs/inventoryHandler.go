@@ -106,7 +106,7 @@ func (h *InventoryHandler) pickup(m *Manager, entity, parent Entity, inventoryCo
 
 	// make sure the inventory is inited
 	if inventoryComponent.Items == nil {
-		inventoryComponent.Items = make(map[Entity]bool)
+		inventoryComponent.Items = map[Entity]bool{}
 	}
 
 	// then add it to our inventory
