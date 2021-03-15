@@ -99,7 +99,7 @@ func (menu *Menu) show(m *Manager) {
 }
 
 func (menu *Menu) showProjectile(m *Manager) {
-	gui.DisplaySprite(menu.cursorX, menu.cursorY, gui.GetSprite(gui.LEAF))
+	gui.DisplaySprite(menu.cursorX, menu.cursorY, gui.GetSprite(gui.CURSER))
 }
 
 func (menu *Menu) showInventory(m *Manager) {
@@ -140,7 +140,7 @@ func (menu *Menu) showInventory(m *Manager) {
 				case DAMAGE_RESISTANCE:
 					informationString += "equip as armor"
 				case PROJECTILE:
-					informationString += "launch"
+					informationString += "throw"
 				}
 				informationString += ") ->"
 

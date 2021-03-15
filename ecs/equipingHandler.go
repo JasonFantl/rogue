@@ -74,21 +74,21 @@ func (h *EquippingHandler) handleEvent(m *Manager, event Event) (returnEvents []
 		}
 	}
 
-	if event.ID == DROPED {
-		droppedEvent := event.data.(Dropped)
-		FighterData, isFighter := m.getComponent(droppedEvent.byWho, FIGHTER)
+	if event.ID == TRY_DROP {
+		tryDropEvent := event.data.(TryDrop)
+		FighterData, isFighter := m.getComponent(event.entity, FIGHTER)
 
 		if isFighter {
 			fighterComponent := FighterData.(Fighter)
 
-			if event.entity == fighterComponent.Weapon {
+			if tryDropEvent.what == fighterComponent.Weapon {
 				fighterComponent.Weapon = Entity(0)
 			}
-			if event.entity == fighterComponent.Armor {
+			if tryDropEvent.what == fighterComponent.Armor {
 				fighterComponent.Armor = Entity(0)
 			}
 
-			m.setComponent(droppedEvent.byWho, FIGHTER, fighterComponent)
+			m.setComponent(event.entity, FIGHTER, fighterComponent)
 
 		}
 	}

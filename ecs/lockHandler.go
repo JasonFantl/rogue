@@ -44,12 +44,8 @@ func (h *LockHandler) handleEvent(m *Manager, event Event) (returnEvents []Event
 				if item == lockableComponent.Key {
 					lockableComponent.Locked = false
 					m.setComponent(tryUnlockEvent.what, LOCKABLE, lockableComponent)
+					h.unlockComponents(m, tryUnlockEvent.what)
 
-					if lockableComponent.Inversed {
-						h.lockComponent(m, tryUnlockEvent.what)
-					} else {
-						h.unlockComponent(m, tryUnlockEvent.what)
-					}
 					returnEvents = append(returnEvents, Event{UNLOCKED, Unlocked{}, tryUnlockEvent.what})
 					break
 				}
@@ -60,32 +56,32 @@ func (h *LockHandler) handleEvent(m *Manager, event Event) (returnEvents []Event
 	return returnEvents
 }
 
-func (h *LockHandler) unlockComponent(m *Manager, entity Entity) (returnEvents []Event) {
+func (h *LockHandler) unlockComponents(m *Manager, entity Entity) (returnEvents []Event) {
 	lockableData, hasLockable := m.getComponent(entity, LOCKABLE)
 
 	if hasLockable {
 		lockableComponent := lockableData.(Lockable)
 
-		m.setComponent(entity, lockableComponent.Locking.ID, lockableComponent.Locking.Data)
+		h.swapComponents(m, entity, lockableComponent.UnlockedComponents, lockableComponent.LockedComponents)
+		m.setComponent(entity, LOCKABLE, lockableComponent)
 	}
 	return returnEvents
 }
 
-func (h *LockHandler) lockComponent(m *Manager, entity Entity) (returnEvents []Event) {
-	lockableData, hasLockable := m.getComponent(entity, LOCKABLE)
+func (h *LockHandler) swapComponents(m *Manager, entity Entity, inComponents, outComponents []Component) {
 
-	if hasLockable {
-		lockableComponent := lockableData.(Lockable)
-
-		updatedComponent, hasComponent := m.getComponent(entity, lockableComponent.Locking.ID)
+	// first remember and remove old components
+	for i, component := range outComponents {
+		componentData, hasComponent := m.getComponent(entity, component.ID)
 		if hasComponent {
-			// remember locked compoenent
-			lockableComponent.Locking.Data = updatedComponent
-			m.setComponent(entity, LOCKABLE, lockableComponent)
-
-			// update manager
-			m.removeComponent(entity, lockableComponent.Locking.ID)
+			// remember old components
+			outComponents[i].Data = componentData
+			// remove
+			m.removeComponent(entity, component.ID)
 		}
 	}
-	return returnEvents
+
+	for _, component := range inComponents {
+		m.setComponent(entity, component.ID, component.Data)
+	}
 }

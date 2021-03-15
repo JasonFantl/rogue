@@ -6,7 +6,6 @@ import (
 
 	"github.com/hajimehoshi/bitmapfont/v2"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/text"
 )
 
@@ -25,7 +24,6 @@ func Setup() {
 	loadSprites()
 }
 
-// need to implement this properly
 func DrawText(x, y int, inText string) {
 	x, y = screenCords(x, y)
 	// then center text
@@ -37,14 +35,11 @@ func DrawText(x, y int, inText string) {
 // need to implement this properly
 func DrawTextUncentered(x, y int, inText string) {
 	x, y = screenCords(x, y)
-	// then center text
-	// textWidth := text.BoundString(bitmapfont.Face, inText).Dx()
-	// x -= textWidth / 2
 	text.Draw(screen, inText, bitmapfont.Face, x, y, color.White)
 }
 
 func Debug(text string) {
-	ebitenutil.DebugPrint(screen, text)
+	// ebitenutil.DebugPrint(screen, text)
 }
 
 func DisplaySprite(x, y int, sprite Sprite) {

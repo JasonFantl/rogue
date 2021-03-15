@@ -123,14 +123,14 @@ type Reactions struct {
 }
 
 type Lockable struct {
-	Key      Entity
-	Locked   bool
-	Locking  Component
-	Inversed bool
+	Key                Entity
+	Locked             bool
+	LockedComponents   []Component
+	UnlockedComponents []Component
 }
 
 type Projectile struct {
-	MaxDistance int
-	Traveled    int
-	Travling    bool
+	MaxDistance          int
+	currentDx, currentDy int
+	goalDx, goalDy       int
 }

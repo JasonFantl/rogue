@@ -4,6 +4,7 @@ import (
 	"image"
 	_ "image/png"
 	"log"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -55,27 +56,35 @@ const (
 	GEM
 	POTION
 	KEY
-	DOOR
+	CLOSED_DOOR
+	OPEN_DOOR
+	CURSER
 )
 
 // priorities :
 // 0 - 10: floor
 // 10 - 20: items
 // 50 - 60: beings
+// 100 > : special sprites (menu)
 func loadPremadeSprites() {
 	preMadeSprites = make(map[int]Sprite, 0)
 
 	baseOb := ebiten.DrawImageOptions{}
 	leafOb := baseOb
 	leafOb.ColorM.Scale(0.5, 0.5, 1, 0.5)
+	openDoorOb := baseOb
+	openDoorOb.GeoM.Rotate(math.Pi / 2)
+	openDoorOb.GeoM.Translate(tileSize, 3)
 
 	preMadeSprites[GRASS_FLOOR] = Sprite{extractImage(0, 0), baseOb, 3}
+	preMadeSprites[LEAF] = Sprite{extractImage(0, 0), leafOb, 92}
 	preMadeSprites[DIRT_FLOOR] = Sprite{extractImage(1, 0), baseOb, 2}
 	preMadeSprites[STONE_FLOOR] = Sprite{extractImage(2, 0), baseOb, 4}
 	preMadeSprites[STONE_WALL] = Sprite{extractImage(3, 0), baseOb, 98}
 	preMadeSprites[BLOOD] = Sprite{extractImage(4, 0), baseOb, 9}
 	preMadeSprites[TREE_TRUNK] = Sprite{extractImage(5, 0), baseOb, 91}
-	preMadeSprites[DOOR] = Sprite{extractImage(6, 0), baseOb, 91}
+	preMadeSprites[CLOSED_DOOR] = Sprite{extractImage(6, 0), baseOb, 91}
+	preMadeSprites[OPEN_DOOR] = Sprite{extractImage(6, 0), openDoorOb, 91}
 
 	preMadeSprites[PLAYER] = Sprite{extractImage(0, 1), baseOb, 59}
 	preMadeSprites[MONSTER1] = Sprite{extractImage(1, 1), baseOb, 58}
@@ -93,7 +102,7 @@ func loadPremadeSprites() {
 	preMadeSprites[POTION] = Sprite{extractImage(3, 3), baseOb, 11}
 	preMadeSprites[KEY] = Sprite{extractImage(4, 3), baseOb, 11}
 
-	preMadeSprites[LEAF] = Sprite{extractImage(0, 0), leafOb, 92}
+	preMadeSprites[CURSER] = Sprite{extractImage(0, 4), baseOb, 100}
 
 }
 

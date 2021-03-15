@@ -46,6 +46,8 @@ func generateGame(ecsManager *ecs.Manager, width, height int) {
 	generateForest(ecsManager, width, height, 0, -height)
 
 	addPlayer(ecsManager, width/2, -5)
+	addWeapon(ecsManager, width/2+1, -5)
+
 }
 
 func addPlayer(ecsManager *ecs.Manager, x, y int) {
@@ -303,15 +305,19 @@ func addDoor(ecsManager *ecs.Manager, x, y int) {
 
 	keyEntity := ecsManager.AddEntity(key)
 
+	// locked compoentn isnt great, have to add compoennt twce if inversed
 	door := []ecs.Component{
 		{ecs.POSITION, ecs.Position{x, y}},
-		{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.DOOR)}},
-		{ecs.VOLUME, ecs.Volume{}}, // we have to add if locked component is inversed
+		{ecs.VOLUME, ecs.Volume{}},
+		{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.CLOSED_DOOR)}},
 		{ecs.LOCKABLE, ecs.Lockable{
 			keyEntity,
 			true,
-			ecs.Component{ecs.VOLUME, ecs.Volume{}},
-			true,
+			[]ecs.Component{
+				{ecs.VOLUME, ecs.Volume{}},
+				{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.CLOSED_DOOR)}}},
+			[]ecs.Component{
+				{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.OPEN_DOOR)}}},
 		}},
 	}
 
