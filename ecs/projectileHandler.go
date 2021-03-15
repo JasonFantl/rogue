@@ -111,7 +111,7 @@ func (s *ProjectileHandler) tryMoveProjectile(m *Manager, projectile Entity) (re
 
 			distance := projectileComponent.currentDx*projectileComponent.currentDx + projectileComponent.currentDy*projectileComponent.currentDy
 			if distance < projectileComponent.MaxDistance*projectileComponent.MaxDistance {
-				m.AddComponenet(projectile, Component{VOLUME, Volume{}})
+				m.setComponent(projectile, VOLUME, Volume{})
 				returnEvents = append(returnEvents, Event{TRY_MOVE, TryMove{dx, dy}, projectile})
 			}
 		}

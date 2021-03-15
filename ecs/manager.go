@@ -35,7 +35,7 @@ func (m *Manager) Start() {
 	m.running = true
 	// make sure to display
 	startingEvents := []Event{
-		{DEBUG_EVENT, DebugEvent{"waking up handlers"}, m.user.Controlling},
+		{WAKEUP_HANDLERS, WakeupHandlers{}, m.user.Controlling},
 	}
 	m.sendEvents(startingEvents)
 }
@@ -62,36 +62,10 @@ func (m *Manager) AddEntity(componenets []Component) Entity {
 	m.entityCounter++
 
 	for _, component := range componenets {
-		m.AddComponenet(entity, component)
+		m.setComponent(entity, component.ID, component.Data)
 	}
 
 	return entity
-}
-
-func (m *Manager) AddComponenet(entity Entity, component Component) bool {
-	// check component map is initalized
-	componentList, ok := m.entityTable[component.ID]
-	if !ok {
-		m.entityTable[component.ID] = make(map[Entity]interface{})
-	}
-
-	// check entity doesnt already have component
-	if _, ok := componentList[entity]; !ok {
-		m.entityTable[component.ID][entity] = component.Data
-
-		// for position lookup
-		if component.ID == POSITION {
-			positionComponent := component.Data.(Position)
-			m.positionLookup.add(map[Entity]bool{entity: true}, positionComponent.X, positionComponent.Y)
-		}
-
-		// manager special case
-		if component.ID == USER {
-			m.user = component.Data.(User)
-		}
-		return true
-	}
-	return false
 }
 
 func (m *Manager) getComponent(entity Entity, componentID ComponentID) (interface{}, bool) {
@@ -115,19 +89,29 @@ func (m *Manager) getComponents(componentID ComponentID) (map[Entity]interface{}
 }
 
 func (m *Manager) setComponent(entity Entity, componentID ComponentID, data interface{}) {
+	// check component map is initalized
+	_, ok := m.entityTable[componentID]
+	if !ok {
+		m.entityTable[componentID] = make(map[Entity]interface{})
+	}
+
 	// for position lookup
 	if componentID == POSITION {
+		newPosition := data.(Position)
 		oldPositionData, hasPosition := m.getComponent(entity, POSITION)
 		if hasPosition {
 			oldPosition := oldPositionData.(Position)
-			newPosition := data.(Position)
 			m.positionLookup.move(entity, oldPosition.X, oldPosition.Y, newPosition.X, newPosition.Y)
+		} else {
+			m.positionLookup.add(map[Entity]bool{entity: true}, newPosition.X, newPosition.Y)
 		}
 	}
 
-	_, ok := m.entityTable[componentID]
-	if ok {
-		m.entityTable[componentID][entity] = data
+	m.entityTable[componentID][entity] = data
+
+	// manager special case
+	if componentID == USER {
+		m.user = data.(User)
 	}
 }
 

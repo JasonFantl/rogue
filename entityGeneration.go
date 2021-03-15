@@ -169,7 +169,7 @@ func addTownsMember(ecsManager *ecs.Manager, x, y int) {
 func addTreasure(ecsManager *ecs.Manager, x, y int) {
 	treasure := []ecs.Component{
 		{ecs.POSITION, ecs.Position{x, y}},
-		{ecs.PICKUPABLE, ecs.Pickupable{}},
+		{ecs.STASHABLE, ecs.Stashable{}},
 	}
 
 	treasureInfos := [][]ecs.Component{
@@ -197,7 +197,7 @@ func addWeapon(ecsManager *ecs.Manager, x, y int) {
 
 	weapon := []ecs.Component{
 		{ecs.POSITION, ecs.Position{x, y}},
-		{ecs.PICKUPABLE, ecs.Pickupable{}},
+		{ecs.STASHABLE, ecs.Stashable{}},
 		{ecs.PROJECTILE, ecs.Projectile{}},
 	}
 
@@ -225,7 +225,7 @@ func addArmor(ecsManager *ecs.Manager, x, y int) {
 
 	armor := []ecs.Component{
 		{ecs.POSITION, ecs.Position{x, y}},
-		{ecs.PICKUPABLE, ecs.Pickupable{}},
+		{ecs.STASHABLE, ecs.Stashable{}},
 	}
 
 	armorInfos := [][]ecs.Component{
@@ -252,7 +252,7 @@ func addPotion(ecsManager *ecs.Manager, x, y int) {
 
 	potion := []ecs.Component{
 		{ecs.POSITION, ecs.Position{x, y}},
-		{ecs.PICKUPABLE, ecs.Pickupable{}},
+		{ecs.STASHABLE, ecs.Stashable{}},
 		{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.POTION)}},
 		{ecs.CONSUMABLE, ecs.Consumable{}},
 	}
@@ -300,7 +300,7 @@ func addDoor(ecsManager *ecs.Manager, x, y int) {
 	key := []ecs.Component{
 		{ecs.POSITION, ecs.Position{x + 1, y}},
 		{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.KEY)}},
-		{ecs.PICKUPABLE, ecs.Pickupable{}},
+		{ecs.STASHABLE, ecs.Stashable{}},
 	}
 
 	keyEntity := ecsManager.AddEntity(key)
@@ -308,13 +308,12 @@ func addDoor(ecsManager *ecs.Manager, x, y int) {
 	// locked compoentn isnt great, have to add compoennt twce if inversed
 	door := []ecs.Component{
 		{ecs.POSITION, ecs.Position{x, y}},
-		{ecs.VOLUME, ecs.Volume{}},
-		{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.CLOSED_DOOR)}},
 		{ecs.LOCKABLE, ecs.Lockable{
 			keyEntity,
 			true,
 			[]ecs.Component{
 				{ecs.VOLUME, ecs.Volume{}},
+				{ecs.OPAQUE, ecs.Opaque{}},
 				{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.CLOSED_DOOR)}}},
 			[]ecs.Component{
 				{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.OPEN_DOOR)}}},

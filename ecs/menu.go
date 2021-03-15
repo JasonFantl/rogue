@@ -73,7 +73,7 @@ func (menu *Menu) selectInventory(m *Manager) (returnEvents []Event) {
 	menu.updateSelectedInventoryItem(m)
 
 	switch menu.selectedInventoryItemAction {
-	case PICKUPABLE:
+	case STASHABLE:
 		returnEvents = append(returnEvents, Event{TRY_DROP, TryDrop{menu.selectedInventoryItem}, m.user.Controlling})
 	case CONSUMABLE:
 		returnEvents = append(returnEvents, Event{TRY_CONSUME, TryConsume{menu.selectedInventoryItem}, m.user.Controlling})
@@ -131,7 +131,7 @@ func (menu *Menu) showInventory(m *Manager) {
 			if item == menu.selectedInventoryItem {
 				informationString += " <- (e to "
 				switch menu.selectedInventoryItemAction {
-				case PICKUPABLE:
+				case STASHABLE:
 					informationString += "drop"
 				case CONSUMABLE:
 					informationString += "consume"
@@ -192,7 +192,7 @@ func (menu *Menu) updateSelectedInventoryItem(m *Manager) {
 
 			// select action
 			actions := make([]ComponentID, 0)
-			_, isPickupable := m.getComponent(menu.selectedInventoryItem, PICKUPABLE)
+			_, isPickupable := m.getComponent(menu.selectedInventoryItem, STASHABLE)
 			_, isWeapon := m.getComponent(menu.selectedInventoryItem, DAMAGE)
 			_, isArmor := m.getComponent(menu.selectedInventoryItem, DAMAGE_RESISTANCE)
 			_, isConsumable := m.getComponent(menu.selectedInventoryItem, CONSUMABLE)
@@ -208,7 +208,7 @@ func (menu *Menu) updateSelectedInventoryItem(m *Manager) {
 				actions = append(actions, DAMAGE_RESISTANCE)
 			}
 			if isPickupable {
-				actions = append(actions, PICKUPABLE)
+				actions = append(actions, STASHABLE)
 			}
 			if isProjectile {
 				actions = append(actions, PROJECTILE)
@@ -222,7 +222,7 @@ func (menu *Menu) updateSelectedInventoryItem(m *Manager) {
 				menu.selectedInventoryItemAction = actions[selectedLine]
 			} else {
 				// default is to drop
-				menu.selectedInventoryItemAction = PICKUPABLE
+				menu.selectedInventoryItemAction = STASHABLE
 			}
 		}
 	}

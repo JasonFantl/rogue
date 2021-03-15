@@ -5,6 +5,25 @@ type LockHandler struct{}
 
 func (h *LockHandler) handleEvent(m *Manager, event Event) (returnEvents []Event) {
 
+	if event.ID == WAKEUP_HANDLERS {
+
+		entities, _ := m.getComponents(LOCKABLE)
+		for entity := range entities {
+			lockableData, _ := m.getComponent(entity, LOCKABLE)
+			lockableComponent := lockableData.(Lockable)
+
+			if lockableComponent.Locked {
+				for _, component := range lockableComponent.LockedComponents {
+					m.setComponent(entity, component.ID, component.Data)
+				}
+			} else {
+				for _, component := range lockableComponent.UnlockedComponents {
+					m.setComponent(entity, component.ID, component.Data)
+				}
+			}
+		}
+	}
+
 	if event.ID == TRY_MOVE {
 		moveEvent := event.data.(TryMove)
 

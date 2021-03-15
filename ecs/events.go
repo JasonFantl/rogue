@@ -36,6 +36,7 @@ const (
 	DAMAGED
 	DIED
 	DEBUG_EVENT
+	WAKEUP_HANDLERS
 )
 
 type TimeStep struct{}
@@ -117,4 +118,7 @@ type Died struct {
 
 type DebugEvent struct {
 	err string
+}
+
+type WakeupHandlers struct {
 }

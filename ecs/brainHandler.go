@@ -43,7 +43,7 @@ func (h *BrainHandler) handleEvent(m *Manager, event Event) (returnEvents []Even
 					for _, row := range awarnessComponent.AwareOf {
 						for _, items := range row {
 							for item := range items {
-								if h.isTreasure(m, brain, item) {
+								if isTreasure(m, item) {
 									return true
 								}
 							}
@@ -61,11 +61,8 @@ func (h *BrainHandler) handleEvent(m *Manager, event Event) (returnEvents []Even
 				positionComponent := positionData.(Position)
 
 				entites := m.getEntitiesFromPos(positionComponent.X, positionComponent.Y)
-				for entity := range entites {
-					_, hasPickUpAble := m.getComponent(entity, PICKUPABLE)
-					_, hasStashed := m.getComponent(entity, STASHED_FLAG)
-					isTreasure := hasPickUpAble && !hasStashed
-					if isTreasure {
+				for item := range entites {
+					if isTreasure(m, item) {
 						actionPossibilities = append(actionPossibilities, PICKUP)
 						break // dont need to check anymore
 					}
@@ -148,7 +145,7 @@ func (h *BrainHandler) moveToTreasure(m *Manager, brain Entity) (returnEvents []
 	for itemX, row := range awarnessComponent.AwareOf {
 		for itemY, items := range row {
 			for item := range items {
-				if h.isTreasure(m, brain, item) {
+				if isTreasure(m, item) {
 					newDx := itemX - positionComponent.X
 					newDy := itemY - positionComponent.Y
 
@@ -198,10 +195,7 @@ func (s *BrainHandler) pickup(m *Manager, brain Entity) (returnEvents []Event) {
 
 	entities := m.getEntitiesFromPos(positionComponent.X, positionComponent.Y)
 	for entity := range entities {
-		_, hasPickUpAble := m.getComponent(entity, PICKUPABLE)
-		_, hasStashed := m.getComponent(entity, STASHED_FLAG)
-		isTreasure := hasPickUpAble && !hasStashed
-		if isTreasure {
+		if isTreasure(m, entity) {
 			returnEvents = append(returnEvents, Event{TRY_PICK_UP, TryPickUp{entity}, brain})
 			break // dont need to check anymore
 		}
@@ -210,18 +204,11 @@ func (s *BrainHandler) pickup(m *Manager, brain Entity) (returnEvents []Event) {
 	return returnEvents
 }
 
-// Needs to control for picking up only one item; right now just takes first treasure from the pile
-func (s *BrainHandler) isTreasure(m *Manager, brain, item Entity) bool {
-	_, hasPickupable := m.getComponent(item, PICKUPABLE)
-	stashedData, hasStashed := m.getComponent(item, STASHED_FLAG)
-
-	if hasPickupable && hasStashed {
-		stashedComponent := stashedData.(StashedFlag)
-		if stashedComponent.Parent != brain {
-			return true
-		}
-		return false
+func isTreasure(m *Manager, item Entity) bool {
+	stashableData, isStashable := m.getComponent(item, STASHABLE)
+	if isStashable {
+		stashableComponent := stashableData.(Stashable)
+		return !stashableComponent.Stashed
 	}
-
-	return hasPickupable
+	return false
 }

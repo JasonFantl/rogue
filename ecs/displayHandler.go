@@ -64,8 +64,13 @@ func (s *DisplayHandler) showGrid(m *Manager, entity Entity, displayRadius int) 
 				itemDisplayData, itemHasDisplay := m.getComponent(item, DISPLAYABLE)
 				if itemHasDisplay {
 					// we want to ignore stashed items
-					_, itemIsStashed := m.getComponent(item, STASHED_FLAG)
-					if !itemIsStashed {
+					shouldDisplay := true
+					stashableData, isStashable := m.getComponent(item, STASHABLE)
+					if isStashable {
+						stashableComponent := stashableData.(Stashable)
+						shouldDisplay = !stashableComponent.Stashed
+					}
+					if shouldDisplay {
 						itemDisplayComponent := itemDisplayData.(Displayable)
 						displayables = append(displayables, itemDisplayComponent.Sprite)
 					}
@@ -122,9 +127,7 @@ func (s *DisplayHandler) showBelowYou(m *Manager, entity Entity, displayRadius i
 		items := make([]Entity, 0)
 		belowYou := m.getEntitiesFromPos(positionComponent.X, positionComponent.Y)
 		for item := range belowYou {
-			_, hasPickupable := m.getComponent(item, PICKUPABLE)
-			_, isStashed := m.getComponent(item, STASHED_FLAG)
-			if hasPickupable && !isStashed {
+			if isTreasure(m, item) {
 				items = append(items, item)
 			}
 		}

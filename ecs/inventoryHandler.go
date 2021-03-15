@@ -92,13 +92,19 @@ func (h *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []
 	if event.ID == TRY_DROP {
 		tryDropEvent := event.data.(TryDrop)
 		inventoryData, hasInventory := m.getComponent(event.entity, INVENTORY)
+		// stashableData, hasStashable := m.getComponent(try, INVENTORY)
 
 		if hasInventory {
 			inventoryComponent := inventoryData.(Inventory)
 			delete(inventoryComponent.Items, tryDropEvent.what)
 		}
 
-		m.removeComponent(tryDropEvent.what, STASHED_FLAG)
+		stashableData, isStashable := m.getComponent(tryDropEvent.what, STASHABLE)
+		if isStashable {
+			stashableComponent := stashableData.(Stashable)
+			stashableComponent.Stashed = false
+			m.setComponent(tryDropEvent.what, STASHABLE, stashableComponent)
+		}
 
 		returnEvents = append(returnEvents, Event{DROPED, Dropped{event.entity}, tryDropEvent.what})
 	}
@@ -107,16 +113,26 @@ func (h *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []
 }
 
 func (h *InventoryHandler) isTreasure(m *Manager, entity Entity) bool {
-	_, pickupableOk := m.getComponent(entity, PICKUPABLE)
-	_, stashedOk := m.getComponent(entity, STASHED_FLAG)
+	stashableData, hasStashable := m.getComponent(entity, STASHABLE)
 
-	return pickupableOk && !stashedOk
+	if hasStashable {
+		stashableComponent := stashableData.(Stashable)
+		return !stashableComponent.Stashed
+	}
+	return false
 }
 
 // add stashed component to item MAKE SURE TO REMOVE WHEN DROPPED!
-func (h *InventoryHandler) pickup(m *Manager, entity, parent Entity, inventoryComponent Inventory) Event {
-	stashedComponent := Component{STASHED_FLAG, StashedFlag{parent}}
-	m.AddComponenet(entity, stashedComponent)
+func (h *InventoryHandler) pickup(m *Manager, item, parent Entity, inventoryComponent Inventory) Event {
+	// update stashed flag
+	stashableData, hasStashable := m.getComponent(item, STASHABLE)
+
+	if hasStashable {
+		stashableComponent := stashableData.(Stashable)
+		stashableComponent.Stashed = true
+		m.setComponent(item, STASHABLE, stashableComponent)
+
+	}
 
 	// make sure the inventory is inited
 	if inventoryComponent.Items == nil {
@@ -124,8 +140,8 @@ func (h *InventoryHandler) pickup(m *Manager, entity, parent Entity, inventoryCo
 	}
 
 	// then add it to our inventory
-	inventoryComponent.Items[entity] = true
+	inventoryComponent.Items[item] = true
 	m.setComponent(parent, INVENTORY, inventoryComponent)
 
-	return Event{PICKED_UP, PickedUp{parent}, entity}
+	return Event{PICKED_UP, PickedUp{parent}, item}
 }

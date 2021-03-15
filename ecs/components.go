@@ -31,8 +31,7 @@ const (
 	OPAQUE
 	DISPLAYABLE
 	MEMORABLE
-	PICKUPABLE
-	STASHED_FLAG
+	STASHABLE
 	USER
 	BRAIN
 	CONSUMABLE
@@ -87,14 +86,11 @@ type Information struct {
 	Name, Details string
 }
 
-type Pickupable struct {
+type Stashable struct {
+	Stashed bool
 }
 
 type Consumable struct {
-}
-
-type StashedFlag struct {
-	Parent Entity
 }
 
 type Health struct {
