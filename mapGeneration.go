@@ -74,7 +74,7 @@ func generateForest(ecsManager *ecs.Manager, width, height, xOff, yOff int) {
 	// generate path to cave
 	basePathWidth := 3
 
-	townHeight := 30
+	townHeight := height / 5
 
 	pathX := width / 2
 	pathY := height
@@ -179,7 +179,9 @@ func generateHouse(ecsManager *ecs.Manager, placed map[int]map[int]bool, width, 
 
 			if dx == -width/2 || dx == width/2 || dy == -height/2 || dy == height/2 {
 				// leave space for door
-				if !(dx == -direction*width/2 && dy == 0) {
+				if dx == -direction*width/2 && dy == 0 {
+					addDoor(ecsManager, x, y)
+				} else {
 					ecsManager.AddEntity(treeTrunk(x, y))
 				}
 			}

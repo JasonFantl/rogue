@@ -18,7 +18,7 @@ var (
 )
 
 func loadSprites() {
-	imgFile, err := ebitenutil.OpenFile("data/first.png")
+	imgFile, err := ebitenutil.OpenFile("data/spritesheet.png")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -54,6 +54,8 @@ const (
 	SILVER_COIN
 	GEM
 	POTION
+	KEY
+	DOOR
 )
 
 // priorities :
@@ -73,6 +75,7 @@ func loadPremadeSprites() {
 	preMadeSprites[STONE_WALL] = Sprite{extractImage(3, 0), baseOb, 98}
 	preMadeSprites[BLOOD] = Sprite{extractImage(4, 0), baseOb, 9}
 	preMadeSprites[TREE_TRUNK] = Sprite{extractImage(5, 0), baseOb, 91}
+	preMadeSprites[DOOR] = Sprite{extractImage(6, 0), baseOb, 91}
 
 	preMadeSprites[PLAYER] = Sprite{extractImage(0, 1), baseOb, 59}
 	preMadeSprites[MONSTER1] = Sprite{extractImage(1, 1), baseOb, 58}
@@ -88,6 +91,7 @@ func loadPremadeSprites() {
 	preMadeSprites[SILVER_COIN] = Sprite{extractImage(1, 3), baseOb, 11}
 	preMadeSprites[GEM] = Sprite{extractImage(2, 3), baseOb, 11}
 	preMadeSprites[POTION] = Sprite{extractImage(3, 3), baseOb, 11}
+	preMadeSprites[KEY] = Sprite{extractImage(4, 3), baseOb, 11}
 
 	preMadeSprites[LEAF] = Sprite{extractImage(0, 0), leafOb, 92}
 

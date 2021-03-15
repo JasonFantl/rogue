@@ -28,10 +28,12 @@ func (g *Game) Start() {
 	g.ecsManager.AddEventHandler(&ecs.BrainHandler{})
 	g.ecsManager.AddEventHandler(&ecs.AttackHandler{})
 	g.ecsManager.AddEventHandler(&ecs.MoveHandler{})
-	g.ecsManager.AddEventHandler(&ecs.EffectsHandler{})
+	g.ecsManager.AddEventHandler(&ecs.ReactionHandler{})
+	g.ecsManager.AddEventHandler(&ecs.LockHandler{})
 	g.ecsManager.AddEventHandler(&ecs.EquippingHandler{})
 	g.ecsManager.AddEventHandler(&ecs.InventoryHandler{})
 	// inventory before death, otherwise we cant drop all of its items
+	// should place handler that deletes items very carefully, proabably here at the end
 	g.ecsManager.AddEventHandler(&ecs.ConsumptionHandler{})
 	g.ecsManager.AddEventHandler(&ecs.DeathHandler{})
 
@@ -43,7 +45,7 @@ func (g *Game) Start() {
 	g.ecsManager.AddEventHandler(&ecs.DisplayHandler{})
 	g.ecsManager.AddEventHandler(&ecs.EventPrinterHandler{})
 
-	generateGame(&g.ecsManager, 200, 200)
+	generateGame(&g.ecsManager, 10, 10)
 
 	g.ecsManager.Start()
 

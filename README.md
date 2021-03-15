@@ -20,6 +20,10 @@
 * Traps
 * Throwable items
 * Shop keeper
+* Doors with keys
+* AI Brains
+* Dialoge with NPCs
+* More terrain (water, jungle, mountains, paths, cities, ports)
 * More complex monster AI (Fight each other, have inventory, field of view, etc)
 
 ### Dependencies

@@ -23,6 +23,8 @@ const (
 	PLAYER_TRY_PICK_UP // need to get rid of later, not necessary
 	PICKED_UP
 	TRY_CONSUME
+	TRY_UNLOCK
+	UNLOCKED
 	CONSUMED
 	TRY_ATTACK
 	DAMAGED
@@ -59,6 +61,13 @@ type PlayerTryPickUp struct {
 
 type PickedUp struct {
 	byWho Entity
+}
+
+type TryUnlock struct {
+	what Entity
+}
+
+type Unlocked struct {
 }
 
 type TryAttack struct {

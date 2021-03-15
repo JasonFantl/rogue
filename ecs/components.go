@@ -20,7 +20,7 @@ const (
 	HEALTH
 	INVENTORY
 	INFORMATION
-	EFFECTS
+	REACTIONS
 	ENTITY_AWARENESS
 	ENTITY_MEMORY
 	VISION
@@ -36,6 +36,7 @@ const (
 	USER
 	BRAIN
 	CONSUMABLE
+	LOCKABLE
 )
 
 type Position struct {
@@ -116,6 +117,13 @@ type DamageResistance struct {
 type Opaque struct {
 }
 
-type Effects struct {
-	Effects []Effect
+type Reactions struct {
+	Reactions []Reaction
+}
+
+type Lockable struct {
+	Key      Entity
+	Locked   bool
+	Locking  Component
+	Inversed bool
 }
