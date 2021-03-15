@@ -15,5 +15,9 @@ func (h *ConsumptionHandler) handleEvent(m *Manager, event Event) (returnEvents 
 		}
 	}
 
+	if event.ID == CONSUMED {
+		m.removeEntity(event.entity)
+	}
+
 	return returnEvents
 }

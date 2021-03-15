@@ -30,6 +30,7 @@ func (g *Game) Start() {
 	g.ecsManager.AddEventHandler(&ecs.MoveHandler{})
 	g.ecsManager.AddEventHandler(&ecs.ReactionHandler{})
 	g.ecsManager.AddEventHandler(&ecs.LockHandler{})
+	g.ecsManager.AddEventHandler(&ecs.ProjectileHandler{})
 	g.ecsManager.AddEventHandler(&ecs.EquippingHandler{})
 	g.ecsManager.AddEventHandler(&ecs.InventoryHandler{})
 	// inventory before death, otherwise we cant drop all of its items

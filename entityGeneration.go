@@ -196,6 +196,7 @@ func addWeapon(ecsManager *ecs.Manager, x, y int) {
 	weapon := []ecs.Component{
 		{ecs.POSITION, ecs.Position{x, y}},
 		{ecs.PICKUPABLE, ecs.Pickupable{}},
+		{ecs.PROJECTILE, ecs.Projectile{}},
 	}
 
 	weaponInfos := [][]ecs.Component{

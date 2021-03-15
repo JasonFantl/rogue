@@ -18,9 +18,8 @@ func (s *AttackHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 
 		// get entitys current position and if it can attack
 		positionData, hasPosition := m.getComponent(event.entity, POSITION)
-		_, isfighter := m.getComponent(event.entity, FIGHTER)
 
-		if hasPosition && isfighter {
+		if hasPosition {
 			positionComponent := positionData.(Position)
 
 			// now check if new location is occupied by something with health
@@ -46,25 +45,35 @@ func (s *AttackHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 
 		// get components
 		attackedHealthData, attackedHasHealth := m.getComponent(tryAttackEvent.who, HEALTH)
-		fighterData, isFighter := m.getComponent(event.entity, FIGHTER)
 
-		if attackedHasHealth && isFighter {
+		if attackedHasHealth {
 			attackedHealthComponent := attackedHealthData.(Health)
-			fighterComponent := fighterData.(Fighter)
 
-			// base dmage
-			damage := fighterComponent.Strength
+			damage := 0
 
-			// weapon damage
-			// check if we have a weapon, otherwise use self as weapon
-			weapon := fighterComponent.Weapon
-			if weapon == 0 {
-				weapon = event.entity
-			}
-			damageData, doesDamage := m.getComponent(weapon, DAMAGE)
-			if doesDamage {
-				damageComponent := damageData.(Damage)
-				damage += damageComponent.Amount
+			fighterData, isFighter := m.getComponent(event.entity, FIGHTER)
+			if isFighter {
+				fighterComponent := fighterData.(Fighter)
+
+				damage += fighterComponent.Strength
+
+				// weapon damage
+				// check if we have a weapon, otherwise use self as weapon
+				weapon := fighterComponent.Weapon
+				if weapon == 0 {
+					weapon = event.entity
+				}
+				damageData, doesDamage := m.getComponent(weapon, DAMAGE)
+				if doesDamage {
+					damageComponent := damageData.(Damage)
+					damage += damageComponent.Amount
+				}
+			} else { // if not a fighter, use self
+				damageData, doesDamage := m.getComponent(event.entity, DAMAGE)
+				if doesDamage {
+					damageComponent := damageData.(Damage)
+					damage += damageComponent.Amount
+				}
 			}
 
 			// armor protection

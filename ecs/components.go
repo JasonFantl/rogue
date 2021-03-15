@@ -36,6 +36,7 @@ const (
 	USER
 	BRAIN
 	CONSUMABLE
+	PROJECTILE
 	LOCKABLE
 )
 
@@ -126,4 +127,10 @@ type Lockable struct {
 	Locked   bool
 	Locking  Component
 	Inversed bool
+}
+
+type Projectile struct {
+	MaxDistance int
+	Traveled    int
+	Travling    bool
 }

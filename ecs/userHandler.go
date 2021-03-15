@@ -65,7 +65,7 @@ func (h *UserHandler) handlePlaying(m *Manager, key ebiten.Key) (returnEvents []
 			Event{PLAYER_TRY_PICK_UP, PlayerTryPickUp{}, m.user.Controlling},
 		)
 	case m.user.MenuKey:
-		m.user.Menu.active = true
+		m.user.Menu.open(m)
 	case m.user.QuitKey:
 		returnEvents = append(returnEvents,
 			Event{QUIT, Quit{}, m.user.Controlling},
@@ -88,14 +88,17 @@ func (h *UserHandler) handleMenu(m *Manager, key ebiten.Key) (returnEvents []Eve
 
 	switch key {
 	case m.user.DownKey:
-		m.user.Menu.curserDown(m)
+		m.user.Menu.moveCurser(m, 0, 1)
 	case m.user.UpKey:
-		m.user.Menu.curserUp(m)
+		m.user.Menu.moveCurser(m, 0, -1)
+	case m.user.LeftKey:
+		m.user.Menu.moveCurser(m, -1, 0)
+	case m.user.RightKey:
+		m.user.Menu.moveCurser(m, 1, 0)
 	case m.user.PickupKey:
-		returnEvents = append(returnEvents, m.user.Menu.curserSelect(m)...)
+		returnEvents = append(returnEvents, m.user.Menu.selectAtCurser(m)...)
 	case m.user.MenuKey:
-		m.user.Menu.active = false
-		m.user.Menu.curserReset()
+		m.user.Menu.close(m)
 	case m.user.QuitKey:
 		returnEvents = append(returnEvents,
 			Event{QUIT, Quit{}, m.user.Controlling},

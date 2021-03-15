@@ -45,12 +45,12 @@ func (h *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []
 
 	if event.ID == CONSUMED {
 		consumedEvent := event.data.(Consumed)
-		inventoryData, hasInventory := m.getComponent(consumedEvent.byWho, INVENTORY)
+		returnEvents = append(returnEvents, Event{TRY_DROP, TryDrop{event.entity}, consumedEvent.byWho})
+	}
 
-		if hasInventory {
-			inventoryComponent := inventoryData.(Inventory)
-			delete(inventoryComponent.Items, event.entity)
-		}
+	if event.ID == TRY_LAUNCH {
+		tryLaunchEvent := event.data.(TryLaunch)
+		returnEvents = append(returnEvents, Event{TRY_DROP, TryDrop{tryLaunchEvent.what}, event.entity})
 	}
 
 	if event.ID == MOVED {
@@ -84,9 +84,23 @@ func (h *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []
 		if hasInventory {
 			inventoryComponent := inventoryData.(Inventory)
 			for item := range inventoryComponent.Items {
-				m.removeComponent(item, STASHED_FLAG)
+				returnEvents = append(returnEvents, Event{TRY_DROP, TryDrop{item}, event.entity})
 			}
 		}
+	}
+
+	if event.ID == TRY_DROP {
+		tryDropEvent := event.data.(TryDrop)
+		inventoryData, hasInventory := m.getComponent(event.entity, INVENTORY)
+
+		if hasInventory {
+			inventoryComponent := inventoryData.(Inventory)
+			delete(inventoryComponent.Items, tryDropEvent.what)
+		}
+
+		m.removeComponent(tryDropEvent.what, STASHED_FLAG)
+
+		returnEvents = append(returnEvents, Event{DROPED, Dropped{event.entity}, tryDropEvent.what})
 	}
 
 	return returnEvents

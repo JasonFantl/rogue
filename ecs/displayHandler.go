@@ -247,48 +247,5 @@ func (s *DisplayHandler) showEquiped(m *Manager, entity Entity, displayRadius in
 }
 
 func (h *DisplayHandler) showMenu(m *Manager) {
-	inventoryData, hasInventory := m.getComponent(m.user.Controlling, INVENTORY)
-
-	if hasInventory {
-		inventoryComponent := inventoryData.(Inventory)
-
-		keys := make([]int, 0)
-		for k := range inventoryComponent.Items {
-			keys = append(keys, int(k))
-		}
-		sort.Ints(keys)
-
-		selectedItem := m.user.Menu.getSelected(m)
-
-		inventoryText := "Inventory: "
-
-		for _, key := range keys {
-			item := Entity(key)
-
-			informationString := "? : no information on item"
-			informationData, informationOk := m.getComponent(item, INFORMATION)
-			if informationOk {
-				informationComponent := informationData.(Information)
-				informationString = informationComponent.Name
-			}
-
-			if item == selectedItem {
-				// display info
-				if informationOk {
-					informationComponent := informationData.(Information)
-					informationString += "\n    " + informationComponent.Details
-				}
-
-				_, isConsumable := m.getComponent(item, CONSUMABLE)
-				if isConsumable {
-					informationString += "\n    e to consume"
-				}
-				informationString = "\n- " + informationString
-			} else {
-				informationString = "\n  " + informationString
-			}
-			inventoryText += informationString
-		}
-		gui.DrawTextUncentered(0, 0, inventoryText)
-	}
+	m.user.Menu.show(m)
 }
