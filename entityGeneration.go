@@ -66,7 +66,7 @@ func addPlayer(ecsManager *ecs.Manager, x, y int) {
 		{ecs.VOLUME, ecs.Volume{}},
 		{ecs.FIGHTER, ecs.Fighter{10, 0, 0}},
 		{ecs.DAMAGE, ecs.Damage{1}},
-		{ecs.HEALTH, ecs.Health{100, 80}},
+		{ecs.HEALTH, ecs.Health{100, 10}},
 	}
 
 	playerID := ecsManager.AddEntity(player)

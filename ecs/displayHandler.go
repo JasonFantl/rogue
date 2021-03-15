@@ -127,7 +127,7 @@ func (s *DisplayHandler) showBelowYou(m *Manager, entity Entity, displayRadius i
 		items := make([]Entity, 0)
 		belowYou := m.getEntitiesFromPos(positionComponent.X, positionComponent.Y)
 		for item := range belowYou {
-			if isTreasure(m, item) {
+			if isStashableTreasure(m, item) {
 				items = append(items, item)
 			}
 		}

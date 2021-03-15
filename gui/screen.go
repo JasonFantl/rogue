@@ -6,6 +6,7 @@ import (
 
 	"github.com/hajimehoshi/bitmapfont/v2"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/text"
 )
 
@@ -39,7 +40,8 @@ func DrawTextUncentered(x, y int, inText string) {
 }
 
 func Debug(text string) {
-	// ebitenutil.DebugPrint(screen, text)
+	// return
+	ebitenutil.DebugPrint(screen, text)
 }
 
 func DisplaySprite(x, y int, sprite Sprite) {
