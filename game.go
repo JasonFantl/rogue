@@ -46,7 +46,7 @@ func (g *Game) Start() {
 	g.ecsManager.AddEventHandler(&ecs.DisplayHandler{})
 	g.ecsManager.AddEventHandler(&ecs.EventPrinterHandler{})
 
-	generateGame(&g.ecsManager, 10, 10)
+	generateGame(&g.ecsManager, 200, 200)
 
 	g.ecsManager.Start()
 

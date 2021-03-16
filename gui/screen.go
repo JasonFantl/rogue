@@ -13,7 +13,7 @@ import (
 const (
 	screenWidth  = 800
 	screenHeight = 500
-	screenScale  = 100.0
+	screenScale  = 200.0
 )
 
 var (
@@ -40,7 +40,7 @@ func DrawTextUncentered(x, y int, inText string) {
 }
 
 func Debug(text string) {
-	// return
+	return
 	ebitenutil.DebugPrint(screen, text)
 }
 

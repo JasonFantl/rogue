@@ -83,30 +83,33 @@ func (s *ProjectileHandler) tryMoveProjectile(m *Manager, projectile Entity) (re
 
 			if projectileComponent.goalDx > projectileComponent.currentDx {
 				dx = 1
-			} else {
+			} else if projectileComponent.goalDx < projectileComponent.currentDx {
 				dx = -1
 			}
 			if projectileComponent.goalDy > projectileComponent.currentDy {
 				dy = 1
-			} else {
+			} else if projectileComponent.goalDy < projectileComponent.currentDy {
 				dy = -1
 			}
 
-			// how to best check next move?
-			theta := math.Atan2(float64(projectileComponent.goalDx), float64(projectileComponent.goalDy))
+			if dx != 0 && dy != 0 {
 
-			possibleX := float64(projectileComponent.currentDx + dx)
-			possibleY := float64(projectileComponent.currentDy)
-			rotatedXFrommovingX := math.Cos(theta)*possibleX - math.Sin(theta)*possibleY
+				// how to best check next move?
+				theta := math.Atan2(float64(projectileComponent.goalDx), float64(projectileComponent.goalDy))
 
-			possibleX = float64(projectileComponent.currentDx)
-			possibleY = float64(projectileComponent.currentDy + dy)
-			rotatedXFrommovingY := math.Cos(theta)*possibleX - math.Sin(theta)*possibleY
+				possibleX := float64(projectileComponent.currentDx + dx)
+				possibleY := float64(projectileComponent.currentDy)
+				rotatedXFrommovingX := math.Cos(theta)*possibleX - math.Sin(theta)*possibleY
 
-			if math.Abs(rotatedXFrommovingX) < math.Abs(rotatedXFrommovingY) {
-				dy = 0
-			} else {
-				dx = 0
+				possibleX = float64(projectileComponent.currentDx)
+				possibleY = float64(projectileComponent.currentDy + dy)
+				rotatedXFrommovingY := math.Cos(theta)*possibleX - math.Sin(theta)*possibleY
+
+				if math.Abs(rotatedXFrommovingX) < math.Abs(rotatedXFrommovingY) {
+					dy = 0
+				} else {
+					dx = 0
+				}
 			}
 
 			distance := projectileComponent.currentDx*projectileComponent.currentDx + projectileComponent.currentDy*projectileComponent.currentDy

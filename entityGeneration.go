@@ -60,13 +60,13 @@ func addPlayer(ecsManager *ecs.Manager, x, y int) {
 		{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.PLAYER)}},
 		{ecs.ENTITY_AWARENESS, ecs.EntityAwarness{}},
 		{ecs.ENTITY_MEMORY, ecs.EntityMemory{}},
-		{ecs.VISION, ecs.Vision{20}},
+		{ecs.VISION, ecs.Vision{10}},
 		{ecs.INVENTORY, ecs.Inventory{}},
 		{ecs.INFORMATION, ecs.Information{"Player", "the hero of our story"}},
 		{ecs.VOLUME, ecs.Volume{}},
 		{ecs.FIGHTER, ecs.Fighter{10, 0, 0}},
 		{ecs.DAMAGE, ecs.Damage{1}},
-		{ecs.HEALTH, ecs.Health{100, 10}},
+		{ecs.HEALTH, ecs.Health{100, 90}},
 	}
 
 	playerID := ecsManager.AddEntity(player)

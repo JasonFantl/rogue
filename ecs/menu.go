@@ -1,7 +1,6 @@
 package ecs
 
 import (
-	"fmt"
 	"sort"
 
 	"github.com/jasonfantl/rogue/gui"
@@ -161,7 +160,6 @@ func (menu *Menu) showInventory(m *Manager) {
 			if selectedLine < 0 {
 				selectedLine += len(keys)
 			}
-			inventoryText += fmt.Sprintf("\n%v %v", keys[selectedLine], menu.selectedInventoryItem)
 		}
 		gui.DrawTextUncentered(0, 0, inventoryText)
 	}
