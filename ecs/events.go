@@ -37,6 +37,7 @@ const (
 	DIED
 	DEBUG_EVENT
 	WAKEUP_HANDLERS
+	SETTING_CHANGE
 )
 
 type TimeStep struct{}
@@ -121,4 +122,9 @@ type DebugEvent struct {
 }
 
 type WakeupHandlers struct {
+}
+
+type SettingChange struct {
+	field string
+	value int
 }

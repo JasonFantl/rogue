@@ -13,11 +13,11 @@ import (
 const (
 	screenWidth  = 800
 	screenHeight = 500
-	screenScale  = 200.0
 )
 
 var (
-	screen *ebiten.Image = ebiten.NewImage(Dimensions())
+	screen      *ebiten.Image = ebiten.NewImage(Dimensions())
+	spriteScale               = 1.0
 )
 
 func Setup() {
@@ -26,30 +26,37 @@ func Setup() {
 }
 
 func DrawText(x, y int, inText string) {
-	x, y = screenCords(x, y)
+	nx, ny := screenCords(float64(x), float64(y))
 	// then center text
 	textWidth := text.BoundString(bitmapfont.Face, inText).Dx()
-	x -= textWidth / 2
-	text.Draw(screen, inText, bitmapfont.Face, x, y, color.White)
+	nx -= float64(textWidth) / 2
+	text.Draw(screen, inText, bitmapfont.Face, int(nx), int(ny), color.White)
 }
 
 // need to implement this properly
 func DrawTextUncentered(x, y int, inText string) {
-	x, y = screenCords(x, y)
-	text.Draw(screen, inText, bitmapfont.Face, x, y, color.White)
+	nx, ny := screenCords(float64(x), float64(y))
+	text.Draw(screen, inText, bitmapfont.Face, int(nx), int(ny), color.White)
 }
 
 func Debug(text string) {
-	return
+	// return
 	ebitenutil.DebugPrint(screen, text)
 }
 
 func DisplaySprite(x, y int, sprite Sprite) {
 
-	x, y = screenCords(x, y)
+	scaledX := float64(x*tileSize) * spriteScale
+	scaledY := float64(y*tileSize) * spriteScale
 
-	sprite.Options.GeoM.Scale(screenScale/100.0, screenScale/100.0)
-	sprite.Options.GeoM.Translate(float64(x), float64(y))
+	scaledX, scaledY = screenCords(scaledX, scaledY)
+
+	// offset by sprite size since drawn from corner
+	scaledX -= tileSize
+	scaledY -= tileSize
+
+	sprite.Options.GeoM.Scale(spriteScale, spriteScale)
+	sprite.Options.GeoM.Translate(scaledX, scaledY)
 
 	screen.DrawImage(sprite.Image, &sprite.Options)
 }
@@ -64,8 +71,12 @@ func DisplaySprites(x, y int, sprites []Sprite) {
 	}
 }
 
-func screenCords(x, y int) (int, int) {
-	return x*tileSize*screenScale/100 + screenWidth/2, y*tileSize*screenScale/100 + screenHeight/2
+func SpecialSetSpriteScale(total, new int) {
+	spriteScale = float64(total) / float64(new*tileSize)
+}
+
+func screenCords(x, y float64) (float64, float64) {
+	return x + screenWidth/2, y + screenHeight/2
 }
 
 func Clear() {

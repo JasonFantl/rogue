@@ -11,34 +11,14 @@ type MenuState uint
 const (
 	SHOWING_IVENTORY MenuState = iota
 	SHOWING_PROJECTILE
+	SHOWING_SETTINGS
 )
 
 type Menu struct {
-	active                      bool
-	state                       MenuState
-	cursorX, cursorY            int
-	selectedInventoryItem       Entity
-	selectedInventoryItemAction ComponentID
-}
-
-func (menu *Menu) moveCurser(m *Manager, dx, dy int) {
-	menu.cursorX += dx
-	menu.cursorY += dy
-
-	if menu.state == SHOWING_IVENTORY {
-		menu.updateSelectedInventoryItem(m)
-	}
-}
-
-func (menu *Menu) selectAtCurser(m *Manager) (returnEvents []Event) {
-	switch menu.state {
-	case SHOWING_IVENTORY:
-		returnEvents = append(returnEvents, menu.selectInventory(m)...)
-	case SHOWING_PROJECTILE:
-		returnEvents = append(returnEvents, menu.selectProjectile(m)...)
-	}
-
-	return returnEvents
+	active           bool
+	state            MenuState
+	cursorX, cursorY int
+	projectileItem   Entity
 }
 
 func (menu *Menu) close(m *Manager) {
@@ -54,38 +34,6 @@ func (menu *Menu) open(m *Manager) {
 func (menu *Menu) reset(m *Manager) {
 	menu.cursorX, menu.cursorY = 0, 0
 	menu.state = SHOWING_IVENTORY
-	menu.updateSelectedInventoryItem(m)
-}
-
-func (menu *Menu) selectProjectile(m *Manager) (returnEvents []Event) {
-
-	_, isProjectile := m.getComponent(menu.selectedInventoryItem, PROJECTILE)
-	if isProjectile {
-		returnEvents = append(returnEvents, Event{TIMESTEP, TimeStep{}, m.user.Controlling})
-		returnEvents = append(returnEvents, Event{TRY_LAUNCH, TryLaunch{menu.selectedInventoryItem, menu.cursorX, menu.cursorY}, m.user.Controlling})
-		menu.close(m)
-	}
-	return returnEvents
-}
-
-func (menu *Menu) selectInventory(m *Manager) (returnEvents []Event) {
-	menu.updateSelectedInventoryItem(m)
-
-	switch menu.selectedInventoryItemAction {
-	case STASHABLE:
-		returnEvents = append(returnEvents, Event{TRY_DROP, TryDrop{menu.selectedInventoryItem}, m.user.Controlling})
-	case CONSUMABLE:
-		returnEvents = append(returnEvents, Event{TRY_CONSUME, TryConsume{menu.selectedInventoryItem}, m.user.Controlling})
-	case DAMAGE:
-		returnEvents = append(returnEvents, Event{TRY_EQUIP_WEAPON, TryEquip{menu.selectedInventoryItem}, m.user.Controlling})
-	case DAMAGE_RESISTANCE:
-		returnEvents = append(returnEvents, Event{TRY_EQUIP_ARMOR, TryEquip{menu.selectedInventoryItem}, m.user.Controlling})
-	case PROJECTILE:
-		menu.cursorX, menu.cursorY = 0, 0
-		menu.state = SHOWING_PROJECTILE
-	}
-
-	return returnEvents
 }
 
 func (menu *Menu) show(m *Manager) {
@@ -94,17 +42,147 @@ func (menu *Menu) show(m *Manager) {
 		menu.showInventory(m)
 	case SHOWING_PROJECTILE:
 		menu.showProjectile(m)
+	case SHOWING_SETTINGS:
+		menu.showSettings(m)
 	}
+}
+
+func (menu *Menu) moveCurser(m *Manager, dx, dy int) {
+	menu.cursorX += dx
+	menu.cursorY += dy
+}
+
+func (menu *Menu) selectAtCurser(m *Manager) (returnEvents []Event) {
+	switch menu.state {
+	case SHOWING_IVENTORY:
+		returnEvents = append(returnEvents, menu.selectInventory(m)...)
+	case SHOWING_PROJECTILE:
+		returnEvents = append(returnEvents, menu.selectProjectile(m)...)
+	case SHOWING_SETTINGS:
+		returnEvents = append(returnEvents, menu.selectSettings(m)...)
+	}
+	return returnEvents
+}
+
+func (menu *Menu) selectProjectile(m *Manager) (returnEvents []Event) {
+
+	_, isProjectile := m.getComponent(menu.projectileItem, PROJECTILE)
+	if isProjectile {
+		returnEvents = append(returnEvents, Event{TIMESTEP, TimeStep{}, m.user.Controlling})
+		returnEvents = append(returnEvents, Event{TRY_LAUNCH, TryLaunch{menu.projectileItem, menu.cursorX, menu.cursorY}, m.user.Controlling})
+		menu.close(m)
+	}
+	return returnEvents
+}
+
+var menuSettings = map[string][]string{
+	"Zoom": {"In", "Out"},
+}
+
+func (menu *Menu) selectSettings(m *Manager) (returnEvents []Event) {
+
+	selectedSetting, selectedSettingValue := menu.getSelectedSetting()
+	if selectedSetting == "menu switch" {
+		menu.state = SHOWING_IVENTORY
+	} else {
+		switch selectedSetting {
+		case "Zoom":
+			switch selectedSettingValue {
+			case "In":
+				returnEvents = append(returnEvents, Event{SETTING_CHANGE, SettingChange{"zoom", -1}, m.user.Controlling})
+			case "Out":
+				returnEvents = append(returnEvents, Event{SETTING_CHANGE, SettingChange{"zoom", 1}, m.user.Controlling})
+			}
+		}
+	}
+	return returnEvents
+}
+
+func (menu *Menu) selectInventory(m *Manager) (returnEvents []Event) {
+	selectedInventoryItem, selectedInventoryItemAction := menu.getSelectedInventoryItem(m)
+
+	if selectedInventoryItem == 0 { // selected switch menu
+		menu.state = SHOWING_SETTINGS
+	} else {
+		switch selectedInventoryItemAction {
+		case STASHABLE:
+			returnEvents = append(returnEvents, Event{TRY_DROP, TryDrop{selectedInventoryItem}, m.user.Controlling})
+		case CONSUMABLE:
+			returnEvents = append(returnEvents, Event{TRY_CONSUME, TryConsume{selectedInventoryItem}, m.user.Controlling})
+		case DAMAGE:
+			returnEvents = append(returnEvents, Event{TRY_EQUIP_WEAPON, TryEquip{selectedInventoryItem}, m.user.Controlling})
+		case DAMAGE_RESISTANCE:
+			returnEvents = append(returnEvents, Event{TRY_EQUIP_ARMOR, TryEquip{selectedInventoryItem}, m.user.Controlling})
+		case PROJECTILE:
+			menu.cursorX, menu.cursorY = 0, 0
+			menu.state = SHOWING_PROJECTILE
+			menu.projectileItem = selectedInventoryItem
+		}
+	}
+
+	return returnEvents
 }
 
 func (menu *Menu) showProjectile(m *Manager) {
 	gui.DisplaySprite(menu.cursorX, menu.cursorY, gui.GetSprite(gui.CURSER))
 }
 
+func (menu *Menu) showSettings(m *Manager) {
+	menuText := "Settings: "
+
+	selectedSetting, selectedSettingOption := menu.getSelectedSetting()
+	if selectedSetting == "menu switch" {
+		menuText += "switch to inventory"
+	}
+
+	for setting, _ := range menuSettings {
+		settingText := setting
+		if setting == selectedSetting {
+			settingText = "\n- " + setting + " <- " + selectedSettingOption + " ->"
+		} else {
+			settingText = "\n  " + setting
+		}
+		menuText += settingText
+	}
+
+	gui.DrawTextUncentered(0, 0, menuText)
+}
+
+func (menu *Menu) getSelectedSetting() (string, string) {
+	selectedLineY := menu.cursorY % (len(menuSettings) + 1)
+	if selectedLineY < 0 {
+		selectedLineY += len(menuSettings) + 1
+	}
+
+	if selectedLineY == 0 {
+		return "menu switch", ""
+	}
+	selectedLineY--
+
+	if len(menuSettings) > 0 {
+		keys := make([]string, 0)
+		for k := range menuSettings {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+
+		setting := keys[selectedLineY]
+		selectedLineX := menu.cursorX % len(menuSettings[setting])
+		if selectedLineX < 0 {
+			selectedLineX += len(menuSettings[setting])
+		}
+		option := menuSettings[setting][selectedLineX]
+
+		return setting, option
+	}
+	return "menu switch", ""
+}
+
 func (menu *Menu) showInventory(m *Manager) {
-	menu.updateSelectedInventoryItem(m)
 
 	inventoryData, hasInventory := m.getComponent(m.user.Controlling, INVENTORY)
+
+	selectedInventoryItem, selectedInventoryItemAction := menu.getSelectedInventoryItem(m)
 
 	if hasInventory {
 		inventoryComponent := inventoryData.(Inventory)
@@ -117,6 +195,10 @@ func (menu *Menu) showInventory(m *Manager) {
 
 		inventoryText := "Inventory: "
 
+		if selectedInventoryItem == 0 { //selecting inventory
+			inventoryText += "switch to settings"
+		}
+
 		for _, key := range keys {
 			item := Entity(key)
 
@@ -127,9 +209,9 @@ func (menu *Menu) showInventory(m *Manager) {
 				informationString = informationComponent.Name
 			}
 
-			if item == menu.selectedInventoryItem {
-				informationString += " <- (e to "
-				switch menu.selectedInventoryItemAction {
+			if item == selectedInventoryItem {
+				informationString += ": <- "
+				switch selectedInventoryItemAction {
 				case STASHABLE:
 					informationString += "drop"
 				case CONSUMABLE:
@@ -140,8 +222,10 @@ func (menu *Menu) showInventory(m *Manager) {
 					informationString += "equip as armor"
 				case PROJECTILE:
 					informationString += "throw"
+				case INFORMATION:
+					informationString += "inspect"
 				}
-				informationString += ") ->"
+				informationString += " ->"
 
 				// display info
 				if informationOk {
@@ -165,10 +249,8 @@ func (menu *Menu) showInventory(m *Manager) {
 	}
 }
 
-func (menu *Menu) updateSelectedInventoryItem(m *Manager) {
+func (menu *Menu) getSelectedInventoryItem(m *Manager) (Entity, ComponentID) {
 	inventoryData, hasInventory := m.getComponent(m.user.Controlling, INVENTORY)
-
-	menu.selectedInventoryItem = Entity(0)
 
 	if hasInventory {
 		inventoryComponent := inventoryData.(Inventory)
@@ -180,48 +262,56 @@ func (menu *Menu) updateSelectedInventoryItem(m *Manager) {
 		sort.Ints(keys)
 
 		if len(keys) > 0 {
-			selectedLine := menu.cursorY % len(keys)
+			selectedLine := menu.cursorY % (len(keys) + 1)
 			if selectedLine < 0 {
-				selectedLine += len(keys)
+				selectedLine += len(keys) + 1
 			}
 
-			// select item
-			menu.selectedInventoryItem = Entity(keys[selectedLine])
+			if selectedLine != 0 {
+				selectedLine--
+				// select item
+				selectedInventoryItem := Entity(keys[selectedLine])
+				selectedInventoryItemAction := STASHABLE //defaults to dropping
 
-			// select action
-			actions := make([]ComponentID, 0)
-			_, isPickupable := m.getComponent(menu.selectedInventoryItem, STASHABLE)
-			_, isWeapon := m.getComponent(menu.selectedInventoryItem, DAMAGE)
-			_, isArmor := m.getComponent(menu.selectedInventoryItem, DAMAGE_RESISTANCE)
-			_, isConsumable := m.getComponent(menu.selectedInventoryItem, CONSUMABLE)
-			_, isProjectile := m.getComponent(menu.selectedInventoryItem, PROJECTILE)
+				// select action
+				actions := make([]ComponentID, 0)
+				_, isPickupable := m.getComponent(selectedInventoryItem, STASHABLE)
+				_, isWeapon := m.getComponent(selectedInventoryItem, DAMAGE)
+				_, isArmor := m.getComponent(selectedInventoryItem, DAMAGE_RESISTANCE)
+				_, isConsumable := m.getComponent(selectedInventoryItem, CONSUMABLE)
+				_, isProjectile := m.getComponent(selectedInventoryItem, PROJECTILE)
+				_, hasInformation := m.getComponent(selectedInventoryItem, INFORMATION)
 
-			if isConsumable {
-				actions = append(actions, CONSUMABLE)
-			}
-			if isWeapon {
-				actions = append(actions, DAMAGE)
-			}
-			if isArmor {
-				actions = append(actions, DAMAGE_RESISTANCE)
-			}
-			if isPickupable {
-				actions = append(actions, STASHABLE)
-			}
-			if isProjectile {
-				actions = append(actions, PROJECTILE)
-			}
-
-			if len(actions) > 0 {
-				selectedLine = menu.cursorX % len(actions)
-				if selectedLine < 0 {
-					selectedLine += len(actions)
+				if isConsumable {
+					actions = append(actions, CONSUMABLE)
 				}
-				menu.selectedInventoryItemAction = actions[selectedLine]
-			} else {
-				// default is to drop
-				menu.selectedInventoryItemAction = STASHABLE
+				if isWeapon {
+					actions = append(actions, DAMAGE)
+				}
+				if isArmor {
+					actions = append(actions, DAMAGE_RESISTANCE)
+				}
+				if isPickupable {
+					actions = append(actions, STASHABLE)
+				}
+				if isProjectile {
+					actions = append(actions, PROJECTILE)
+				}
+				if hasInformation {
+					actions = append(actions, INFORMATION)
+				}
+
+				if len(actions) > 0 {
+					selectedLine = menu.cursorX % len(actions)
+					if selectedLine < 0 {
+						selectedLine += len(actions)
+					}
+					selectedInventoryItemAction = actions[selectedLine]
+				}
+
+				return selectedInventoryItem, selectedInventoryItemAction
 			}
 		}
 	}
+	return Entity(0), 0
 }
