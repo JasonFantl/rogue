@@ -49,6 +49,8 @@ func (reaction VisionIncreaseReaction) handleEvent(m *Manager, event Event) (ret
 		visionComponent.Radius += reaction.Amount
 
 		m.setComponent(affected, VISION, visionComponent)
+
+		returnEvents = append(returnEvents, Event{SETTING_CHANGE, SettingChange{"zoom", 1}, m.user.Controlling})
 	}
 
 	return returnEvents

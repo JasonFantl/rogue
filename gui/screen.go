@@ -61,6 +61,18 @@ func DisplaySprite(x, y int, sprite Sprite) {
 	screen.DrawImage(sprite.Image, &sprite.Options)
 }
 
+func RawDisplaySprite(x, y int, scale float64, sprite Sprite) {
+
+	nx, ny := screenCords(float64(x), float64(y))
+	nx -= scale * tileSize / 2
+	ny -= scale * tileSize / 2
+
+	sprite.Options.GeoM.Scale(scale, scale)
+	sprite.Options.GeoM.Translate(nx, ny)
+
+	screen.DrawImage(sprite.Image, &sprite.Options)
+}
+
 func DisplaySprites(x, y int, sprites []Sprite) {
 	sort.Slice(sprites, func(i, j int) bool {
 		return sprites[i].Priority < sprites[j].Priority

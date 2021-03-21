@@ -10,6 +10,7 @@ type MenuState uint
 
 const (
 	SHOWING_IVENTORY MenuState = iota
+	SHOWING_INSPECTION
 	SHOWING_PROJECTILE
 	SHOWING_SETTINGS
 )
@@ -18,7 +19,7 @@ type Menu struct {
 	active           bool
 	state            MenuState
 	cursorX, cursorY int
-	projectileItem   Entity
+	rememberedItem   Entity
 }
 
 func (menu *Menu) close(m *Manager) {
@@ -44,6 +45,8 @@ func (menu *Menu) show(m *Manager) {
 		menu.showProjectile(m)
 	case SHOWING_SETTINGS:
 		menu.showSettings(m)
+	case SHOWING_INSPECTION:
+		menu.showInspect(m)
 	}
 }
 
@@ -56,6 +59,8 @@ func (menu *Menu) selectAtCurser(m *Manager) (returnEvents []Event) {
 	switch menu.state {
 	case SHOWING_IVENTORY:
 		returnEvents = append(returnEvents, menu.selectInventory(m)...)
+	case SHOWING_INSPECTION:
+		returnEvents = append(returnEvents, menu.selectInspect(m)...)
 	case SHOWING_PROJECTILE:
 		returnEvents = append(returnEvents, menu.selectProjectile(m)...)
 	case SHOWING_SETTINGS:
@@ -66,10 +71,10 @@ func (menu *Menu) selectAtCurser(m *Manager) (returnEvents []Event) {
 
 func (menu *Menu) selectProjectile(m *Manager) (returnEvents []Event) {
 
-	_, isProjectile := m.getComponent(menu.projectileItem, PROJECTILE)
+	_, isProjectile := m.getComponent(menu.rememberedItem, PROJECTILE)
 	if isProjectile {
 		returnEvents = append(returnEvents, Event{TIMESTEP, TimeStep{}, m.user.Controlling})
-		returnEvents = append(returnEvents, Event{TRY_LAUNCH, TryLaunch{menu.projectileItem, menu.cursorX, menu.cursorY}, m.user.Controlling})
+		returnEvents = append(returnEvents, Event{TRY_LAUNCH, TryLaunch{menu.rememberedItem, menu.cursorX, menu.cursorY}, m.user.Controlling})
 		menu.close(m)
 	}
 	return returnEvents
@@ -104,6 +109,8 @@ func (menu *Menu) selectInventory(m *Manager) (returnEvents []Event) {
 	if selectedInventoryItem == 0 { // selected switch menu
 		menu.state = SHOWING_SETTINGS
 	} else {
+		menu.rememberedItem = selectedInventoryItem
+
 		switch selectedInventoryItemAction {
 		case STASHABLE:
 			returnEvents = append(returnEvents, Event{TRY_DROP, TryDrop{selectedInventoryItem}, m.user.Controlling})
@@ -116,9 +123,16 @@ func (menu *Menu) selectInventory(m *Manager) (returnEvents []Event) {
 		case PROJECTILE:
 			menu.cursorX, menu.cursorY = 0, 0
 			menu.state = SHOWING_PROJECTILE
-			menu.projectileItem = selectedInventoryItem
+		case INFORMATION:
+			menu.state = SHOWING_INSPECTION
 		}
 	}
+
+	return returnEvents
+}
+
+func (menu *Menu) selectInspect(m *Manager) (returnEvents []Event) {
+	menu.state = SHOWING_IVENTORY
 
 	return returnEvents
 }
@@ -202,7 +216,7 @@ func (menu *Menu) showInventory(m *Manager) {
 		for _, key := range keys {
 			item := Entity(key)
 
-			informationString := "? : no information on item"
+			informationString := "?"
 			informationData, informationOk := m.getComponent(item, INFORMATION)
 			if informationOk {
 				informationComponent := informationData.(Information)
@@ -227,11 +241,6 @@ func (menu *Menu) showInventory(m *Manager) {
 				}
 				informationString += " ->"
 
-				// display info
-				if informationOk {
-					informationComponent := informationData.(Information)
-					informationString += "\n    " + informationComponent.Details
-				}
 				informationString = "\n- " + informationString
 			} else {
 				informationString = "\n  " + informationString
@@ -314,4 +323,59 @@ func (menu *Menu) getSelectedInventoryItem(m *Manager) (Entity, ComponentID) {
 		}
 	}
 	return Entity(0), 0
+}
+
+func (menu *Menu) showInspect(m *Manager) {
+
+	// main info
+	name := "?"
+	details := "no information"
+	informationData, informationOk := m.getComponent(menu.rememberedItem, INFORMATION)
+	if informationOk {
+		informationComponent := informationData.(Information)
+		name = informationComponent.Name
+		details = informationComponent.Details
+	}
+	gui.DrawText(0, 0, name)
+	gui.DrawText(0, 15, details)
+
+	// what it can do
+
+	_, isPickupable := m.getComponent(menu.rememberedItem, STASHABLE)
+	_, isWeapon := m.getComponent(menu.rememberedItem, DAMAGE)
+	_, isArmor := m.getComponent(menu.rememberedItem, DAMAGE_RESISTANCE)
+	_, isConsumable := m.getComponent(menu.rememberedItem, CONSUMABLE)
+	_, isProjectile := m.getComponent(menu.rememberedItem, PROJECTILE)
+
+	lineY := 30
+	gui.DrawText(0, lineY, "--------------")
+	lineY += 10
+	if isConsumable {
+		gui.DrawText(0, lineY, "consumable")
+		lineY += 10
+	}
+	if isWeapon {
+		gui.DrawText(0, lineY, "is weapon")
+		lineY += 10
+	}
+	if isArmor {
+		gui.DrawText(0, lineY, "is armor")
+		lineY += 10
+	}
+	if isPickupable {
+		gui.DrawText(0, lineY, "pickupable")
+		lineY += 10
+	}
+	if isProjectile {
+		gui.DrawText(0, lineY, "throwable")
+		lineY += 10
+	}
+
+	// an image
+	displayData, isDisplayable := m.getComponent(menu.rememberedItem, DISPLAYABLE)
+	if isDisplayable {
+		displayComponent := displayData.(Displayable)
+		gui.RawDisplaySprite(0, -60, 7.0, gui.GetSprite(gui.LEAF))
+		gui.RawDisplaySprite(0, -60, 6.0, displayComponent.Sprite)
+	}
 }
