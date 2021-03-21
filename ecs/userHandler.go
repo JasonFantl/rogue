@@ -59,11 +59,45 @@ func (h *UserHandler) handlePlaying(m *Manager, key ebiten.Key) (returnEvents []
 		returnEvents = append(returnEvents,
 			Event{TRY_MOVE, TryMove{1, 0}, m.user.Controlling},
 		)
-	case m.user.PickupKey:
-		timestep = true
-		returnEvents = append(returnEvents,
-			Event{PLAYER_TRY_PICK_UP, PlayerTryPickUp{}, m.user.Controlling},
-		)
+	case m.user.ActionKey:
+		takenAction := false
+
+		positionData, hasPosition := m.getComponent(m.user.Controlling, POSITION)
+		if hasPosition {
+			positionComponent := positionData.(Position)
+
+			// if we are standing on anything, pick it up
+			belowYou := m.getEntitiesFromPos(positionComponent.X, positionComponent.Y)
+			for item := range belowYou {
+				if isStashableTreasure(m, item) {
+					returnEvents = append(returnEvents,
+						Event{TRY_PICK_UP, TryPickUp{item}, m.user.Controlling},
+					)
+					takenAction = true
+					timestep = true
+					break
+				}
+			}
+
+			// then try trading
+			if !takenAction {
+				for i := 0; i < 4; i++ {
+					dx := (i / 2) * ((i%2)*2 - 1)
+					dy := ((3 - i) / 2) * (((3-i)%2)*2 - 1)
+					aroundYou := m.getEntitiesFromPos(positionComponent.X+dx, positionComponent.Y+dy)
+					for entity := range aroundYou {
+						_, hasInventory := m.getComponent(entity, INVENTORY)
+						if hasInventory {
+							m.user.Menu.open(m)
+							m.user.Menu.state = SHOWING_TRADE
+							m.user.Menu.rememberedEntity = entity
+							break
+						}
+					}
+				}
+			}
+		}
+
 	case m.user.MenuKey:
 		m.user.Menu.open(m)
 	case m.user.QuitKey:
@@ -95,7 +129,7 @@ func (h *UserHandler) handleMenu(m *Manager, key ebiten.Key) (returnEvents []Eve
 		m.user.Menu.moveCurser(m, -1, 0)
 	case m.user.RightKey:
 		m.user.Menu.moveCurser(m, 1, 0)
-	case m.user.PickupKey:
+	case m.user.ActionKey:
 		returnEvents = append(returnEvents, m.user.Menu.selectAtCurser(m)...)
 	case m.user.MenuKey:
 		m.user.Menu.close(m)

@@ -20,7 +20,6 @@ const (
 	QUIT
 	DISPLAY
 	TRY_PICK_UP
-	PLAYER_TRY_PICK_UP // need to get rid of later, not necessary
 	PICKED_UP
 	TRY_DROP
 	DROPED
@@ -31,6 +30,8 @@ const (
 	TRY_UNLOCK
 	UNLOCKED
 	TRY_LAUNCH
+	TRY_TRADE
+	TRADED
 	CONSUMED
 	TRY_ATTACK
 	DAMAGED
@@ -63,8 +64,6 @@ type Display struct {
 
 type TryPickUp struct {
 	what Entity
-}
-type PlayerTryPickUp struct {
 }
 
 type PickedUp struct {
@@ -101,6 +100,15 @@ type TryAttack struct {
 type TryLaunch struct {
 	what   Entity
 	dx, dy int
+}
+
+type TryTrade struct {
+	who                  Entity
+	offering, requesting map[Entity]bool
+}
+
+type Traded struct {
+	taken, given []Entity
 }
 
 type Damaged struct {

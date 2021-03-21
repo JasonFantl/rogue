@@ -78,7 +78,7 @@ func addPlayer(ecsManager *ecs.Manager, x, y int) {
 			DownKey:     ebiten.KeyS,
 			LeftKey:     ebiten.KeyA,
 			RightKey:    ebiten.KeyD,
-			PickupKey:   ebiten.KeyE,
+			ActionKey:   ebiten.KeyE,
 			MenuKey:     ebiten.KeyQ,
 			QuitKey:     ebiten.KeyEscape,
 			Menu:        ecs.Menu{},

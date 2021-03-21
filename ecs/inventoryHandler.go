@@ -4,21 +4,6 @@ type InventoryHandler struct{}
 
 func (h *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []Event) {
 
-	if event.ID == PLAYER_TRY_PICK_UP {
-		positionData, hasPosition := m.getComponent(event.entity, POSITION)
-		if hasPosition {
-			positionComponent := positionData.(Position)
-
-			entities := m.getEntitiesFromPos(positionComponent.X, positionComponent.Y)
-			for item := range entities {
-				if h.isTreasure(m, item) {
-					returnEvents = append(returnEvents, Event{TRY_PICK_UP, TryPickUp{item}, event.entity})
-					break // dont need to check anymore
-				}
-			}
-		}
-	}
-
 	if event.ID == TRY_PICK_UP {
 		tryPickUpEvent := event.data.(TryPickUp)
 

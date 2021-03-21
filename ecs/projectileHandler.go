@@ -1,8 +1,6 @@
 package ecs
 
 import (
-	"math"
-
 	"github.com/jasonfantl/rogue/gui"
 )
 
@@ -11,6 +9,17 @@ type ProjectileHandler struct {
 }
 
 func (h *ProjectileHandler) handleEvent(m *Manager, event Event) (returnEvents []Event) {
+
+	if event.ID == TIMESTEP {
+		projectiles, _ := m.getComponents(PROJECTILE)
+		for projectile := range projectiles {
+			projectileData, _ := m.getComponent(projectile, PROJECTILE)
+			projectileComponent := projectileData.(Projectile)
+			projectileComponent.inFlight = false
+
+			m.setComponent(projectile, PROJECTILE, projectileComponent)
+		}
+	}
 
 	if event.ID == TRY_LAUNCH {
 		tryLaunchEvent := event.data.(TryLaunch)
@@ -28,6 +37,7 @@ func (h *ProjectileHandler) handleEvent(m *Manager, event Event) (returnEvents [
 			}
 			projectileComponent.goalDx, projectileComponent.goalDy = tryLaunchEvent.dx, tryLaunchEvent.dy
 			projectileComponent.currentDx, projectileComponent.currentDy = 0, 0
+			projectileComponent.inFlight = true
 			m.setComponent(tryLaunchEvent.what, PROJECTILE, projectileComponent)
 
 			// how to let players walk on projectiles, but have them stop when fired?
@@ -39,9 +49,13 @@ func (h *ProjectileHandler) handleEvent(m *Manager, event Event) (returnEvents [
 	// this listener is necessary since i dont have a better solution for stopping projectiles
 	// try_move handled first by move handler, queing move event, then this handler removes the volume
 	if event.ID == TRY_MOVE {
-		_, isProjectile := m.getComponent(event.entity, PROJECTILE)
+		projectileData, isProjectile := m.getComponent(event.entity, PROJECTILE)
 		if isProjectile {
-			m.removeComponent(event.entity, VOLUME)
+			projectileComponent := projectileData.(Projectile)
+
+			if projectileComponent.inFlight {
+				m.removeComponent(event.entity, VOLUME)
+			}
 		}
 	}
 
@@ -56,15 +70,18 @@ func (h *ProjectileHandler) handleEvent(m *Manager, event Event) (returnEvents [
 			projectileComponent.currentDy += movedEvent.toY - movedEvent.fromY
 			m.setComponent(event.entity, PROJECTILE, projectileComponent)
 
-			returnEvents = append(returnEvents, h.tryMoveProjectile(m, event.entity)...)
+			if projectileComponent.inFlight {
 
-			// so we can see the patth, remove later
-			path := []Component{
-				{POSITION, Position{movedEvent.toX, movedEvent.toY}},
-				{DISPLAYABLE, Displayable{gui.GetSprite(gui.BLOOD)}},
+				returnEvents = append(returnEvents, h.tryMoveProjectile(m, event.entity)...)
+
+				// so we can see the patth, remove later
+				path := []Component{
+					{POSITION, Position{movedEvent.toX, movedEvent.toY}},
+					{DISPLAYABLE, Displayable{gui.GetSprite(gui.BLOOD)}},
+				}
+
+				m.AddEntity(path)
 			}
-
-			m.AddEntity(path)
 		}
 	}
 
@@ -94,18 +111,18 @@ func (s *ProjectileHandler) tryMoveProjectile(m *Manager, projectile Entity) (re
 
 			if dx != 0 && dy != 0 {
 
-				// how to best check next move?
-				theta := math.Atan2(float64(projectileComponent.goalDx), float64(projectileComponent.goalDy))
+				x2 := projectileComponent.goalDx
+				y2 := projectileComponent.goalDy
 
-				possibleX := float64(projectileComponent.currentDx + dx)
-				possibleY := float64(projectileComponent.currentDy)
-				rotatedXFrommovingX := math.Cos(theta)*possibleX - math.Sin(theta)*possibleY
+				y3 := projectileComponent.currentDy
+				x3 := projectileComponent.currentDx + dx
+				rxToY := x2*y3 - y2*x3
 
-				possibleX = float64(projectileComponent.currentDx)
-				possibleY = float64(projectileComponent.currentDy + dy)
-				rotatedXFrommovingY := math.Cos(theta)*possibleX - math.Sin(theta)*possibleY
+				y3 = projectileComponent.currentDy + dy
+				x3 = projectileComponent.currentDx
+				ryToY := x2*y3 - y2*x3
 
-				if math.Abs(rotatedXFrommovingX) < math.Abs(rotatedXFrommovingY) {
+				if Abs(rxToY) < Abs(ryToY) {
 					dy = 0
 				} else {
 					dx = 0

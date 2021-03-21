@@ -1,6 +1,7 @@
 package ecs
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/jasonfantl/rogue/gui"
@@ -10,6 +11,7 @@ type MenuState uint
 
 const (
 	SHOWING_IVENTORY MenuState = iota
+	SHOWING_TRADE
 	SHOWING_INSPECTION
 	SHOWING_PROJECTILE
 	SHOWING_SETTINGS
@@ -19,7 +21,10 @@ type Menu struct {
 	active           bool
 	state            MenuState
 	cursorX, cursorY int
-	rememberedItem   Entity
+	rememberedEntity Entity
+
+	// trading stuff
+	offering, requesting map[Entity]bool
 }
 
 func (menu *Menu) close(m *Manager) {
@@ -35,6 +40,9 @@ func (menu *Menu) open(m *Manager) {
 func (menu *Menu) reset(m *Manager) {
 	menu.cursorX, menu.cursorY = 0, 0
 	menu.state = SHOWING_IVENTORY
+
+	menu.offering = make(map[Entity]bool)
+	menu.requesting = make(map[Entity]bool)
 }
 
 func (menu *Menu) show(m *Manager) {
@@ -47,6 +55,8 @@ func (menu *Menu) show(m *Manager) {
 		menu.showSettings(m)
 	case SHOWING_INSPECTION:
 		menu.showInspect(m)
+	case SHOWING_TRADE:
+		menu.showTrade(m)
 	}
 }
 
@@ -65,16 +75,18 @@ func (menu *Menu) selectAtCurser(m *Manager) (returnEvents []Event) {
 		returnEvents = append(returnEvents, menu.selectProjectile(m)...)
 	case SHOWING_SETTINGS:
 		returnEvents = append(returnEvents, menu.selectSettings(m)...)
+	case SHOWING_TRADE:
+		returnEvents = append(returnEvents, menu.selectTrade(m)...)
 	}
 	return returnEvents
 }
 
 func (menu *Menu) selectProjectile(m *Manager) (returnEvents []Event) {
 
-	_, isProjectile := m.getComponent(menu.rememberedItem, PROJECTILE)
+	_, isProjectile := m.getComponent(menu.rememberedEntity, PROJECTILE)
 	if isProjectile {
 		returnEvents = append(returnEvents, Event{TIMESTEP, TimeStep{}, m.user.Controlling})
-		returnEvents = append(returnEvents, Event{TRY_LAUNCH, TryLaunch{menu.rememberedItem, menu.cursorX, menu.cursorY}, m.user.Controlling})
+		returnEvents = append(returnEvents, Event{TRY_LAUNCH, TryLaunch{menu.rememberedEntity, menu.cursorX, menu.cursorY}, m.user.Controlling})
 		menu.close(m)
 	}
 	return returnEvents
@@ -109,7 +121,7 @@ func (menu *Menu) selectInventory(m *Manager) (returnEvents []Event) {
 	if selectedInventoryItem == 0 { // selected switch menu
 		menu.state = SHOWING_SETTINGS
 	} else {
-		menu.rememberedItem = selectedInventoryItem
+		menu.rememberedEntity = selectedInventoryItem
 
 		switch selectedInventoryItemAction {
 		case STASHABLE:
@@ -134,6 +146,26 @@ func (menu *Menu) selectInventory(m *Manager) (returnEvents []Event) {
 func (menu *Menu) selectInspect(m *Manager) (returnEvents []Event) {
 	menu.state = SHOWING_IVENTORY
 
+	return returnEvents
+}
+
+func (menu *Menu) selectTrade(m *Manager) (returnEvents []Event) {
+
+	selectedItem, location := menu.getSelectedTradeItem(m)
+	switch location {
+	case 0:
+		menu.offering[selectedItem] = true
+	case 1:
+		delete(menu.offering, selectedItem)
+	case 2:
+		returnEvents = append(returnEvents, Event{TRY_TRADE, TryTrade{menu.rememberedEntity, menu.offering, menu.requesting}, m.user.Controlling})
+		menu.offering = make(map[Entity]bool)
+		menu.requesting = make(map[Entity]bool)
+	case 3:
+		delete(menu.requesting, selectedItem)
+	case 4:
+		menu.requesting[selectedItem] = true
+	}
 	return returnEvents
 }
 
@@ -163,15 +195,15 @@ func (menu *Menu) showSettings(m *Manager) {
 }
 
 func (menu *Menu) getSelectedSetting() (string, string) {
-	selectedLineY := menu.cursorY % (len(menuSettings) + 1)
-	if selectedLineY < 0 {
-		selectedLineY += len(menuSettings) + 1
+	menu.cursorY %= len(menuSettings) + 1
+	if menu.cursorY < 0 {
+		menu.cursorY += len(menuSettings) + 1
 	}
+	fmt.Printf("%d, ", menu.cursorY)
 
-	if selectedLineY == 0 {
+	if menu.cursorY == 0 {
 		return "menu switch", ""
 	}
-	selectedLineY--
 
 	if len(menuSettings) > 0 {
 		keys := make([]string, 0)
@@ -180,12 +212,14 @@ func (menu *Menu) getSelectedSetting() (string, string) {
 		}
 		sort.Strings(keys)
 
-		setting := keys[selectedLineY]
-		selectedLineX := menu.cursorX % len(menuSettings[setting])
-		if selectedLineX < 0 {
-			selectedLineX += len(menuSettings[setting])
+		setting := keys[menu.cursorY-1]
+		menu.cursorX %= len(menuSettings[setting])
+		if menu.cursorX < 0 {
+			menu.cursorX += len(menuSettings[setting])
 		}
-		option := menuSettings[setting][selectedLineX]
+		fmt.Printf("%d\n", menu.cursorX)
+
+		option := menuSettings[setting][menu.cursorX]
 
 		return setting, option
 	}
@@ -197,6 +231,10 @@ func (menu *Menu) showInventory(m *Manager) {
 	inventoryData, hasInventory := m.getComponent(m.user.Controlling, INVENTORY)
 
 	selectedInventoryItem, selectedInventoryItemAction := menu.getSelectedInventoryItem(m)
+	inventoryText := "Inventory: "
+	if selectedInventoryItem == 0 { //selecting inventory
+		inventoryText += "switch to settings"
+	}
 
 	if hasInventory {
 		inventoryComponent := inventoryData.(Inventory)
@@ -206,12 +244,6 @@ func (menu *Menu) showInventory(m *Manager) {
 			keys = append(keys, int(k))
 		}
 		sort.Ints(keys)
-
-		inventoryText := "Inventory: "
-
-		if selectedInventoryItem == 0 { //selecting inventory
-			inventoryText += "switch to settings"
-		}
 
 		for _, key := range keys {
 			item := Entity(key)
@@ -241,9 +273,9 @@ func (menu *Menu) showInventory(m *Manager) {
 				}
 				informationString += " ->"
 
-				informationString = "\n- " + informationString
+				informationString = "\n - " + informationString
 			} else {
-				informationString = "\n  " + informationString
+				informationString = "\n   " + informationString
 			}
 			inventoryText += informationString
 		}
@@ -254,8 +286,8 @@ func (menu *Menu) showInventory(m *Manager) {
 				selectedLine += len(keys)
 			}
 		}
-		gui.DrawTextUncentered(0, 0, inventoryText)
 	}
+	gui.DrawTextUncentered(0, 0, inventoryText)
 }
 
 func (menu *Menu) getSelectedInventoryItem(m *Manager) (Entity, ComponentID) {
@@ -330,7 +362,7 @@ func (menu *Menu) showInspect(m *Manager) {
 	// main info
 	name := "?"
 	details := "no information"
-	informationData, informationOk := m.getComponent(menu.rememberedItem, INFORMATION)
+	informationData, informationOk := m.getComponent(menu.rememberedEntity, INFORMATION)
 	if informationOk {
 		informationComponent := informationData.(Information)
 		name = informationComponent.Name
@@ -341,11 +373,11 @@ func (menu *Menu) showInspect(m *Manager) {
 
 	// what it can do
 
-	_, isPickupable := m.getComponent(menu.rememberedItem, STASHABLE)
-	_, isWeapon := m.getComponent(menu.rememberedItem, DAMAGE)
-	_, isArmor := m.getComponent(menu.rememberedItem, DAMAGE_RESISTANCE)
-	_, isConsumable := m.getComponent(menu.rememberedItem, CONSUMABLE)
-	_, isProjectile := m.getComponent(menu.rememberedItem, PROJECTILE)
+	_, isPickupable := m.getComponent(menu.rememberedEntity, STASHABLE)
+	_, isWeapon := m.getComponent(menu.rememberedEntity, DAMAGE)
+	_, isArmor := m.getComponent(menu.rememberedEntity, DAMAGE_RESISTANCE)
+	_, isConsumable := m.getComponent(menu.rememberedEntity, CONSUMABLE)
+	_, isProjectile := m.getComponent(menu.rememberedEntity, PROJECTILE)
 
 	lineY := 30
 	gui.DrawText(0, lineY, "--------------")
@@ -372,10 +404,177 @@ func (menu *Menu) showInspect(m *Manager) {
 	}
 
 	// an image
-	displayData, isDisplayable := m.getComponent(menu.rememberedItem, DISPLAYABLE)
+	displayData, isDisplayable := m.getComponent(menu.rememberedEntity, DISPLAYABLE)
 	if isDisplayable {
 		displayComponent := displayData.(Displayable)
 		gui.RawDisplaySprite(0, -60, 7.0, gui.GetSprite(gui.LEAF))
 		gui.RawDisplaySprite(0, -60, 6.0, displayComponent.Sprite)
 	}
+}
+
+func (menu *Menu) showTrade(m *Manager) {
+	inventoryData, hasInventory := m.getComponent(m.user.Controlling, INVENTORY)
+	otherInventoryData, otherHasInventory := m.getComponent(menu.rememberedEntity, INVENTORY)
+
+	selectedTradeItem, location := menu.getSelectedTradeItem(m)
+
+	inventoryText := "Inventory: "
+	offeringText := "Offering: "
+	tradeText := "Trade"
+	requestingText := "Requesting: "
+	otherInventriyText := "Inventory: "
+
+	if location == 0 {
+		inventoryText = "-> " + inventoryText
+	} else if location == 1 {
+		offeringText = "-> " + offeringText
+	} else if location == 2 {
+		tradeText = "-> " + tradeText
+	} else if location == 3 {
+		requestingText = "-> " + requestingText
+	} else if location == 4 {
+		otherInventriyText = "-> " + otherInventriyText
+	}
+
+	if hasInventory {
+		inventoryComponent := inventoryData.(Inventory)
+
+		keys := make([]int, 0)
+		for k := range inventoryComponent.Items {
+			keys = append(keys, int(k))
+		}
+		sort.Ints(keys)
+
+		for _, key := range keys {
+			item := Entity(key)
+			informationString := "?"
+			informationData, informationOk := m.getComponent(item, INFORMATION)
+			if informationOk {
+				informationComponent := informationData.(Information)
+				informationString = informationComponent.Name
+			}
+			if item == selectedTradeItem {
+				informationString = "\n - " + informationString
+			} else {
+				informationString = "\n   " + informationString
+			}
+
+			if menu.offering[item] {
+				offeringText += informationString
+			} else {
+				inventoryText += informationString
+			}
+		}
+	}
+
+	if otherHasInventory {
+		inventoryComponent := otherInventoryData.(Inventory)
+
+		keys := make([]int, 0)
+		for k := range inventoryComponent.Items {
+			keys = append(keys, int(k))
+		}
+		sort.Ints(keys)
+
+		for _, key := range keys {
+			item := Entity(key)
+			informationString := "?"
+			informationData, informationOk := m.getComponent(item, INFORMATION)
+			if informationOk {
+				informationComponent := informationData.(Information)
+				informationString = informationComponent.Name
+			}
+			if item == selectedTradeItem {
+				informationString = "\n - " + informationString
+			} else {
+				informationString = "\n   " + informationString
+			}
+
+			if menu.requesting[item] {
+				requestingText += informationString
+			} else {
+				otherInventriyText += informationString
+			}
+		}
+	}
+
+	gui.DrawTextUncentered(-350, -100, inventoryText)
+	gui.DrawTextUncentered(-150, -100, offeringText)
+	gui.DrawTextUncentered(-50, -150, tradeText)
+	gui.DrawTextUncentered(50, -100, requestingText)
+	gui.DrawTextUncentered(250, -100, otherInventriyText)
+
+}
+
+func (menu *Menu) getSelectedTradeItem(m *Manager) (Entity, int) {
+	menu.cursorX %= 5
+	if menu.cursorX < 0 {
+		menu.cursorX += 5
+	}
+
+	if menu.cursorX == 2 {
+		return 0, 2
+	}
+
+	inventoryData, hasInventory := m.getComponent(m.user.Controlling, INVENTORY)
+	otherInventoryData, otherHasInventory := m.getComponent(menu.rememberedEntity, INVENTORY)
+
+	if hasInventory && otherHasInventory {
+		inventoryComponent := inventoryData.(Inventory)
+		otherInventoryComponent := otherInventoryData.(Inventory)
+
+		if menu.cursorX == 0 || menu.cursorX == 4 {
+			location := 0
+			inventory := inventoryComponent.Items
+			trading := menu.offering
+			if menu.cursorX == 4 {
+				location = 4
+				inventory = otherInventoryComponent.Items
+				trading = menu.requesting
+			}
+			iventoryTradeLength := len(inventory) - len(trading)
+			if iventoryTradeLength > 0 {
+				menu.cursorY %= iventoryTradeLength
+				if menu.cursorY < 0 {
+					menu.cursorY += iventoryTradeLength
+				}
+
+				keys := make([]int, 0)
+				for k := range inventory {
+					if !trading[k] {
+						keys = append(keys, int(k))
+					}
+				}
+				sort.Ints(keys)
+
+				return Entity(keys[menu.cursorY]), location
+			}
+			return 0, location
+		} else if menu.cursorX == 1 || menu.cursorX == 3 {
+			location := 1
+			trading := menu.offering
+			if menu.cursorX == 3 {
+				location = 3
+				trading = menu.requesting
+			}
+			iventoryTradeLength := len(trading)
+			if iventoryTradeLength > 0 {
+
+				menu.cursorY %= iventoryTradeLength
+				if menu.cursorY < 0 {
+					menu.cursorY += iventoryTradeLength
+				}
+
+				keys := make([]int, 0)
+				for k := range trading {
+					keys = append(keys, int(k))
+				}
+				sort.Ints(keys)
+
+				return Entity(keys[menu.cursorY]), location
+			}
+			return 0, location
+		}
+	}
+	return 0, -1
 }

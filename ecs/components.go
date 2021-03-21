@@ -49,7 +49,7 @@ type Displayable struct {
 
 type User struct {
 	Controlling                                                    Entity
-	UpKey, DownKey, LeftKey, RightKey, PickupKey, MenuKey, QuitKey ebiten.Key
+	UpKey, DownKey, LeftKey, RightKey, ActionKey, MenuKey, QuitKey ebiten.Key
 	Menu                                                           Menu
 }
 
@@ -129,4 +129,5 @@ type Projectile struct {
 	MaxDistance          int
 	currentDx, currentDy int
 	goalDx, goalDy       int
+	inFlight             bool
 }
