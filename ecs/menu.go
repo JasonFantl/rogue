@@ -1,7 +1,6 @@
 package ecs
 
 import (
-	"fmt"
 	"sort"
 
 	"github.com/jasonfantl/rogue/gui"
@@ -199,7 +198,6 @@ func (menu *Menu) getSelectedSetting() (string, string) {
 	if menu.cursorY < 0 {
 		menu.cursorY += len(menuSettings) + 1
 	}
-	fmt.Printf("%d, ", menu.cursorY)
 
 	if menu.cursorY == 0 {
 		return "menu switch", ""
@@ -217,7 +215,6 @@ func (menu *Menu) getSelectedSetting() (string, string) {
 		if menu.cursorX < 0 {
 			menu.cursorX += len(menuSettings[setting])
 		}
-		fmt.Printf("%d\n", menu.cursorX)
 
 		option := menuSettings[setting][menu.cursorX]
 
@@ -524,11 +521,9 @@ func (menu *Menu) getSelectedTradeItem(m *Manager) (Entity, int) {
 		otherInventoryComponent := otherInventoryData.(Inventory)
 
 		if menu.cursorX == 0 || menu.cursorX == 4 {
-			location := 0
 			inventory := inventoryComponent.Items
 			trading := menu.offering
 			if menu.cursorX == 4 {
-				location = 4
 				inventory = otherInventoryComponent.Items
 				trading = menu.requesting
 			}
@@ -547,14 +542,12 @@ func (menu *Menu) getSelectedTradeItem(m *Manager) (Entity, int) {
 				}
 				sort.Ints(keys)
 
-				return Entity(keys[menu.cursorY]), location
+				return Entity(keys[menu.cursorY]), menu.cursorX
 			}
-			return 0, location
+			return 0, menu.cursorX
 		} else if menu.cursorX == 1 || menu.cursorX == 3 {
-			location := 1
 			trading := menu.offering
 			if menu.cursorX == 3 {
-				location = 3
 				trading = menu.requesting
 			}
 			iventoryTradeLength := len(trading)
@@ -571,10 +564,10 @@ func (menu *Menu) getSelectedTradeItem(m *Manager) (Entity, int) {
 				}
 				sort.Ints(keys)
 
-				return Entity(keys[menu.cursorY]), location
+				return Entity(keys[menu.cursorY]), menu.cursorX
 			}
-			return 0, location
+			return 0, menu.cursorX
 		}
 	}
-	return 0, -1
+	return 0, menu.cursorX
 }

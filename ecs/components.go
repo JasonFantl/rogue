@@ -1,11 +1,8 @@
 package ecs
 
 import (
-	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/jasonfantl/rogue/gui"
 )
-
-type Entity uint64
 
 type ComponentID uint64
 
@@ -49,12 +46,8 @@ type Displayable struct {
 
 type User struct {
 	Controlling                                                    Entity
-	UpKey, DownKey, LeftKey, RightKey, ActionKey, MenuKey, QuitKey ebiten.Key
+	UpKey, DownKey, LeftKey, RightKey, ActionKey, MenuKey, QuitKey gui.Key
 	Menu                                                           Menu
-}
-
-type Brain struct {
-	Desires []DesiredAction
 }
 
 type Vision struct {
@@ -101,6 +94,10 @@ type Fighter struct {
 	Strength int
 	Weapon   Entity
 	Armor    Entity
+}
+
+type Brain struct {
+	Desires []DesiredAction
 }
 
 type Damage struct {

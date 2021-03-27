@@ -1,0 +1,5 @@
+
+
+1. place buildings
+2. place roads
+3. place biomes

@@ -39,6 +39,8 @@ const (
 	GRASS_FLOOR int = iota
 	DIRT_FLOOR
 	STONE_FLOOR
+	SAND_FLOOR
+	WATER
 	STONE_WALL
 	BLOOD
 	TREE_TRUNK
@@ -86,23 +88,26 @@ func loadPremadeSprites() {
 	preMadeSprites[CLOSED_DOOR] = Sprite{extractImage(6, 0), baseOb, 91}
 	preMadeSprites[OPEN_DOOR] = Sprite{extractImage(6, 0), openDoorOb, 91}
 
-	preMadeSprites[PLAYER] = Sprite{extractImage(0, 1), baseOb, 59}
-	preMadeSprites[MONSTER1] = Sprite{extractImage(1, 1), baseOb, 58}
-	preMadeSprites[MONSTER2] = Sprite{extractImage(2, 1), baseOb, 58}
-	preMadeSprites[MONSTER3] = Sprite{extractImage(3, 1), baseOb, 58}
+	preMadeSprites[WATER] = Sprite{extractImage(0, 1), baseOb, 3}
+	preMadeSprites[SAND_FLOOR] = Sprite{extractImage(1, 1), baseOb, 3}
 
-	preMadeSprites[STICK] = Sprite{extractImage(0, 2), baseOb, 11}
-	preMadeSprites[SWORD] = Sprite{extractImage(1, 2), baseOb, 11}
-	preMadeSprites[METAL_ARMOR] = Sprite{extractImage(2, 2), baseOb, 11}
-	preMadeSprites[LEATHER_ARMOR] = Sprite{extractImage(3, 2), baseOb, 11}
+	preMadeSprites[PLAYER] = Sprite{extractImage(0, 4), baseOb, 59}
+	preMadeSprites[MONSTER1] = Sprite{extractImage(1, 4), baseOb, 58}
+	preMadeSprites[MONSTER2] = Sprite{extractImage(2, 4), baseOb, 58}
+	preMadeSprites[MONSTER3] = Sprite{extractImage(3, 4), baseOb, 58}
 
-	preMadeSprites[GOLD_COIN] = Sprite{extractImage(0, 3), baseOb, 11}
-	preMadeSprites[SILVER_COIN] = Sprite{extractImage(1, 3), baseOb, 11}
-	preMadeSprites[GEM] = Sprite{extractImage(2, 3), baseOb, 11}
-	preMadeSprites[POTION] = Sprite{extractImage(3, 3), baseOb, 11}
-	preMadeSprites[KEY] = Sprite{extractImage(4, 3), baseOb, 11}
+	preMadeSprites[STICK] = Sprite{extractImage(0, 5), baseOb, 11}
+	preMadeSprites[SWORD] = Sprite{extractImage(1, 5), baseOb, 11}
+	preMadeSprites[METAL_ARMOR] = Sprite{extractImage(2, 5), baseOb, 11}
+	preMadeSprites[LEATHER_ARMOR] = Sprite{extractImage(3, 5), baseOb, 11}
 
-	preMadeSprites[CURSER] = Sprite{extractImage(0, 4), baseOb, 100}
+	preMadeSprites[GOLD_COIN] = Sprite{extractImage(0, 6), baseOb, 11}
+	preMadeSprites[SILVER_COIN] = Sprite{extractImage(1, 6), baseOb, 11}
+	preMadeSprites[GEM] = Sprite{extractImage(2, 6), baseOb, 11}
+	preMadeSprites[POTION] = Sprite{extractImage(3, 6), baseOb, 11}
+	preMadeSprites[KEY] = Sprite{extractImage(4, 6), baseOb, 11}
+
+	preMadeSprites[CURSER] = Sprite{extractImage(0, 7), baseOb, 100}
 
 }
 

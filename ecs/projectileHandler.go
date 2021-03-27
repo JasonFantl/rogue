@@ -1,9 +1,5 @@
 package ecs
 
-import (
-	"github.com/jasonfantl/rogue/gui"
-)
-
 // TODO: move in given direction, fix equipping handler to unequip when fired
 type ProjectileHandler struct {
 }
@@ -71,16 +67,7 @@ func (h *ProjectileHandler) handleEvent(m *Manager, event Event) (returnEvents [
 			m.setComponent(event.entity, PROJECTILE, projectileComponent)
 
 			if projectileComponent.inFlight {
-
 				returnEvents = append(returnEvents, h.tryMoveProjectile(m, event.entity)...)
-
-				// so we can see the patth, remove later
-				path := []Component{
-					{POSITION, Position{movedEvent.toX, movedEvent.toY}},
-					{DISPLAYABLE, Displayable{gui.GetSprite(gui.BLOOD)}},
-				}
-
-				m.AddEntity(path)
 			}
 		}
 	}

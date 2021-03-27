@@ -7,13 +7,25 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
+type Key ebiten.Key
+
+const (
+	UP     = Key(ebiten.KeyW)
+	DOWN   = Key(ebiten.KeyS)
+	LEFT   = Key(ebiten.KeyA)
+	RIGHT  = Key(ebiten.KeyD)
+	ACTION = Key(ebiten.KeyE)
+	MENU   = Key(ebiten.KeyQ)
+	QUIT   = Key(ebiten.KeyEscape)
+)
+
 var previouslyPressed []ebiten.Key
 
 var lastPressTime time.Time
 var keyDelay int64 = 100     // in Ms
 var quickTimeThresh int = 60 // in frames
 
-func GetKeyPress() (ebiten.Key, bool) {
+func GetKeyPress() (Key, bool) {
 
 	// currently get most recent key
 
@@ -36,7 +48,7 @@ func GetKeyPress() (ebiten.Key, bool) {
 
 		if inpututil.IsKeyJustPressed(pressed) || durration > quickTimeThresh || dt > keyDelay {
 			lastPressTime = time.Now()
-			return pressed, true
+			return Key(pressed), true
 		}
 	}
 

@@ -25,6 +25,13 @@ func (h *DisplayHandler) handleEvent(m *Manager, event Event) (returnEvents []Ev
 	if event.ID == WAKEUP_HANDLERS {
 		h.displayRadius = 150
 		h.seeingRadius = 10
+
+		visionData, hasVision := m.getComponent(m.user.Controlling, VISION)
+		if hasVision {
+			visionComponent := visionData.(Vision)
+			h.seeingRadius = visionComponent.Radius
+		}
+
 		gui.SpecialSetSpriteScale(h.displayRadius, h.seeingRadius)
 	}
 

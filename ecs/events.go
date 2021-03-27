@@ -1,8 +1,6 @@
 package ecs
 
-import (
-	"github.com/hajimehoshi/ebiten/v2"
-)
+import "github.com/jasonfantl/rogue/gui"
 
 type EventID int
 
@@ -44,7 +42,7 @@ const (
 type TimeStep struct{}
 
 type KeyPressed struct {
-	key ebiten.Key
+	key gui.Key
 }
 
 type Moved struct {

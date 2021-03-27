@@ -1,7 +1,0 @@
-
-Perhaps every entity that can take actions does so through the brain component. 
-
-The decisions would be made based on a desire tree.
-https://www.gamasutra.com/blogs/ChrisSimpson/20140717/221339/Behavior_trees_for_AI_How_they_work.php
-
-The user could simply control the desire of an entity, while an NPC has its own desire controller

@@ -1,5 +1,5 @@
 # Rogue
-## TODO
+## Planned features
 * Moveable Character
 * Walls
 * Inventory
@@ -19,11 +19,22 @@
 * usable Items
 * Traps
 * Throwable items
-* Shop keeper
+* Trading
 * Doors with keys
-* AI Brains
+* AI Brains / economic related activities
+  * example: bread
+    * growing wheat
+    * harvesting
+    * processing
+    * eating
+  * example: clothing
+    * sheer sheep
+    * process wool
+    * make clothing
+  * example: 
 * Dialoge with NPCs
-* More terrain (water, jungle, mountains, paths, cities, ports)
+* More terrain (water, jungle, mountains, paths, cities, ports, mines, generated islands)
+* chunk loading
 * More complex monster AI (Fight each other, have inventory, field of view, etc)
 
 ### Dependencies
@@ -32,9 +43,10 @@
     
 ### Installing
 
-* git pull this
+* must first have Go installed on computer
+* download this repo
 
-### Executing program
+### Executing program (Linux)
 From the root directory
 ```
 go build

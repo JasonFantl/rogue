@@ -1,7 +1,7 @@
 package ecs
 
 import (
-	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/jasonfantl/rogue/gui"
 )
 
 type UserHandler struct {
@@ -34,7 +34,7 @@ func (h *UserHandler) handleEvent(m *Manager, event Event) (returnEvents []Event
 	return returnEvents
 }
 
-func (h *UserHandler) handlePlaying(m *Manager, key ebiten.Key) (returnEvents []Event) {
+func (h *UserHandler) handlePlaying(m *Manager, key gui.Key) (returnEvents []Event) {
 	timestep := false
 
 	switch key {
@@ -118,7 +118,7 @@ func (h *UserHandler) handlePlaying(m *Manager, key ebiten.Key) (returnEvents []
 	return returnEvents
 }
 
-func (h *UserHandler) handleMenu(m *Manager, key ebiten.Key) (returnEvents []Event) {
+func (h *UserHandler) handleMenu(m *Manager, key gui.Key) (returnEvents []Event) {
 
 	switch key {
 	case m.user.DownKey:
