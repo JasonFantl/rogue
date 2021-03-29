@@ -46,8 +46,7 @@ type KeyPressed struct {
 }
 
 type Moved struct {
-	fromX, fromY int
-	toX, toY     int
+	from, to Position
 }
 
 type TryMove struct {

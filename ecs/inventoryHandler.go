@@ -55,8 +55,7 @@ func (h *InventoryHandler) handleEvent(m *Manager, event Event) (returnEvents []
 					// should we announce each item we drag along? Silenced for now
 					// returnEvents = append(returnEvents, Event{MOVED, Moved{positionComponent.X, positionComponent.Y, moveEvent.toX, moveEvent.toY}, item})
 
-					positionComponent.X = moveEvent.toX
-					positionComponent.Y = moveEvent.toY
+					positionComponent = moveEvent.to
 					m.setComponent(item, POSITION, positionComponent)
 				}
 			}

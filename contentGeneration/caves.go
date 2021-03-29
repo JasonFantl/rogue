@@ -6,7 +6,7 @@ import (
 	"github.com/jasonfantl/rogue/ecs"
 )
 
-func addCaves(ecsManager *ecs.Manager, mask [][]bool, biomeMask [][]BiomeType) {
+func addCaves(ecsManager *ecs.EntityManager, mask [][]bool, biomeMask [][]BiomeType) {
 
 	caveBiomeMask := betBoolMaskFromBiomeMask(biomeMask, MOUNTAIN)
 

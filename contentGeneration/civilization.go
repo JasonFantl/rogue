@@ -6,7 +6,7 @@ import (
 	"github.com/jasonfantl/rogue/ecs"
 )
 
-func addTowns(ecsManager *ecs.Manager, mask [][]bool, heightmap [][]int, biomeMask [][]BiomeType) {
+func addTowns(ecsManager *ecs.EntityManager, mask [][]bool, heightmap [][]int, biomeMask [][]BiomeType) {
 
 	width := len(mask)
 	height := len(mask[0])
@@ -25,7 +25,7 @@ func addTowns(ecsManager *ecs.Manager, mask [][]bool, heightmap [][]int, biomeMa
 }
 
 // not yet implemented
-func addTown(ecsManager *ecs.Manager, mask [][]bool, x, y, size int) {
+func addTown(ecsManager *ecs.EntityManager, mask [][]bool, x, y, size int) {
 
 	addHouse(ecsManager, mask, x, y)
 
@@ -33,7 +33,7 @@ func addTown(ecsManager *ecs.Manager, mask [][]bool, x, y, size int) {
 
 // not yet implemented
 // probably want variaty of houses (proc gen?)
-func addHouse(ecsManager *ecs.Manager, mask [][]bool, x, y int) {
+func addHouse(ecsManager *ecs.EntityManager, mask [][]bool, x, y int) {
 	width, height := rand.Intn(5)+3, rand.Intn(5)+3
 
 	for dx := -width / 2; dx <= width/2; dx++ {
@@ -62,7 +62,7 @@ func addHouse(ecsManager *ecs.Manager, mask [][]bool, x, y int) {
 // }
 
 // // not yet implemented
-// func generateRoads(ecsManager *ecs.Manager, mask [][]bool, locations []mapLocation) {
+// func generateRoads(ecsManager *ecs.EntityManager, mask [][]bool, locations []mapLocation) {
 
 // 	// tmp
 // 	for i := range locations {
@@ -73,7 +73,7 @@ func addHouse(ecsManager *ecs.Manager, mask [][]bool, x, y int) {
 // }
 
 // // not yet implemented
-// func generateRoad(ecsManager *ecs.Manager, mask [][]bool, locationA, locationB mapLocation) {
+// func generateRoad(ecsManager *ecs.EntityManager, mask [][]bool, locationA, locationB mapLocation) {
 
 // 	// tmp
 // 	if locationA.x < locationB.x {

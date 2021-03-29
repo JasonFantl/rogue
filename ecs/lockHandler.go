@@ -7,7 +7,7 @@ func (h *LockHandler) handleEvent(m *Manager, event Event) (returnEvents []Event
 
 	if event.ID == WAKEUP_HANDLERS {
 
-		entities, _ := m.getComponents(LOCKABLE)
+		entities := m.getEntities(LOCKABLE)
 		for entity := range entities {
 			lockableData, _ := m.getComponent(entity, LOCKABLE)
 			lockableComponent := lockableData.(Lockable)
@@ -32,10 +32,9 @@ func (h *LockHandler) handleEvent(m *Manager, event Event) (returnEvents []Event
 		if hasPosition {
 			positionComponent := positionData.(Position)
 
-			newX := positionComponent.X + moveEvent.dx
-			newY := positionComponent.Y + moveEvent.dy
+			newPos := Position{positionComponent.X + moveEvent.dx, positionComponent.Y + moveEvent.dy}
 
-			for lock := range m.getEntitiesFromPos(newX, newY) {
+			for lock := range m.getEntitiesAtPosition(newPos) {
 				lockableData, hasLockable := m.getComponent(lock, LOCKABLE)
 				if hasLockable {
 					lockableComponent := lockableData.(Lockable)

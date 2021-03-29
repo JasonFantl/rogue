@@ -23,12 +23,11 @@ func (s *AttackHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 			positionComponent := positionData.(Position)
 
 			// now check if new location is occupied by something with health
-			newX := positionComponent.X + moveEvent.dx
-			newY := positionComponent.Y + moveEvent.dy
+			newPos := Position{positionComponent.X + moveEvent.dx, positionComponent.Y + moveEvent.dy}
 
 			// should you be able to attack everthing in the tile at once? yes for now
 			// attacks each individually
-			for otherEntity := range m.getEntitiesFromPos(newX, newY) {
+			for otherEntity := range m.getEntitiesAtPosition(newPos) {
 				_, otherHasHealth := m.getComponent(otherEntity, HEALTH)
 
 				if otherHasHealth {
@@ -124,10 +123,10 @@ func (s *AttackHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 					bloodInfo = "the blood of " + informationComponent.Name
 				}
 
-				blood := []Component{
-					{POSITION, Position{positionComponent.X, positionComponent.Y}},
-					{DISPLAYABLE, Displayable{gui.GetSprite(gui.BLOOD)}},
-					{INFORMATION, Information{"Blood", bloodInfo}},
+				blood := map[ComponentID]interface{}{
+					POSITION:    Position{positionComponent.X, positionComponent.Y},
+					DISPLAYABLE: Displayable{gui.GetSprite(gui.BLOOD)},
+					INFORMATION: Information{"Blood", bloodInfo},
 				}
 
 				m.AddEntity(blood)

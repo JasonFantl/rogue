@@ -20,11 +20,10 @@ func (s *MoveHandler) handleEvent(m *Manager, event Event) (returnEvents []Event
 			positionComponent := positionData.(Position)
 
 			// now check if new location is occupied
-			newX := positionComponent.X + moveEvent.dx
-			newY := positionComponent.Y + moveEvent.dy
+			newPos := Position{positionComponent.X + moveEvent.dx, positionComponent.Y + moveEvent.dy}
 			canMove := true
 
-			for otherEntity := range m.getEntitiesFromPos(newX, newY) {
+			for otherEntity := range m.getEntitiesAtPosition(newPos) {
 				// since we use getEntitiesFromPos, it must have the same position
 				_, otherHasVolume := m.getComponent(otherEntity, VOLUME)
 
@@ -34,10 +33,9 @@ func (s *MoveHandler) handleEvent(m *Manager, event Event) (returnEvents []Event
 			}
 
 			if canMove {
-				returnEvents = append(returnEvents, Event{MOVED, Moved{positionComponent.X, positionComponent.Y, newX, newY}, event.entity})
+				returnEvents = append(returnEvents, Event{MOVED, Moved{positionComponent, newPos}, event.entity})
 
-				positionComponent.X = newX
-				positionComponent.Y = newY
+				positionComponent = newPos
 
 				m.setComponent(event.entity, POSITION, positionComponent)
 

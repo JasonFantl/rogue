@@ -7,7 +7,7 @@ import (
 )
 
 // we currently assume cave opening at width/2
-func addBeach(ecsManager *ecs.Manager, mask [][]bool, biomeMask [][]BiomeType) {
+func addBeach(ecsManager *ecs.EntityManager, mask [][]bool, biomeMask [][]BiomeType) {
 
 	beachBiomeMask := betBoolMaskFromBiomeMask(biomeMask, BEACH)
 
@@ -29,7 +29,7 @@ func addBeach(ecsManager *ecs.Manager, mask [][]bool, biomeMask [][]BiomeType) {
 	}
 }
 
-func addPalmTree(ecsManager *ecs.Manager, mask [][]bool, x, y int) {
+func addPalmTree(ecsManager *ecs.EntityManager, mask [][]bool, x, y int) {
 
 	if !mask[x][y] {
 		addEntity(ecsManager, mask, true, true, x, y, treeTrunk(x, y))

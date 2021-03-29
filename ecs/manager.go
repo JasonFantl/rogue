@@ -47,36 +47,35 @@ func (m *Manager) AddEventHandler(eventHandler EventHandler) {
 	m.eventManager.addEventHandler(eventHandler)
 }
 
-func (m *Manager) AddEntity(components []Component) Entity {
-	return m.entityManager.addEntity(m, components)
+func (m *Manager) AddEntity(components map[ComponentID]interface{}) Entity {
+	return m.entityManager.AddEntity(components)
 }
 
 func (m *Manager) getComponent(entity Entity, componentID ComponentID) (interface{}, bool) {
-	return m.entityManager.getComponent(entity, componentID)
+	return m.entityManager.GetComponent(entity, componentID)
 }
 
 // can we reove this? promotes inefficient code
-func (m *Manager) getComponents(componentID ComponentID) (map[Entity]interface{}, bool) {
-	return m.entityManager.getComponents(componentID)
+func (m *Manager) getEntities(componentID ComponentID) map[Entity]bool {
+	return m.entityManager.GetEntities(componentID)
 }
 
 func (m *Manager) setComponent(entity Entity, componentID ComponentID, data interface{}) {
-	// manager special case
-	if componentID == USER {
-		m.user = data.(User)
-	}
-
-	m.entityManager.setComponent(m, entity, componentID, data)
+	m.entityManager.SetComponent(entity, componentID, data)
 }
 
 func (m *Manager) removeComponent(entity Entity, componentID ComponentID) {
-	m.entityManager.removeComponent(m, entity, componentID)
+	m.entityManager.RemoveComponent(entity, componentID)
 }
 
 func (m *Manager) removeEntity(entity Entity) {
-	m.entityManager.removeEntity(m, entity)
+	m.entityManager.RemoveEntity(entity)
 }
 
-func (m *Manager) getEntitiesFromPos(x, y int) (entities map[Entity]bool) {
-	return m.entityManager.getEntitiesFromPos(x, y)
+func (m *Manager) getEntitiesAtPosition(p Position) (entities map[Entity]bool) {
+	return m.entityManager.GetEntitiesAtPosition(p)
+}
+
+func (m *Manager) SetUser(user User) {
+	m.user = user
 }

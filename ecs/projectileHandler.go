@@ -7,7 +7,7 @@ type ProjectileHandler struct {
 func (h *ProjectileHandler) handleEvent(m *Manager, event Event) (returnEvents []Event) {
 
 	if event.ID == TIMESTEP {
-		projectiles, _ := m.getComponents(PROJECTILE)
+		projectiles := m.getEntities(PROJECTILE)
 		for projectile := range projectiles {
 			projectileData, _ := m.getComponent(projectile, PROJECTILE)
 			projectileComponent := projectileData.(Projectile)
@@ -62,8 +62,8 @@ func (h *ProjectileHandler) handleEvent(m *Manager, event Event) (returnEvents [
 
 		if isProjectile {
 			projectileComponent := projectileData.(Projectile)
-			projectileComponent.currentDx += movedEvent.toX - movedEvent.fromX
-			projectileComponent.currentDy += movedEvent.toY - movedEvent.fromY
+			projectileComponent.currentDx += movedEvent.to.X - movedEvent.from.X
+			projectileComponent.currentDy += movedEvent.to.Y - movedEvent.from.Y
 			m.setComponent(event.entity, PROJECTILE, projectileComponent)
 
 			if projectileComponent.inFlight {

@@ -66,7 +66,7 @@ func (g *Game) Start() {
 
 	contentGeneration.GenerateGame(&g.ecsManager, 100, 100)
 
-	g.ecsManager.Start()
+	// g.ecsManager.Start()
 
 }
 

@@ -69,11 +69,10 @@ func (h *DisplayHandler) showGrid(m *Manager, entity Entity) {
 		awarnessComponent := awarnessData.(EntityAwarness)
 
 		displayXY := func(dx, dy int) {
-			itemX := positionComponent.X + dx
-			itemY := positionComponent.Y + dy
+			itemPos := Position{positionComponent.X + dx, positionComponent.Y + dy}
 
 			// display items we are aware of
-			items := awarnessComponent.AwareOf.get(itemX, itemY)
+			items := awarnessComponent.AwareOf.getEntities(itemPos)
 
 			displayables := make([]gui.Sprite, 0)
 			for item := range items {
@@ -96,14 +95,11 @@ func (h *DisplayHandler) showGrid(m *Manager, entity Entity) {
 			// display memory
 			if hasMemory {
 				memoryComponent := memoryData.(EntityMemory)
-				col, ok := memoryComponent.Memory[itemX]
+				items, ok := memoryComponent.Memory[itemPos]
 				if ok {
-					items, ok := col[itemY]
-					if ok {
-						for _, item := range items {
-							// add faded dispay to make memory look different
-							displayables = append(displayables, gui.Fade(item.Sprite))
-						}
+					for _, item := range items {
+						// add faded dispay to make memory look different
+						displayables = append(displayables, gui.Fade(item.Sprite))
 					}
 				}
 			}
@@ -141,7 +137,7 @@ func (h *DisplayHandler) showBelowYou(m *Manager, entity Entity) {
 		positionComponent := positionData.(Position)
 
 		items := make([]Entity, 0)
-		belowYou := m.getEntitiesFromPos(positionComponent.X, positionComponent.Y)
+		belowYou := m.getEntitiesAtPosition(positionComponent)
 		for item := range belowYou {
 			if isStashableTreasure(m, item) {
 				items = append(items, item)

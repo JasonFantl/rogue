@@ -5,7 +5,7 @@ import (
 )
 
 // we currently assume cave opening at width/2
-func addSea(ecsManager *ecs.Manager, mask [][]bool, biomeMask [][]BiomeType) {
+func addSea(ecsManager *ecs.EntityManager, mask [][]bool, biomeMask [][]BiomeType) {
 
 	waterBiomeMask := betBoolMaskFromBiomeMask(biomeMask, WATER)
 

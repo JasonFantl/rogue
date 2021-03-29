@@ -6,7 +6,7 @@ func (s *MemoryHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 
 	if event.ID == DISPLAY {
 
-		entities, _ := m.getComponents(ENTITY_MEMORY)
+		entities := m.getEntities(ENTITY_MEMORY)
 
 		for entity := range entities {
 			memoryData, hasMemory := m.getComponent(entity, ENTITY_MEMORY)
@@ -18,33 +18,28 @@ func (s *MemoryHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 
 				// make sure memory is inited
 				if memoryComponent.Memory == nil {
-					memoryComponent.Memory = make(map[int]map[int][]Displayable)
+					memoryComponent.Memory = make(map[Position][]Displayable)
 				}
 
-				for x, row := range awarnessComponent.AwareOf {
+				for pos, items := range awarnessComponent.AwareOf {
 					// make sure memory is inited
-					if memoryComponent.Memory[x] == nil {
-						memoryComponent.Memory[x] = make(map[int][]Displayable)
+					if memoryComponent.Memory[pos] == nil {
+						memoryComponent.Memory[pos] = make([]Displayable, 0)
 					}
-					for y, items := range row {
-						// make sure memory is inited
-						if memoryComponent.Memory[x][y] == nil {
-							memoryComponent.Memory[x][y] = make([]Displayable, 0)
-						}
-						updatedEntities := make([]Displayable, 0)
-						for item := range items {
-							_, itemIsMemorable := m.getComponent(item, MEMORABLE)
-							itemDisplayData, itemHasDisplay := m.getComponent(item, DISPLAYABLE)
+					updatedEntities := make([]Displayable, 0)
+					for item := range items {
+						_, itemIsMemorable := m.getComponent(item, MEMORABLE)
+						itemDisplayData, itemHasDisplay := m.getComponent(item, DISPLAYABLE)
 
-							if itemIsMemorable && itemHasDisplay {
-								itemDisplayComponent := itemDisplayData.(Displayable)
+						if itemIsMemorable && itemHasDisplay {
+							itemDisplayComponent := itemDisplayData.(Displayable)
 
-								updatedEntities = append(updatedEntities, itemDisplayComponent)
-							}
+							updatedEntities = append(updatedEntities, itemDisplayComponent)
 						}
-						memoryComponent.Memory[x][y] = updatedEntities
 					}
+					memoryComponent.Memory[pos] = updatedEntities
 				}
+
 				m.setComponent(entity, ENTITY_MEMORY, memoryComponent)
 			}
 		}
