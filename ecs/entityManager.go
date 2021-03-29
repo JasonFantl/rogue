@@ -3,31 +3,24 @@ package ecs
 type Entity uint64
 
 type EntityManager struct {
-	entityTable    EntityTable
-	positionLookup ChunkPositionLookup
+	entityTable    entityTable
+	positionLookup PositionLookup
 	entityCounter  Entity
 }
 
 func newEntityManager() EntityManager {
 	newManager := EntityManager{}
-	newManager.entityTable = make(EntityTable) // can we make chunk based?
-	newManager.positionLookup = make(ChunkPositionLookup)
+	newManager.entityTable = newEntityTable()
 	newManager.entityCounter = 0
 
 	return newManager
 }
 
-func (em *EntityManager) addEntity(m *Manager, componenets []Component) Entity {
+func (em *EntityManager) addEntity(componenets map[ComponentID]interface{}) Entity {
 	entity := em.entityCounter
 	em.entityCounter++
 
-	em.entityTable.addEntity(m, entity, componenets)
-
-	positionData, hasPosition := em.entityTable.getComponent(entity, POSITION)
-	if hasPosition {
-		positionComponent := positionData.(Position)
-		em.positionLookup.add(map[Entity]bool{entity: true}, positionComponent.X, positionComponent.Y)
-	}
+	em.entityTable.addEntity(entity, componenets)
 
 	return entity
 }
@@ -37,50 +30,22 @@ func (m *EntityManager) getComponent(entity Entity, componentID ComponentID) (in
 }
 
 // can we reove this? promotes inefficient code
-func (m *EntityManager) getComponents(componentID ComponentID) (map[Entity]interface{}, bool) {
-	return m.entityTable.getComponents(componentID)
+func (m *EntityManager) getEntitiesWithComponent(componentID ComponentID) map[Entity]bool {
+	return m.entityTable.getEntitiesWithComponent(componentID)
 }
 
-func (em *EntityManager) setComponent(m *Manager, entity Entity, componentID ComponentID, data interface{}) {
-
-	// for position lookup
-	if componentID == POSITION {
-		newPosition := data.(Position)
-		oldPositionData, hasPosition := em.getComponent(entity, POSITION)
-		if hasPosition {
-			oldPosition := oldPositionData.(Position)
-			em.positionLookup.move(entity, oldPosition.X, oldPosition.Y, newPosition.X, newPosition.Y)
-		} else {
-			em.positionLookup.add(map[Entity]bool{entity: true}, newPosition.X, newPosition.Y)
-		}
-	}
-
-	em.entityTable.setComponent(m, entity, componentID, data)
+func (em *EntityManager) setComponent(entity Entity, componentID ComponentID, data interface{}) {
+	em.entityTable.setComponent(entity, componentID, data)
 }
 
-func (em *EntityManager) removeComponent(m *Manager, entity Entity, componentID ComponentID) {
-	if componentID == POSITION {
-		positionData, hasPosition := em.entityTable.getComponent(entity, POSITION)
-		if hasPosition {
-			positionComponent := positionData.(Position)
-			em.positionLookup.remove(entity, positionComponent.X, positionComponent.Y)
-		}
-	}
-
-	em.entityTable.removeComponent(m, entity, componentID)
+func (em *EntityManager) removeComponent(entity Entity, componentID ComponentID) {
+	em.entityTable.removeComponent(entity, componentID)
 }
 
-func (em *EntityManager) removeEntity(m *Manager, entity Entity) {
-
-	positionData, hasPosition := em.entityTable.getComponent(entity, POSITION)
-	if hasPosition {
-		positionComponent := positionData.(Position)
-		em.positionLookup.remove(entity, positionComponent.X, positionComponent.Y)
-	}
-
-	em.entityTable.removeEntity(m, entity)
+func (em *EntityManager) removeEntity(entity Entity) {
+	em.entityTable.removeEntity(entity)
 }
 
-func (em *EntityManager) getEntitiesFromPos(x, y int) (entities map[Entity]bool) {
-	return em.positionLookup.get(x, y)
+func (em *EntityManager) getEntitiesAtPosition(pos Position) (entities map[Entity]bool) {
+	return em.entityTable.getEntitiesAtPosition(pos)
 }

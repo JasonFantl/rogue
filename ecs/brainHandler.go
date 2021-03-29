@@ -19,17 +19,18 @@ func (h *BrainHandler) handleEvent(m *Manager, event Event) (returnEvents []Even
 
 	if event.ID == TIMESTEP {
 
-		brains, _ := m.getComponents(BRAIN)
+		brains := m.getEntitiesWithComponent(BRAIN)
 
-		for brain, brainData := range brains {
+		for brainEntity := range brains {
+			brainData, _ := m.getComponent(brainEntity, BRAIN)
 			brainComponent := brainData.(Brain)
 
 			actionPossibilities := []DesiredAction{DO_NOTHING}
 
 			// unpack all the components we will need
-			positionData, hasPosition := m.getComponent(brain, POSITION)
-			awarnessData, hasAwarness := m.getComponent(brain, ENTITY_AWARENESS)
-			_, hasInventory := m.getComponent(brain, INVENTORY)
+			positionData, hasPosition := m.getComponent(brainEntity, POSITION)
+			awarnessData, hasAwarness := m.getComponent(brainEntity, ENTITY_AWARENESS)
+			_, hasInventory := m.getComponent(brainEntity, INVENTORY)
 
 			// ------------ RANDOM WALK ------------------
 			if hasPosition {
@@ -41,15 +42,13 @@ func (h *BrainHandler) handleEvent(m *Manager, event Event) (returnEvents []Even
 				awarnessComponent := awarnessData.(EntityAwarness)
 				positionComponent := positionData.(Position)
 				seeTreasure := func() bool {
-					for itemX, row := range awarnessComponent.AwareOf {
-						for itemY, items := range row {
-							dx := positionComponent.X - itemX
-							dy := positionComponent.Y - itemY
-							if dx != 0 || dy != 0 {
-								for item := range items {
-									if isTreasure(m, item) {
-										return true
-									}
+					for itemPos, items := range awarnessComponent.AwareOf {
+						dx := positionComponent.X - itemPos.X
+						dy := positionComponent.Y - itemPos.Y
+						if dx != 0 || dy != 0 {
+							for item := range items {
+								if isTreasure(m, item) {
+									return true
 								}
 							}
 						}
@@ -65,7 +64,7 @@ func (h *BrainHandler) handleEvent(m *Manager, event Event) (returnEvents []Even
 			if hasPosition && hasInventory {
 				positionComponent := positionData.(Position)
 
-				entites := m.getEntitiesFromPos(positionComponent.X, positionComponent.Y)
+				entites := m.getEntitiesAtPosition(positionComponent)
 				for item := range entites {
 					if isStashableTreasure(m, item) {
 						actionPossibilities = append(actionPossibilities, PICKUP)
@@ -100,16 +99,16 @@ func (h *BrainHandler) handleEvent(m *Manager, event Event) (returnEvents []Even
 
 			switch decidedAction {
 			case RANDOM_MOVE:
-				returnEvents = append(returnEvents, h.moveRandom(m, brain)...)
+				returnEvents = append(returnEvents, h.moveRandom(m, brainEntity)...)
 			case TREASURE_MOVE:
 				// make it 50% chance we go after treasure
 				if rand.Intn(2) == 0 {
-					returnEvents = append(returnEvents, h.moveToTreasure(m, brain)...)
+					returnEvents = append(returnEvents, h.moveToTreasure(m, brainEntity)...)
 				} else {
-					returnEvents = append(returnEvents, h.moveRandom(m, brain)...)
+					returnEvents = append(returnEvents, h.moveRandom(m, brainEntity)...)
 				}
 			case PICKUP:
-				returnEvents = append(returnEvents, h.pickup(m, brain)...)
+				returnEvents = append(returnEvents, h.pickup(m, brainEntity)...)
 			}
 		}
 	}
@@ -147,21 +146,19 @@ func (h *BrainHandler) moveToTreasure(m *Manager, brain Entity) (returnEvents []
 	dx := 999
 	dy := 999
 
-	for itemX, row := range awarnessComponent.AwareOf {
-		for itemY, items := range row {
-			newDx := itemX - positionComponent.X
-			newDy := itemY - positionComponent.Y
-			if newDx != 0 || newDy != 0 {
-				newDis := newDx*newDx + newDy*newDy
-				for item := range items {
-					if isTreasure(m, item) {
+	for itemPos, items := range awarnessComponent.AwareOf {
+		newDx := itemPos.X - positionComponent.X
+		newDy := itemPos.Y - positionComponent.Y
+		if newDx != 0 || newDy != 0 {
+			newDis := newDx*newDx + newDy*newDy
+			for item := range items {
+				if isTreasure(m, item) {
 
-						oldDis := dx*dx + dy*dy
+					oldDis := dx*dx + dy*dy
 
-						if newDis < oldDis {
-							dx = newDx
-							dy = newDy
-						}
+					if newDis < oldDis {
+						dx = newDx
+						dy = newDy
 					}
 				}
 			}
@@ -200,7 +197,7 @@ func (s *BrainHandler) pickup(m *Manager, brain Entity) (returnEvents []Event) {
 	positionData, _ := m.getComponent(brain, POSITION)
 	positionComponent := positionData.(Position)
 
-	entities := m.getEntitiesFromPos(positionComponent.X, positionComponent.Y)
+	entities := m.getEntitiesAtPosition(positionComponent)
 	for entity := range entities {
 		if isStashableTreasure(m, entity) {
 			returnEvents = append(returnEvents, Event{TRY_PICK_UP, TryPickUp{entity}, brain})

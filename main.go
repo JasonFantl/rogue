@@ -39,8 +39,6 @@ func (g *Game) Start() {
 
 	// the order that these are added matters
 	// they follow this order of execution
-	g.ecsManager.AddEventHandler(&ecs.ChunkHandler{})
-
 	g.ecsManager.AddEventHandler(&ecs.UserHandler{})
 	g.ecsManager.AddEventHandler(&ecs.BrainHandler{})
 	g.ecsManager.AddEventHandler(&ecs.AttackHandler{})

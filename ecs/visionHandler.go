@@ -7,7 +7,7 @@ func (s *VisionHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 	// not sure how/when to update/handle this event, kinda tricky
 	if event.ID == DISPLAY {
 
-		entities, _ := m.getComponents(VISION)
+		entities := m.getEntitiesWithComponent(VISION)
 
 		for entity := range entities {
 			visionData, hasVision := m.getComponent(entity, VISION)
@@ -34,8 +34,8 @@ func (s *VisionHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 
 func updateAwareOf(m *Manager, position Position, vision Vision, awareOf PositionLookup) {
 	// add where we are
-	entities := m.getEntitiesFromPos(position.X, position.Y)
-	awareOf.add(entities, position.X, position.Y)
+	entities := m.getEntitiesAtPosition(position)
+	awareOf.addEntities(entities, position)
 
 	for octant := 0; octant < 8; octant++ {
 		updateOctant(m, position, vision, awareOf, octant)
@@ -122,8 +122,9 @@ func updateOctant(m *Manager, position Position, vision Vision, awareOf Position
 			visible := !line.isInShadow(projectTile(row, col))
 
 			if visible {
-				entities := m.getEntitiesFromPos(x, y)
-				awareOf.add(entities, x, y)
+				pos := Position{x, y}
+				entities := m.getEntitiesAtPosition(pos)
+				awareOf.addEntities(entities, pos)
 
 				// Add any opaque tiles to the shadow map.
 				isOpaque := false

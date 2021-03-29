@@ -10,14 +10,11 @@ type UserHandler struct {
 func (h *UserHandler) handleEvent(m *Manager, event Event) (returnEvents []Event) {
 
 	// controll new entity when the old one dies
-
 	if event.ID == DIED && event.entity == m.user.Controlling {
-		brains, hasbrain := m.getComponents(BRAIN)
-		if hasbrain {
-			for brain := range brains {
-				m.user.Controlling = brain
-				break
-			}
+		brains := m.getEntitiesWithComponent(BRAIN)
+		for brain := range brains {
+			m.user.Controlling = brain
+			break
 		}
 	}
 
@@ -67,7 +64,7 @@ func (h *UserHandler) handlePlaying(m *Manager, key gui.Key) (returnEvents []Eve
 			positionComponent := positionData.(Position)
 
 			// if we are standing on anything, pick it up
-			belowYou := m.getEntitiesFromPos(positionComponent.X, positionComponent.Y)
+			belowYou := m.getEntitiesAtPosition(positionComponent)
 			for item := range belowYou {
 				if isStashableTreasure(m, item) {
 					returnEvents = append(returnEvents,
@@ -84,7 +81,8 @@ func (h *UserHandler) handlePlaying(m *Manager, key gui.Key) (returnEvents []Eve
 				for i := 0; i < 4; i++ {
 					dx := (i / 2) * ((i%2)*2 - 1)
 					dy := ((3 - i) / 2) * (((3-i)%2)*2 - 1)
-					aroundYou := m.getEntitiesFromPos(positionComponent.X+dx, positionComponent.Y+dy)
+					deltaPos := Position{positionComponent.X + dx, positionComponent.Y + dy}
+					aroundYou := m.getEntitiesAtPosition(deltaPos)
 					for entity := range aroundYou {
 						_, hasInventory := m.getComponent(entity, INVENTORY)
 						if hasInventory {
