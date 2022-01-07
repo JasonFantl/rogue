@@ -45,6 +45,8 @@
 
 * must first have Go installed on computer
 * download this repo
+* sudo apt-get install -y libgl1-mesa-dev
+* sudo apt-get install xorg-dev
 
 ### Executing program (Linux)
 From the root directory
