@@ -29,7 +29,7 @@ func (h *BrainHandler) handleEvent(m *Manager, event Event) (returnEvents []Even
 
 			// unpack all the components we will need
 			positionData, hasPosition := m.getComponent(brainEntity, POSITION)
-			awarnessData, hasAwarness := m.getComponent(brainEntity, ENTITY_AWARENESS)
+			awarenessData, hasAwarness := m.getComponent(brainEntity, ENTITY_AWARENESS)
 			_, hasInventory := m.getComponent(brainEntity, INVENTORY)
 
 			// ------------ RANDOM WALK ------------------
@@ -39,10 +39,10 @@ func (h *BrainHandler) handleEvent(m *Manager, event Event) (returnEvents []Even
 
 			// ------------ MOVE TO TREASURE --------------
 			if hasPosition && hasAwarness {
-				awarnessComponent := awarnessData.(EntityAwarness)
+				awarenessComponent := awarenessData.(EntityAwareness)
 				positionComponent := positionData.(Position)
 				seeTreasure := func() bool {
-					for itemPos, items := range awarnessComponent.AwareOf {
+					for itemPos, items := range awarenessComponent.AwareOf {
 						dx := positionComponent.X - itemPos.X
 						dy := positionComponent.Y - itemPos.Y
 						if dx != 0 || dy != 0 {
@@ -64,11 +64,11 @@ func (h *BrainHandler) handleEvent(m *Manager, event Event) (returnEvents []Even
 			if hasPosition && hasInventory {
 				positionComponent := positionData.(Position)
 
-				entites := m.getEntitiesAtPosition(positionComponent)
-				for item := range entites {
+				entities := m.getEntitiesAtPosition(positionComponent)
+				for item := range entities {
 					if isStashableTreasure(m, item) {
 						actionPossibilities = append(actionPossibilities, PICKUP)
-						break // dont need to check anymore
+						break // don't need to check anymore
 					}
 				}
 			}
@@ -78,7 +78,7 @@ func (h *BrainHandler) handleEvent(m *Manager, event Event) (returnEvents []Even
 			// ----------------------------------
 
 			decidedAction := actionPossibilities[0]
-			// by looping from begginning, we make the highest priiority start at 0th index
+			// by looping from begginning, we make the highest priority start at 0th index
 			found := false
 			for _, desiredAction := range brainComponent.Desires {
 				for _, possibleAction := range actionPossibilities {
@@ -94,7 +94,7 @@ func (h *BrainHandler) handleEvent(m *Manager, event Event) (returnEvents []Even
 			}
 
 			// ---------------------------------
-			// third, execute ation
+			// third, execute action
 			// ----------------------------------
 
 			switch decidedAction {
@@ -136,17 +136,17 @@ func (h *BrainHandler) moveRandom(m *Manager, brain Entity) (returnEvents []Even
 
 func (h *BrainHandler) moveToTreasure(m *Manager, brain Entity) (returnEvents []Event) {
 
-	awarnessData, _ := m.getComponent(brain, ENTITY_AWARENESS)
+	awarenessData, _ := m.getComponent(brain, ENTITY_AWARENESS)
 	positionData, _ := m.getComponent(brain, POSITION)
 
-	awarnessComponent := awarnessData.(EntityAwarness)
+	awarenessComponent := awarenessData.(EntityAwareness)
 	positionComponent := positionData.(Position)
 
 	// location of nearest treasure
 	dx := 999
 	dy := 999
 
-	for itemPos, items := range awarnessComponent.AwareOf {
+	for itemPos, items := range awarenessComponent.AwareOf {
 		newDx := itemPos.X - positionComponent.X
 		newDy := itemPos.Y - positionComponent.Y
 		if newDx != 0 || newDy != 0 {
@@ -201,7 +201,7 @@ func (s *BrainHandler) pickup(m *Manager, brain Entity) (returnEvents []Event) {
 	for entity := range entities {
 		if isStashableTreasure(m, entity) {
 			returnEvents = append(returnEvents, Event{TRY_PICK_UP, TryPickUp{entity}, brain})
-			break // dont need to check anymore
+			break // don't need to check anymore
 		}
 	}
 

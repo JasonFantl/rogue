@@ -10,19 +10,19 @@ func (s *MemoryHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 
 		for entity := range entities {
 			memoryData, hasMemory := m.getComponent(entity, ENTITY_MEMORY)
-			awarnessData, hasAwarness := m.getComponent(entity, ENTITY_AWARENESS)
+			awarenessData, hasAwarness := m.getComponent(entity, ENTITY_AWARENESS)
 
 			if hasMemory && hasAwarness {
 				memoryComponent := memoryData.(EntityMemory)
-				awarnessComponent := awarnessData.(EntityAwarness)
+				awarenessComponent := awarenessData.(EntityAwareness)
 
-				// make sure memory is inited
+				// make sure memory is initalized
 				if memoryComponent.Memory == nil {
 					memoryComponent.Memory = make(map[Position][]Displayable)
 				}
 
-				for pos, items := range awarnessComponent.AwareOf {
-					// make sure memory is inited
+				for pos, items := range awarenessComponent.AwareOf {
+					// make sure memory is initalized
 					if memoryComponent.Memory[pos] == nil {
 						memoryComponent.Memory[pos] = make([]Displayable, 0)
 					}

@@ -54,12 +54,12 @@ type Vision struct {
 	Radius int
 }
 
-type EntityAwarness struct {
+type EntityAwareness struct {
 	AwareOf PositionLookup
 }
 
 // perhaps make more general later. right now its only walls.
-// and make it so mulitple things can be remembered on the same tile.
+// and make it so multiple things can be remembered on the same tile.
 // this will be more complicated then it initially seems.
 type EntityMemory struct {
 	Memory map[Position][]Displayable

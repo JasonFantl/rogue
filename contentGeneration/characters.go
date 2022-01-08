@@ -8,18 +8,18 @@ import (
 func addPlayer(ecsManager *ecs.Manager, m *ecs.Manager, x, y int) {
 
 	player := map[ecs.ComponentID]interface{}{
-		ecs.BRAIN:            ecs.Brain{[]ecs.DesiredAction{}},
-		ecs.POSITION:         ecs.Position{x, y},
-		ecs.DISPLAYABLE:      ecs.Displayable{gui.GetSprite(gui.PLAYER)},
-		ecs.ENTITY_AWARENESS: ecs.EntityAwarness{},
+		ecs.BRAIN:            ecs.Brain{Desires: []ecs.DesiredAction{}},
+		ecs.POSITION:         ecs.Position{X: x, Y: y},
+		ecs.DISPLAYABLE:      ecs.Displayable{Sprite: gui.GetSprite(gui.PLAYER)},
+		ecs.ENTITY_AWARENESS: ecs.EntityAwareness{},
 		ecs.ENTITY_MEMORY:    ecs.EntityMemory{},
-		ecs.VISION:           ecs.Vision{50},
+		ecs.VISION:           ecs.Vision{Radius: 10},
 		ecs.INVENTORY:        ecs.Inventory{},
-		ecs.INFORMATION:      ecs.Information{"Player", "the hero of our story"},
+		ecs.INFORMATION:      ecs.Information{Name: "Player", Details: "the hero of our story"},
 		ecs.VOLUME:           ecs.Volume{},
-		ecs.FIGHTER:          ecs.Fighter{10, 0, 0},
-		ecs.DAMAGE:           ecs.Damage{1},
-		ecs.HEALTH:           ecs.Health{100, 90},
+		ecs.FIGHTER:          ecs.Fighter{Strength: 10, Weapon: 0, Armor: 0},
+		ecs.DAMAGE:           ecs.Damage{Amount: 1},
+		ecs.HEALTH:           ecs.Health{Max: 100, Current: 90},
 	}
 
 	playerID := ecsManager.AddEntity(player)
@@ -42,38 +42,36 @@ func addPlayer(ecsManager *ecs.Manager, m *ecs.Manager, x, y int) {
 func addMonster(ecsManager *ecs.Manager, x, y int) {
 
 	monster := map[ecs.ComponentID]interface{}{
-		ecs.POSITION: ecs.Position{x, y},
+		ecs.POSITION: ecs.Position{X: x, Y: y},
 		ecs.BRAIN: ecs.Brain{
-			[]ecs.DesiredAction{ecs.PICKUP, ecs.TREASURE_MOVE, ecs.RANDOM_MOVE, ecs.DO_NOTHING},
+			Desires: []ecs.DesiredAction{ecs.PICKUP, ecs.TREASURE_MOVE, ecs.RANDOM_MOVE, ecs.DO_NOTHING},
 		},
-		ecs.ENTITY_AWARENESS: ecs.EntityAwarness{},
-		ecs.VISION:           ecs.Vision{10},
+		ecs.ENTITY_AWARENESS: ecs.EntityAwareness{},
+		ecs.VISION:           ecs.Vision{Radius: 10},
 		ecs.VOLUME:           ecs.Volume{},
-		ecs.FIGHTER:          ecs.Fighter{10, 0, 0},
-		ecs.DAMAGE:           ecs.Damage{3},
-		ecs.HEALTH:           ecs.Health{50, 50},
+		ecs.FIGHTER:          ecs.Fighter{Strength: 10, Weapon: 0, Armor: 0},
+		ecs.DAMAGE:           ecs.Damage{Amount: 3},
+		ecs.HEALTH:           ecs.Health{Max: 50, Current: 50},
 	}
 
-	// monsterInfos := [][]ecs.Component{
-	// 	{
-	// 		{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.MONSTER3)}},
-	// 		{ecs.INFORMATION, ecs.Information{"Monster", "generic"}},
-	// 	},
-	// 	{
-	// 		{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.MONSTER2)}},
-	// 		{ecs.INVENTORY, ecs.Inventory{}},
-	// 		{ecs.INFORMATION, ecs.Information{"Ogre", "Big and scary"}},
-	// 	},
-	// 	{
-	// 		{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.MONSTER1)}},
-	// 		{ecs.INVENTORY, ecs.Inventory{}},
-	// 		{ecs.INFORMATION, ecs.Information{"Goblin", "green and scrawny, sill scary though"}},
-	// 	},
-	// }
+	monsterInfos := []map[ecs.ComponentID]interface{}{
+		{
+			ecs.DISPLAYABLE: ecs.Displayable{Sprite: gui.GetSprite(gui.MONSTER3)},
+			ecs.INFORMATION: ecs.Information{Name: "Monster", Details: "generic"},
+		},
+		{
+			ecs.DISPLAYABLE: ecs.Displayable{Sprite: gui.GetSprite(gui.MONSTER2)},
+			ecs.INVENTORY:   ecs.Inventory{},
+			ecs.INFORMATION: ecs.Information{Name: "Ogre", Details: "Big and scary"},
+		},
+		{
+			ecs.DISPLAYABLE: ecs.Displayable{Sprite: gui.GetSprite(gui.MONSTER1)},
+			ecs.INVENTORY:   ecs.Inventory{},
+			ecs.INFORMATION: ecs.Information{Name: "Goblin", Details: "green and scrawny, sill scary though"},
+		},
+	}
 
-	// monsterInfo := monsterInfos[rand.Intn(len(monsterInfos))]
-
-	// monster = append(monster, monsterInfo...)
+	addRandom(monster, monsterInfos)
 
 	ecsManager.AddEntity(monster)
 }
@@ -81,38 +79,29 @@ func addMonster(ecsManager *ecs.Manager, x, y int) {
 func addTownsMember(ecsManager *ecs.Manager, x, y int) {
 
 	controllerComponent := ecs.Brain{
-		[]ecs.DesiredAction{ecs.PICKUP, ecs.RANDOM_MOVE, ecs.DO_NOTHING},
+		Desires: []ecs.DesiredAction{ecs.PICKUP, ecs.RANDOM_MOVE, ecs.DO_NOTHING},
 	}
 
-	positionComponent := ecs.Position{x, y}
+	positionComponent := ecs.Position{X: x, Y: y}
 	inventoryComponent := ecs.Inventory{}
 	volumeComponent := ecs.Volume{}
-	damageComponent := ecs.Damage{3}
-	healthComponent := ecs.Health{50, 50}
-	visionComponent := ecs.Vision{10}
-	awarnessComponent := ecs.EntityAwarness{}
+	damageComponent := ecs.Damage{Amount: 3}
+	healthComponent := ecs.Health{Max: 50, Current: 50}
+	visionComponent := ecs.Vision{Radius: 10}
+	awarenessComponent := ecs.EntityAwareness{}
 
 	townsMember := map[ecs.ComponentID]interface{}{
 		ecs.POSITION:         positionComponent,
 		ecs.BRAIN:            controllerComponent,
-		ecs.ENTITY_AWARENESS: awarnessComponent,
+		ecs.ENTITY_AWARENESS: awarenessComponent,
 		ecs.VISION:           visionComponent,
 		ecs.INVENTORY:        inventoryComponent,
 		ecs.VOLUME:           volumeComponent,
 		ecs.DAMAGE:           damageComponent,
 		ecs.HEALTH:           healthComponent,
+		ecs.DISPLAYABLE:      ecs.Displayable{Sprite: gui.GetSprite(gui.PLAYER)},
+		ecs.INFORMATION:      ecs.Information{Name: "Human", Details: "lives in town"},
 	}
-
-	// townsMemberInfos := [][]ecs.Component{
-	// 	{
-	// 		{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.PLAYER)}},
-	// 		{ecs.INFORMATION, ecs.Information{"Human", "lives in town"}},
-	// 	},
-	// }
-
-	// townsMemberInfo := townsMemberInfos[rand.Intn(len(townsMemberInfos))]
-
-	// townsMember = append(townsMember, townsMemberInfo...)
 
 	ecsManager.AddEntity(townsMember)
 }

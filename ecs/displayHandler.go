@@ -24,7 +24,7 @@ func (h *DisplayHandler) handleEvent(m *Manager, event Event) (returnEvents []Ev
 
 	if event.ID == WAKEUP_HANDLERS {
 		h.displayRadius = 150
-		h.seeingRadius = 10
+		h.seeingRadius = 3
 
 		visionData, hasVision := m.getComponent(m.user.Controlling, VISION)
 		if hasVision {
@@ -55,24 +55,24 @@ func (h *DisplayHandler) showEntity(m *Manager, entity Entity) {
 	h.showGrid(m, entity)
 	h.showBelowYou(m, entity)
 	h.showStats(m, entity)
-	h.showEquiped(m, entity)
+	h.showEquipped(m, entity)
 
 }
 
 func (h *DisplayHandler) showGrid(m *Manager, entity Entity) {
 	positionData, hasPosition := m.getComponent(entity, POSITION)
 	memoryData, hasMemory := m.getComponent(entity, ENTITY_MEMORY)
-	awarnessData, hasAwarness := m.getComponent(entity, ENTITY_AWARENESS)
+	awarenessData, hasAwarness := m.getComponent(entity, ENTITY_AWARENESS)
 
 	if hasPosition && hasAwarness {
 		positionComponent := positionData.(Position)
-		awarnessComponent := awarnessData.(EntityAwarness)
+		awarenessComponent := awarenessData.(EntityAwareness)
 
 		displayXY := func(dx, dy int) {
 			itemPos := Position{positionComponent.X + dx, positionComponent.Y + dy}
 
 			// display items we are aware of
-			items := awarnessComponent.AwareOf.getEntities(itemPos)
+			items := awarenessComponent.AwareOf.getEntities(itemPos)
 
 			displayables := make([]gui.Sprite, 0)
 			for item := range items {
@@ -201,7 +201,7 @@ func (h *DisplayHandler) showStats(m *Manager, entity Entity) {
 	}
 }
 
-func (h *DisplayHandler) showEquiped(m *Manager, entity Entity) {
+func (h *DisplayHandler) showEquipped(m *Manager, entity Entity) {
 	fighterData, isFighter := m.getComponent(entity, FIGHTER)
 
 	if isFighter {

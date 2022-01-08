@@ -75,7 +75,7 @@ func biomesMask(heightmap [][]int, biomeTypes []BiomeType) [][]BiomeType {
 	return tiles
 }
 
-func betBoolMaskFromBiomeMask(biomeMask [][]BiomeType, biome BiomeType) [][]bool {
+func getBoolMaskFromBiomeMask(biomeMask [][]BiomeType, biome BiomeType) [][]bool {
 	boolBiomeMask := make([][]bool, len(biomeMask))
 	for x := range boolBiomeMask {
 		boolBiomeMask[x] = make([]bool, len(biomeMask[x]))

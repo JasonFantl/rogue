@@ -9,7 +9,7 @@ import (
 type MenuState uint
 
 const (
-	SHOWING_IVENTORY MenuState = iota
+	SHOWING_INVENTORY MenuState = iota
 	SHOWING_TRADE
 	SHOWING_INSPECTION
 	SHOWING_PROJECTILE
@@ -38,7 +38,7 @@ func (menu *Menu) open(m *Manager) {
 
 func (menu *Menu) reset(m *Manager) {
 	menu.cursorX, menu.cursorY = 0, 0
-	menu.state = SHOWING_IVENTORY
+	menu.state = SHOWING_INVENTORY
 
 	menu.offering = make(map[Entity]bool)
 	menu.requesting = make(map[Entity]bool)
@@ -46,7 +46,7 @@ func (menu *Menu) reset(m *Manager) {
 
 func (menu *Menu) show(m *Manager) {
 	switch menu.state {
-	case SHOWING_IVENTORY:
+	case SHOWING_INVENTORY:
 		menu.showInventory(m)
 	case SHOWING_PROJECTILE:
 		menu.showProjectile(m)
@@ -66,7 +66,7 @@ func (menu *Menu) moveCurser(m *Manager, dx, dy int) {
 
 func (menu *Menu) selectAtCurser(m *Manager) (returnEvents []Event) {
 	switch menu.state {
-	case SHOWING_IVENTORY:
+	case SHOWING_INVENTORY:
 		returnEvents = append(returnEvents, menu.selectInventory(m)...)
 	case SHOWING_INSPECTION:
 		returnEvents = append(returnEvents, menu.selectInspect(m)...)
@@ -99,7 +99,7 @@ func (menu *Menu) selectSettings(m *Manager) (returnEvents []Event) {
 
 	selectedSetting, selectedSettingValue := menu.getSelectedSetting()
 	if selectedSetting == "menu switch" {
-		menu.state = SHOWING_IVENTORY
+		menu.state = SHOWING_INVENTORY
 	} else {
 		switch selectedSetting {
 		case "Zoom":
@@ -143,7 +143,7 @@ func (menu *Menu) selectInventory(m *Manager) (returnEvents []Event) {
 }
 
 func (menu *Menu) selectInspect(m *Manager) (returnEvents []Event) {
-	menu.state = SHOWING_IVENTORY
+	menu.state = SHOWING_INVENTORY
 
 	return returnEvents
 }
@@ -180,7 +180,7 @@ func (menu *Menu) showSettings(m *Manager) {
 		menuText += "switch to inventory"
 	}
 
-	for setting, _ := range menuSettings {
+	for setting := range menuSettings {
 		settingText := setting
 		if setting == selectedSetting {
 			settingText = "\n- " + setting + " <- " + selectedSettingOption + " ->"
@@ -419,7 +419,7 @@ func (menu *Menu) showTrade(m *Manager) {
 	offeringText := "Offering: "
 	tradeText := "Trade"
 	requestingText := "Requesting: "
-	otherInventriyText := "Inventory: "
+	otherInventoryText := "Inventory: "
 
 	if location == 0 {
 		inventoryText = "-> " + inventoryText
@@ -430,7 +430,7 @@ func (menu *Menu) showTrade(m *Manager) {
 	} else if location == 3 {
 		requestingText = "-> " + requestingText
 	} else if location == 4 {
-		otherInventriyText = "-> " + otherInventriyText
+		otherInventoryText = "-> " + otherInventoryText
 	}
 
 	if hasInventory {
@@ -490,7 +490,7 @@ func (menu *Menu) showTrade(m *Manager) {
 			if menu.requesting[item] {
 				requestingText += informationString
 			} else {
-				otherInventriyText += informationString
+				otherInventoryText += informationString
 			}
 		}
 	}
@@ -499,7 +499,7 @@ func (menu *Menu) showTrade(m *Manager) {
 	gui.DrawTextUncentered(-150, -100, offeringText)
 	gui.DrawTextUncentered(-50, -150, tradeText)
 	gui.DrawTextUncentered(50, -100, requestingText)
-	gui.DrawTextUncentered(250, -100, otherInventriyText)
+	gui.DrawTextUncentered(250, -100, otherInventoryText)
 
 }
 
@@ -527,11 +527,11 @@ func (menu *Menu) getSelectedTradeItem(m *Manager) (Entity, int) {
 				inventory = otherInventoryComponent.Items
 				trading = menu.requesting
 			}
-			iventoryTradeLength := len(inventory) - len(trading)
-			if iventoryTradeLength > 0 {
-				menu.cursorY %= iventoryTradeLength
+			inventoryTradeLength := len(inventory) - len(trading)
+			if inventoryTradeLength > 0 {
+				menu.cursorY %= inventoryTradeLength
 				if menu.cursorY < 0 {
-					menu.cursorY += iventoryTradeLength
+					menu.cursorY += inventoryTradeLength
 				}
 
 				keys := make([]int, 0)
@@ -550,12 +550,12 @@ func (menu *Menu) getSelectedTradeItem(m *Manager) (Entity, int) {
 			if menu.cursorX == 3 {
 				trading = menu.requesting
 			}
-			iventoryTradeLength := len(trading)
-			if iventoryTradeLength > 0 {
+			inventoryTradeLength := len(trading)
+			if inventoryTradeLength > 0 {
 
-				menu.cursorY %= iventoryTradeLength
+				menu.cursorY %= inventoryTradeLength
 				if menu.cursorY < 0 {
-					menu.cursorY += iventoryTradeLength
+					menu.cursorY += inventoryTradeLength
 				}
 
 				keys := make([]int, 0)

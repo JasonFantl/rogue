@@ -35,24 +35,24 @@ func stoneWall(x, y int) map[ecs.ComponentID]interface{} {
 
 func leaf(x, y int) map[ecs.ComponentID]interface{} {
 	return map[ecs.ComponentID]interface{}{
-		ecs.POSITION:    ecs.Position{x, y},
-		ecs.DISPLAYABLE: ecs.Displayable{gui.GetSprite(gui.LEAF)},
+		ecs.POSITION:    ecs.Position{X: x, Y: y},
+		ecs.DISPLAYABLE: ecs.Displayable{Sprite: gui.GetSprite(gui.LEAF)},
 		ecs.MEMORABLE:   ecs.Memorable{},
 	}
 }
 
 func floor(x, y int, sprite gui.Sprite) map[ecs.ComponentID]interface{} {
 	return map[ecs.ComponentID]interface{}{
-		ecs.POSITION:    ecs.Position{x, y},
-		ecs.DISPLAYABLE: ecs.Displayable{sprite},
+		ecs.POSITION:    ecs.Position{X: x, Y: y},
+		ecs.DISPLAYABLE: ecs.Displayable{Sprite: sprite},
 		ecs.MEMORABLE:   ecs.Memorable{},
 	}
 }
 
 func wall(x, y int, sprite gui.Sprite) map[ecs.ComponentID]interface{} {
 	return map[ecs.ComponentID]interface{}{
-		ecs.POSITION:    ecs.Position{x, y},
-		ecs.DISPLAYABLE: ecs.Displayable{sprite},
+		ecs.POSITION:    ecs.Position{X: x, Y: y},
+		ecs.DISPLAYABLE: ecs.Displayable{Sprite: sprite},
 		ecs.MEMORABLE:   ecs.Memorable{},
 		ecs.VOLUME:      ecs.Volume{},
 		ecs.OPAQUE:      ecs.Opaque{},

@@ -21,7 +21,7 @@ var (
 )
 
 func Setup() {
-	ebiten.SetFullscreen(false)
+	ebiten.SetWindowResizable(true)
 	loadSprites()
 }
 

@@ -11,20 +11,20 @@ func (s *VisionHandler) handleEvent(m *Manager, event Event) (returnEvents []Eve
 
 		for entity := range entities {
 			visionData, hasVision := m.getComponent(entity, VISION)
-			awarnessData, hasAwarness := m.getComponent(entity, ENTITY_AWARENESS)
+			awarenessData, hasAwarness := m.getComponent(entity, ENTITY_AWARENESS)
 			positionData, hasPosition := m.getComponent(entity, POSITION)
 
 			if hasVision && hasAwarness && hasPosition {
 				visionComponent := visionData.(Vision)
-				awarnessComponent := awarnessData.(EntityAwarness)
+				awarenessComponent := awarenessData.(EntityAwareness)
 				positionComponent := positionData.(Position)
 
-				// clear old awarness first
-				awarnessComponent.AwareOf = PositionLookup{}
+				// clear old awareness first
+				awarenessComponent.AwareOf = PositionLookup{}
 
-				updateAwareOf(m, positionComponent, visionComponent, awarnessComponent.AwareOf)
+				updateAwareOf(m, positionComponent, visionComponent, awarenessComponent.AwareOf)
 
-				m.setComponent(entity, ENTITY_AWARENESS, awarnessComponent)
+				m.setComponent(entity, ENTITY_AWARENESS, awarenessComponent)
 			}
 		}
 	}
@@ -51,7 +51,7 @@ func getOctantBounds(radius int) []int {
 	// circleX := displayRadius
 	// circleY := 0
 
-	// // Initialising the value of P
+	// // Initializing the value of P
 	// P := 1 - displayRadius
 	// for circleX > circleY {
 	// 	//circle math
@@ -77,7 +77,7 @@ func getOctantBounds(radius int) []int {
 
 	circleX := radius
 	circleY := 0
-	// Initialising the value of P
+	// Initializing the value of P
 	P := 1 - radius
 
 	bounds = append(bounds, circleX)
@@ -102,7 +102,7 @@ func getOctantBounds(radius int) []int {
 }
 
 func updateOctant(m *Manager, position Position, vision Vision, awareOf PositionLookup, octant int) {
-	// first create bouds of octant
+	// first create bounds of octant
 	bounds := getOctantBounds(vision.Radius)
 
 	line := ShadowLine{}

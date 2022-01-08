@@ -7,7 +7,7 @@ import (
 // we currently assume cave opening at width/2
 func addSea(ecsManager *ecs.Manager, mask [][]bool, biomeMask [][]BiomeType) {
 
-	waterBiomeMask := betBoolMaskFromBiomeMask(biomeMask, WATER)
+	waterBiomeMask := getBoolMaskFromBiomeMask(biomeMask, WATER)
 
 	for x := 0; x < len(waterBiomeMask); x++ {
 		for y := 0; y < len(waterBiomeMask[x]); y++ {

@@ -9,7 +9,7 @@ import (
 // we currently assume cave opening at width/2
 func addBeach(ecsManager *ecs.Manager, mask [][]bool, biomeMask [][]BiomeType) {
 
-	beachBiomeMask := betBoolMaskFromBiomeMask(biomeMask, BEACH)
+	beachBiomeMask := getBoolMaskFromBiomeMask(biomeMask, BEACH)
 
 	//tree likelyhood
 	treeChance := 100

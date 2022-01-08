@@ -1,6 +1,8 @@
 package contentGeneration
 
 import (
+	"math/rand"
+
 	"github.com/jasonfantl/rogue/ecs"
 	"github.com/jasonfantl/rogue/gui"
 )
@@ -11,55 +13,12 @@ func GenerateGame(ecsManager *ecs.Manager, width, height int) {
 	for x := 0; x < width; x++ {
 		mask[x] = make([]bool, height)
 		for y := 0; y < height; y++ {
-			mask[x][y] = false
+			mask[x][y] = true
 		}
 	}
 
-	island := generateIslandHeightmap(width, height, 100)
-	biomes := biomesMask(island, []BiomeType{FOREST})
-
-	addTowns(ecsManager, mask, island, biomes)
-
-	// for x := 0; x < width; x++ {
-	// 	for y := 0; y < height; y++ {
-	// 		symbol := " "
-	// 		if mask[x][y] {
-	// 			symbol = "@"
-	// 		} else if island[x][y] > 44 {
-	// 			symbol = "."
-	// 		}
-	// 		fmt.Printf(symbol)
-	// 	}
-	// 	fmt.Printf("\n")
-	// }
-
-	addSea(ecsManager, mask, biomes)
-	addBeach(ecsManager, mask, biomes)
-
-	addCaves(ecsManager, mask, biomes)
-	addForest(ecsManager, mask, biomes)
-
-	// // then add cave entities
-	// itemCount := width + height
-	// for itemCount > 0 {
-	// 	x := rand.Intn(width)
-	// 	y := rand.Intn(height)
-	// 	if tiles[x][y] {
-	// 		r := rand.Intn(5)
-	// 		if r == 0 {
-	// 			addTreasure(ecsManager, x, y)
-	// 		} else if r == 1 {
-	// 			addMonster(ecsManager, x, y)
-	// 		} else if r == 2 {
-	// 			addPotion(ecsManager, x, y)
-	// 		} else if r == 3 {
-	// 			addWeapon(ecsManager, x, y)
-	// 		} else {
-	// 			addArmor(ecsManager, x, y)
-	// 		}
-	// 		itemCount--
-	// 	}
-	// }
+	generateBasic(ecsManager, mask, width, height/2)
+	addCaves(ecsManager, mask)
 
 	addPlayer(ecsManager, ecsManager, width/2, height/2)
 	addWeapon(ecsManager, width/2+1, height/2)
@@ -67,27 +26,26 @@ func GenerateGame(ecsManager *ecs.Manager, width, height int) {
 
 func addTreasure(ecsManager *ecs.Manager, x, y int) {
 	treasure := map[ecs.ComponentID]interface{}{
-		ecs.POSITION:  ecs.Position{x, y},
+		ecs.POSITION:  ecs.Position{X: x, Y: y},
 		ecs.STASHABLE: ecs.Stashable{},
 	}
 
-	// treasureInfos := []map[ecs.ComponentID]interface{}{
-	// 	{
-	// 		{ecs.INFORMATION, ecs.Information{"gold coin", "scratched, but still usable"}},
-	// 		{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.GOLD_COIN)}},
-	// 	},
-	// 	{
-	// 		{ecs.INFORMATION, ecs.Information{"gem", "red and uncut"}},
-	// 		{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.GEM)}},
-	// 	},
-	// 	{
-	// 		{ecs.INFORMATION, ecs.Information{"silver coin", "might buy you a mug"}},
-	// 		{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.SILVER_COIN)}},
-	// 	},
-	// }
-	// treasureInfo := treasureInfos[rand.Intn(len(treasureInfos))]
+	treasureInfos := []map[ecs.ComponentID]interface{}{
+		{
+			ecs.INFORMATION: ecs.Information{Name: "gold coin", Details: "scratched, but still usable"},
+			ecs.DISPLAYABLE: ecs.Displayable{Sprite: gui.GetSprite(gui.GOLD_COIN)},
+		},
+		{
+			ecs.INFORMATION: ecs.Information{Name: "gem", Details: "red and uncut"},
+			ecs.DISPLAYABLE: ecs.Displayable{Sprite: gui.GetSprite(gui.GEM)},
+		},
+		{
+			ecs.INFORMATION: ecs.Information{Name: "silver coin", Details: "might buy you a mug"},
+			ecs.DISPLAYABLE: ecs.Displayable{Sprite: gui.GetSprite(gui.SILVER_COIN)},
+		},
+	}
 
-	// treasure = append(treasure, treasureInfo...)
+	addRandom(treasure, treasureInfos)
 
 	ecsManager.AddEntity(treasure)
 }
@@ -95,27 +53,25 @@ func addTreasure(ecsManager *ecs.Manager, x, y int) {
 func addWeapon(ecsManager *ecs.Manager, x, y int) {
 
 	weapon := map[ecs.ComponentID]interface{}{
-		ecs.POSITION:   ecs.Position{x, y},
+		ecs.POSITION:   ecs.Position{X: x, Y: y},
 		ecs.STASHABLE:  ecs.Stashable{},
 		ecs.PROJECTILE: ecs.Projectile{},
 	}
 
-	// weaponInfos := []map[ecs.ComponentID]interface{}{
-	// 	{
-	// 		{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.SWORD)}},
-	// 		{ecs.INFORMATION, ecs.Information{"sword", "rusted"}},
-	// 		{ecs.DAMAGE, ecs.Damage{16}},
-	// 	},
-	// 	{
-	// 		{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.STICK)}},
-	// 		{ecs.INFORMATION, ecs.Information{"stick", "primative, but better then nothing"}},
-	// 		{ecs.DAMAGE, ecs.Damage{8}},
-	// 	},
-	// }
+	weaponInfos := []map[ecs.ComponentID]interface{}{
+		{
+			ecs.DISPLAYABLE: ecs.Displayable{Sprite: gui.GetSprite(gui.SWORD)},
+			ecs.INFORMATION: ecs.Information{Name: "sword", Details: "rusted"},
+			ecs.DAMAGE:      ecs.Damage{Amount: 16},
+		},
+		{
+			ecs.DISPLAYABLE: ecs.Displayable{Sprite: gui.GetSprite(gui.STICK)},
+			ecs.INFORMATION: ecs.Information{Name: "stick", Details: "primitive, but better then nothing"},
+			ecs.DAMAGE:      ecs.Damage{Amount: 8},
+		},
+	}
 
-	// weaponInfo := weaponInfos[rand.Intn(len(weaponInfos))]
-
-	// weapon = append(weapon, weaponInfo...)
+	addRandom(weapon, weaponInfos)
 
 	ecsManager.AddEntity(weapon)
 }
@@ -123,26 +79,24 @@ func addWeapon(ecsManager *ecs.Manager, x, y int) {
 func addArmor(ecsManager *ecs.Manager, x, y int) {
 
 	armor := map[ecs.ComponentID]interface{}{
-		ecs.POSITION:  ecs.Position{x, y},
+		ecs.POSITION:  ecs.Position{X: x, Y: y},
 		ecs.STASHABLE: ecs.Stashable{},
 	}
 
-	// armorInfos := []map[ecs.ComponentID]interface{}{
-	// 	{
-	// 		{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.LEATHER_ARMOR)}},
-	// 		{ecs.INFORMATION, ecs.Information{"Leather armor", "sturdy and well worn"}},
-	// 		{ecs.DAMAGE_RESISTANCE, ecs.DamageResistance{5}},
-	// 	},
-	// 	{
-	// 		{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.METAL_ARMOR)}},
-	// 		{ecs.INFORMATION, ecs.Information{"Metal plate", "shiny, dented"}},
-	// 		{ecs.DAMAGE_RESISTANCE, ecs.DamageResistance{10}},
-	// 	},
-	// }
+	armorInfos := []map[ecs.ComponentID]interface{}{
+		{
+			ecs.DISPLAYABLE:       ecs.Displayable{Sprite: gui.GetSprite(gui.LEATHER_ARMOR)},
+			ecs.INFORMATION:       ecs.Information{Name: "Leather armor", Details: "sturdy and well worn"},
+			ecs.DAMAGE_RESISTANCE: ecs.DamageResistance{Amount: 5},
+		},
+		{
+			ecs.DISPLAYABLE:       ecs.Displayable{Sprite: gui.GetSprite(gui.METAL_ARMOR)},
+			ecs.INFORMATION:       ecs.Information{Name: "Metal plate", Details: "shiny, dented"},
+			ecs.DAMAGE_RESISTANCE: ecs.DamageResistance{Amount: 10},
+		},
+	}
 
-	// weaponInfo := armorInfos[rand.Intn(len(armorInfos))]
-
-	// armor = append(armor, weaponInfo...)
+	addRandom(armor, armorInfos)
 
 	ecsManager.AddEntity(armor)
 }
@@ -150,72 +104,70 @@ func addArmor(ecsManager *ecs.Manager, x, y int) {
 func addPotion(ecsManager *ecs.Manager, x, y int) {
 
 	potion := map[ecs.ComponentID]interface{}{
-		ecs.POSITION:    ecs.Position{x, y},
+		ecs.POSITION:    ecs.Position{X: x, Y: y},
 		ecs.STASHABLE:   ecs.Stashable{},
-		ecs.DISPLAYABLE: ecs.Displayable{gui.GetSprite(gui.POTION)},
+		ecs.DISPLAYABLE: ecs.Displayable{Sprite: gui.GetSprite(gui.POTION)},
 		ecs.CONSUMABLE:  ecs.Consumable{},
 	}
 
-	// potionInfos := []map[ecs.ComponentID]interface{}{
-	// 	{
-	// 		ecs.INFORMATION: ecs.Information{"Potion", "glowing red"},
-	// 		ecs.REACTIONS: ecs.Reactions{[]ecs.Reaction{
-	// 			ecs.Reaction{
-	// 				ecs.CONSUMED,
-	// 				ecs.HealReaction{10},
-	// 			},
-	// 		}},
-	// 	},
-	// 	{
-	// 		ecs.INFORMATION: ecs.Information{"Potion", "dark blue, hard to see"},
-	// 		ecs.REACTIONS: ecs.Reactions{[]ecs.Reaction{
-	// 			ecs.Reaction{
-	// 				ecs.CONSUMED,
-	// 				&ecs.VisionIncreaseReaction{2},
-	// 			},
-	// 		}},
-	// 	},
-	// 	{
-	// 		ecs.INFORMATION: ecs.Information{"Potion", "green, viscious"},
-	// 		ecs.REACTIONS: ecs.Reactions{[]ecs.Reaction{
-	// 			ecs.Reaction{
-	// 				ecs.CONSUMED,
-	// 				ecs.StrengthIncreaseReaction{1},
-	// 			},
-	// 		}},
-	// 	},
-	// }
+	potionInfos := []map[ecs.ComponentID]interface{}{
+		{
+			ecs.INFORMATION: ecs.Information{Name: "Potion", Details: "glowing red"},
+			ecs.REACTIONS: ecs.Reactions{Reactions: []ecs.Reaction{
+				{
+					ReactionType: ecs.CONSUMED,
+					Reaction:     ecs.HealReaction{Amount: 10},
+				},
+			}},
+		},
+		{
+			ecs.INFORMATION: ecs.Information{Name: "Potion", Details: "dark blue, hard to see"},
+			ecs.REACTIONS: ecs.Reactions{Reactions: []ecs.Reaction{
+				{
+					ReactionType: ecs.CONSUMED,
+					Reaction:     &ecs.VisionIncreaseReaction{Amount: 2},
+				},
+			}},
+		},
+		{
+			ecs.INFORMATION: ecs.Information{Name: "Potion", Details: "green, viscous"},
+			ecs.REACTIONS: ecs.Reactions{Reactions: []ecs.Reaction{
+				{
+					ReactionType: ecs.CONSUMED,
+					Reaction:     ecs.StrengthIncreaseReaction{Amount: 1},
+				},
+			}},
+		},
+	}
 
-	// potionInfo := potionInfos[rand.Intn(len(potionInfos))]
-
-	// potion = append(potion, potionInfo...)
+	addRandom(potion, potionInfos)
 
 	ecsManager.AddEntity(potion)
 }
 
-// how to seperate lock and key pair?
+// how to separate lock and key pair?
 func addDoor(ecsManager *ecs.Manager, mask [][]bool, x, y int) {
 
 	key := map[ecs.ComponentID]interface{}{
-		ecs.POSITION:    ecs.Position{x + 1, y},
-		ecs.DISPLAYABLE: ecs.Displayable{gui.GetSprite(gui.KEY)},
+		ecs.POSITION:    ecs.Position{X: x + 1, Y: y},
+		ecs.DISPLAYABLE: ecs.Displayable{Sprite: gui.GetSprite(gui.KEY)},
 		ecs.STASHABLE:   ecs.Stashable{},
 	}
 
 	keyEntity := addEntity(ecsManager, mask, true, false, x, y, key)
 
-	// locked compoentn isnt great, have to add compoennt twce if inversed
+	// locked component isn't great, have to add component twice if inverted
 	door := map[ecs.ComponentID]interface{}{
-		ecs.POSITION: ecs.Position{x, y},
+		ecs.POSITION: ecs.Position{X: x, Y: y},
 		ecs.LOCKABLE: ecs.Lockable{
-			keyEntity,
-			true,
-			[]ecs.Component{
-				{ecs.VOLUME, ecs.Volume{}},
-				{ecs.OPAQUE, ecs.Opaque{}},
-				{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.CLOSED_DOOR)}}},
-			[]ecs.Component{
-				{ecs.DISPLAYABLE, ecs.Displayable{gui.GetSprite(gui.OPEN_DOOR)}}},
+			Key:    keyEntity,
+			Locked: true,
+			LockedComponents: []ecs.Component{
+				{ID: ecs.VOLUME, Data: ecs.Volume{}},
+				{ID: ecs.OPAQUE, Data: ecs.Opaque{}},
+				{ID: ecs.DISPLAYABLE, Data: ecs.Displayable{Sprite: gui.GetSprite(gui.CLOSED_DOOR)}}},
+			UnlockedComponents: []ecs.Component{
+				{ID: ecs.DISPLAYABLE, Data: ecs.Displayable{Sprite: gui.GetSprite(gui.OPEN_DOOR)}}},
 		},
 	}
 
@@ -226,11 +178,18 @@ func addDoor(ecsManager *ecs.Manager, mask [][]bool, x, y int) {
 func addEntity(ecsManager *ecs.Manager, mask [][]bool, ignoreMask, effectMask bool, x, y int, entity map[ecs.ComponentID]interface{}) ecs.Entity {
 	if x >= 0 && x < len(mask) {
 		if y >= 0 && y < len(mask[x]) {
-			if ignoreMask || !mask[x][y] {
-				mask[x][y] = mask[x][y] || effectMask
+			if ignoreMask || mask[x][y] {
+				mask[x][y] = mask[x][y] && !effectMask
 				return ecsManager.AddEntity(entity)
 			}
 		}
 	}
 	return 0
+}
+
+func addRandom(entity map[ecs.ComponentID]interface{}, componentsList []map[ecs.ComponentID]interface{}) {
+	components := componentsList[rand.Intn(len(componentsList))]
+	for key, val := range components {
+		entity[key] = val
+	}
 }

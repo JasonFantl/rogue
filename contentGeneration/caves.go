@@ -6,21 +6,43 @@ import (
 	"github.com/jasonfantl/rogue/ecs"
 )
 
-func addCaves(ecsManager *ecs.Manager, mask [][]bool, biomeMask [][]BiomeType) {
+func addCaves(ecsManager *ecs.Manager, mask [][]bool) {
 
-	caveBiomeMask := betBoolMaskFromBiomeMask(biomeMask, MOUNTAIN)
+	caveMask := generateCaveMask(mask)
 
-	caveMask := generateCaveMask(caveBiomeMask)
-
-	for x := 0; x < len(mask); x++ {
-		for y := 0; y < len(mask[x]); y++ {
-			if caveBiomeMask[x][y] {
+	width := len(mask)
+	height := len(mask[0])
+	for x := 0; x < width; x++ {
+		for y := 0; y < height; y++ {
+			if mask[x][y] {
 				if !caveMask[x][y] {
 					addEntity(ecsManager, mask, false, true, x, y, stoneWall(x, y))
 				} else {
 					addEntity(ecsManager, mask, false, true, x, y, stoneFloor(x, y))
 				}
 			}
+		}
+	}
+
+	// then add cave entities
+	itemCount := width + height
+	for itemCount > 0 {
+		x := rand.Intn(width)
+		y := rand.Intn(height)
+		if caveMask[x][y] {
+			r := rand.Intn(5)
+			if r == 0 {
+				addTreasure(ecsManager, x, y)
+			} else if r == 1 {
+				addMonster(ecsManager, x, y)
+			} else if r == 2 {
+				addPotion(ecsManager, x, y)
+			} else if r == 3 {
+				addWeapon(ecsManager, x, y)
+			} else {
+				addArmor(ecsManager, x, y)
+			}
+			itemCount--
 		}
 	}
 }
