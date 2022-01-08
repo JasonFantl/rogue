@@ -13,7 +13,7 @@ func addPlayer(ecsManager *ecs.Manager, m *ecs.Manager, x, y int) {
 		ecs.DISPLAYABLE:      ecs.Displayable{Sprite: gui.GetSprite(gui.PLAYER)},
 		ecs.ENTITY_AWARENESS: ecs.EntityAwareness{},
 		ecs.ENTITY_MEMORY:    ecs.EntityMemory{},
-		ecs.VISION:           ecs.Vision{Radius: 10},
+		ecs.VISION:           ecs.Vision{Radius: 12},
 		ecs.INVENTORY:        ecs.Inventory{},
 		ecs.INFORMATION:      ecs.Information{Name: "Player", Details: "the hero of our story"},
 		ecs.VOLUME:           ecs.Volume{},

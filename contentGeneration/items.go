@@ -20,7 +20,7 @@ func GenerateGame(ecsManager *ecs.Manager, width, height int) {
 	generateBasic(ecsManager, mask, width, height/2)
 	addCaves(ecsManager, mask)
 
-	addPlayer(ecsManager, ecsManager, width/2, height/2)
+	addPlayer(ecsManager, ecsManager, width/2, height/2-10)
 	addWeapon(ecsManager, width/2+1, height/2)
 }
 

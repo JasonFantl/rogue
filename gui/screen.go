@@ -40,7 +40,7 @@ func DrawTextUncentered(x, y int, inText string) {
 }
 
 func Debug(text string) {
-	return
+	// return
 	ebitenutil.DebugPrint(screen, text)
 }
 

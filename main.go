@@ -50,19 +50,19 @@ func (g *Game) Start() {
 	g.ecsManager.AddEventHandler(&ecs.InventoryHandler{})
 	g.ecsManager.AddEventHandler(&ecs.TradeHandler{})
 	// inventory before death, otherwise we cant drop all of its items
-	// should place handler that deletes items very carefully, proabably here at the end
+	// should place handler that deletes items very carefully, probably here at the end
 	g.ecsManager.AddEventHandler(&ecs.ConsumptionHandler{})
 	g.ecsManager.AddEventHandler(&ecs.DeathHandler{})
 
 	// display stuff, all happens on the same event, no queue
-	// vision updates awarness
+	// vision updates awareness
 	// awareness updates memory
 	g.ecsManager.AddEventHandler(&ecs.VisionHandler{})
 	g.ecsManager.AddEventHandler(&ecs.MemoryHandler{})
 	g.ecsManager.AddEventHandler(&ecs.DisplayHandler{})
 	g.ecsManager.AddEventHandler(&ecs.EventPrinterHandler{})
 
-	contentGeneration.GenerateGame(&g.ecsManager, 100, 100)
+	contentGeneration.GenerateGame(&g.ecsManager, 200, 200)
 
 	g.ecsManager.Start()
 
